@@ -80,7 +80,7 @@ RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip ins
 RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install git+https://github.com/aaronkujawa/MONAI.git@rano
 RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651
 RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install pyyaml==6.0.2
-
+RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install antspyx==0.5.4
 
 # set home directory
 ENV HOME /home/researcher

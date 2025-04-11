@@ -1,5 +1,5 @@
 #!/bin/bash
-pip install torch torchvision  # https://pytorch.org/get-started/locally/
+pip install
 
 pip install -r requirements.txt
 

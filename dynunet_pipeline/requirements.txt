@@ -1,6 +1,10 @@
+torch # https://pytorch.org/get-started/locally/
+torchvision  # https://pytorch.org/get-started/locally/
 tensorboard
 pytorch-ignite
 nibabel
 tqdm
+antspyx==0.5.4
 git+https://github.com/aaronkujawa/MONAI.git@rano
 git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651
+
