@@ -1,0 +1,6 @@
+tensorboard
+pytorch-ignite
+nibabel
+tqdm
+git+https://github.com/aaronkujawa/MONAI.git@rano
+git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651

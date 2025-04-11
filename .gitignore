@@ -1,0 +1,16 @@
+docs/build/doctrees
+.idea/
+*__pycache__/
+
+JOSS_submission/
+
+RANO/Resources/Reports/
+RANO/Testing/
+RANO/timepoint1/
+RANO/timepoint2/
+
+dynunet_pipeline/data/tasks/
+dynunet_pipeline/scripts/
+dynunet_pipeline/tools/
+
+input_data/

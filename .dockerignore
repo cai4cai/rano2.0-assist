@@ -1,0 +1,5 @@
+**/docker/Dockerfile
+**/docker/docker_build.sh
+**/docker/docker_run.sh
+**/docker/README.md
+input_data/

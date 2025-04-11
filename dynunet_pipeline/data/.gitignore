@@ -1,0 +1,4 @@
+tasks/task*/input
+tasks/task*/results
+tasks/task*/models
+logs/

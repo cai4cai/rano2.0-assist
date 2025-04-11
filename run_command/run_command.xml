@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Tools</category>
+  <index>0</index>
+  <title>run_command</title>
+  <description><![CDATA[run a command outside 3D slicer in the background and update progress bar]]></description>
+  <version>0.1.0.</version>
+  <documentation-url>https://github.com/username/project</documentation-url>
+  <license/>
+  <contributor>Andras Lasso (PerkLab)</contributor>
+  <acknowledgements><![CDATA[This work was funded by Medtronic]]></acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <string>
+      <name>command</name>
+      <label>Command</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>This command will run in the background</description>
+    </string>
+  </parameters>
+</executable>
