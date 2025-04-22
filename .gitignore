@@ -14,3 +14,6 @@ dynunet_pipeline/scripts/
 dynunet_pipeline/tools/
 
 input_data/
+
+docs/build
+docs/html
