@@ -1,28 +1,38 @@
 # docker instructions
 
+## Requirements
+[RANO](../RANO)
+#### [1. nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+The NVIDIA Container Toolkit is a collection of libraries and utilities enabling users to build and run GPU-accelerated containers.
+
+After installing nvidia-container-toolkit, restart the Docker daemon, for example use:
+
+    sudo systemctl restart docker
+
+#### [2. Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/)
+Alternatively, modify the following docker scripts such that they run docker with `sudo`.
+
+
 ## docker build
+Make sure the docker_build.sh script can be executed:
 
-Run the following command from the directory above the 'slicerrano' directory to build the docker image:
+    chmod +x docker_build.sh
 
-    docker build -f rano2.0-assist/RANO/docker/Dockerfile -t slicerrano .
+Run the docker_build.sh script.
+
+    ./docker_build.sh
 
 ## docker run
 
-    docker run --rm -it \
-    -e DISPLAY=$DISPLAY \
-    --gpus all \
-    --ipc=host \
-    --ulimit memlock=-1 \
-    --ulimit stack=67108864 \
-    -v /tmp/.X11-unix:/tmp/.X11-unix \  
-    -v ${INPUT_DIR}:/home/researcher/rano2.0-assist/input_data \
-    -v ${REPORTS_DIR}:/home/researcher/rano2.0-assist/RANO/Resources/Reports \
-    --user $(UID):$(GID) \
-    slicerrano
+Modify the paths at the beginning of the `docker_run.sh` script.
 
-- `INPUT_DIR` is the path to the directory containing the input data on the host machine.
-- `REPORTS_DIR` is the path to the directory where the reports will be saved on the host machine. Make sure this 
-directory exists before running the command and is writable by the user specified in the `--user` flag.
-- `$(UID)` and `$(GID)` are the user ID and group ID of the current user, respectively. This ensures that the files created 
-inside the container are owned by the current user on the host machine. You can find your UID and GID by running
-`id -u` and `id -g` in the terminal.
+    INPUT_DIR=...  # path to the directory containing the input data on the host machine.
+    REPORTS_DIR=...  # is the path to the directory where the reports will be saved on the host machine. Make sure this directory exists before running the command and is writable by the user specified in the `--user` flag.
+
+Make sure the docker_run.sh script can be executed:
+
+    chmod +x docker_run.sh
+
+Run the docker_runs.sh script.
+
+    ./docker_run.sh
