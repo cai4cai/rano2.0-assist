@@ -89,11 +89,22 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         VTKObservationMixin.__init__(self)  # needed for parameter node observation
 
         self.ui = None
-        self.volumes = []
+        """The UI elements of the module. This is a dictionary containing all the widgets in the module."""
+
         self.logic = None
+        """The logic class of the module. This class implements all computations that should be possible to run
+        in batch mode, without a graphical user interface."""
+
         self._parameterNode = None
+        """The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
+        so that when the scene is saved and reloaded, these settings are restored."""
+
         self._updatingGUIFromParameterNode = False
-        self.lineNodePairs = LineNodePairList()  # stores the line node pairs for the 2D measurements
+        """ Flag to indicate if the GUI is being updated from the parameter node. This is used to prevent infinite loops
+        when the parameter node is changed by a script or any other module. """
+
+        self.lineNodePairs = LineNodePairList()
+        """List of line node pairs used for 2D measurements."""
 
         SegmentationMixin.__init__(self, self._parameterNode, self.ui)
         UIHelperMixin.__init__(self, self._parameterNode, self.ui)
@@ -195,6 +206,10 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
     def onSceneStartClose(self, caller, event):
         """
         Called just before the scene is closed.
+
+        Args:
+            caller: The object that triggered the event.
+            event: The event that occurred.
         """
         # Parameter node will be reset, do not use it anymore
         self.setParameterNode(None)
@@ -202,6 +217,10 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
     def onSceneEndClose(self, caller, event):
         """
         Called just after the scene is closed.
+
+        Args:
+            caller: The object that triggered the event.
+            event: The event that occurred.
         """
         # If this module is shown while the scene is closed then recreate a new parameter node immediately
         if self.parent.isEntered:
@@ -214,13 +233,16 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         # Parameter node stores all user choices in parameter values, node selections, etc.
         # so that when the scene is saved and reloaded, these settings are restored.
         self.setParameterNode(self.logic.getParameterNode())
-        #self.setOtherParameterNodeParameters(self._parameterNode)  # set parameters even if default parameters already set
+        #self.setOtherParameterNodeParameters(self._parameterNode)  # set parameters even if default parameters already set  # TODO: remove this line if not needed
 
 
     def setParameterNode(self, inputParameterNode):
         """
         Set and observe parameter node.
         Observation is needed because when the parameter node is changed then the GUI must be updated immediately.
+
+        Args:
+            inputParameterNode: The parameter node to set.
         """
 
         if inputParameterNode:
@@ -244,6 +266,9 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
     # def setOtherParameterNodeParameters(parameterNode):
     #     """
     #     This method is run each time the parameter node is set, even if default parameters are already set.
+    #
+    #     Args:
+    #         parameterNode: The parameter node to set.
     #     """
     #
     #     # Select channel 1 as input node if nothing is selected yet to save a few user clicks
@@ -262,6 +287,10 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         The module GUI is updated to show the current state of the parameter node.
         From slicer python interface, you can access the variables like this:
         slicer.modules.RANOWidget.ui.radius_spinbox
+
+        Args:
+            caller: The object that triggered the event.
+            event: The event that occurred.
         """
         if debug: print("updateGUIFromParameterNode")
 
@@ -354,6 +383,10 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         """
         This method is called when the user makes any change in the GUI.
         The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).
+
+        Args:
+            caller: The object that triggered the event.
+            event: The event that occurred.
         """
         if debug: print("updateParameterNodeFromGUI")
         if self._parameterNode is None or self._updatingGUIFromParameterNode:

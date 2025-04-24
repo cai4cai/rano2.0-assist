@@ -8,10 +8,8 @@ import os
 
 from DICOMLib import DICOMUtils
 from utils import measurements2D_utils
-from utils.enums import response_description_detailed, Response, tumorComponentsForEval_description, TumorComponentsForEval, \
-    refScanRole_description, RefScanRole, currScanRole_description, CurrScanRole, nonTargetOrNonMeasLes_description, \
-    NonTargetOrNonMeasLes, clinicalStatus_description, ClinicalStatus, steroidDose_description, SteroidDose, \
-    overallResponse_description, OverallResponse
+from utils.enums import (Response, TumorComponentsForEval, RefScanRole, CurrScanRole, NonTargetOrNonMeasLes,
+                         ClinicalStatus, SteroidDose, OverallResponse)
 import utils.segmentation_utils as segmentation_utils
 import utils.response_classification_utils as response_classification_utils
 from utils.config import debug, module_path
@@ -384,7 +382,7 @@ class UIHelperMixin:
 
         # clear any previous items
         self.ui.responseStatusComboBox.clear()
-        response_enum_values = [response_description_detailed[response] for response in Response]
+        response_enum_values = [response.description_detailed() for response in Response]
         self.ui.responseStatusComboBox.addItems(response_enum_values)
         # connect the response status combo box
         self.ui.responseStatusComboBox.connect("currentIndexChanged(const QString &)", onUpdateOverallResponseParams)
@@ -406,7 +404,7 @@ class UIHelperMixin:
 
         ###
         self.ui.ceOrNonCeComboBox.clear()
-        tumor_components_for_eval_enum_values = [tumorComponentsForEval_description[tumor_component] for tumor_component in
+        tumor_components_for_eval_enum_values = [tumor_component.description() for tumor_component in
                                                  TumorComponentsForEval]
         self.ui.ceOrNonCeComboBox.addItems(tumor_components_for_eval_enum_values)
         self.ui.ceOrNonCeComboBox.connect("currentIndexChanged(const QString &)", onUpdateOverallResponseStatus)
@@ -414,21 +412,21 @@ class UIHelperMixin:
 
         ###
         self.ui.referenceScanComboBox.clear()
-        ref_scan_role_enum_values = [refScanRole_description[ref_scan_role] for ref_scan_role in RefScanRole]
+        ref_scan_role_enum_values = [ref_scan_role.description() for ref_scan_role in RefScanRole]
         self.ui.referenceScanComboBox.addItems(ref_scan_role_enum_values)
         self.ui.referenceScanComboBox.connect("currentIndexChanged(const QString &)", onUpdateOverallResponseStatus)
 
 
         ###
         self.ui.currScanComboBox.clear()
-        curr_scan_role_enum_values = [currScanRole_description[curr_scan_role] for curr_scan_role in CurrScanRole]
+        curr_scan_role_enum_values = [curr_scan_role.description() for curr_scan_role in CurrScanRole]
         self.ui.currScanComboBox.addItems(curr_scan_role_enum_values)
         self.ui.currScanComboBox.connect("currentIndexChanged(const QString &)", onUpdateOverallResponseStatus)
 
 
         ###
         self.ui.nonTargetNonMeasComboBox.clear()
-        non_target_or_non_meas_les_enum_values = [nonTargetOrNonMeasLes_description[non_target_or_non_meas_les] for
+        non_target_or_non_meas_les_enum_values = [non_target_or_non_meas_les.description() for
                                                   non_target_or_non_meas_les in NonTargetOrNonMeasLes]
         self.ui.nonTargetNonMeasComboBox.addItems(non_target_or_non_meas_les_enum_values)
         self.ui.nonTargetNonMeasComboBox.connect("currentIndexChanged(const QString &)",
@@ -437,21 +435,21 @@ class UIHelperMixin:
 
         ###
         self.ui.clinicalStatusComboBox.clear()
-        clinical_status_enum_values = [clinicalStatus_description[clinical_status] for clinical_status in ClinicalStatus]
+        clinical_status_enum_values = [clinical_status.description() for clinical_status in ClinicalStatus]
         self.ui.clinicalStatusComboBox.addItems(clinical_status_enum_values)
         self.ui.clinicalStatusComboBox.connect("currentIndexChanged(const QString &)", onUpdateOverallResponseStatus)
 
 
         ###
         self.ui.steroidDoseComboBox.clear()
-        steroid_dose_enum_values = [steroidDose_description[steroidDose] for steroidDose in SteroidDose]
+        steroid_dose_enum_values = [steroidDose.description() for steroidDose in SteroidDose]
         self.ui.steroidDoseComboBox.addItems(steroid_dose_enum_values)
         self.ui.steroidDoseComboBox.connect("currentIndexChanged(const QString &)", onUpdateOverallResponseStatus)
 
 
         ###
         self.ui.overallResponseStatusComboBox.clear()
-        response_assessment_overall_enum_values = [overallResponse_description[overall_response] for overall_response in
+        response_assessment_overall_enum_values = [overall_response.description() for overall_response in
                                                    OverallResponse]
         self.ui.overallResponseStatusComboBox.addItems(response_assessment_overall_enum_values)
         self.ui.overallResponseStatusComboBox.connect("currentIndexChanged(const QString &)",

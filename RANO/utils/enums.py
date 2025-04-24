@@ -1,43 +1,55 @@
+"""
+This module contains enumerations and descriptions for various response types and clinical statuses used in the RANO module.
+"""
 from enum import Enum
 
 
 class Response(Enum):
+    """
+    Enumeration for different response types based only on the target lesions' 2D measurements.
+    """
     CR = 0
     PR = 1
     SD = 2
     PD = 3
 
+    def description(self):
+        return {
+            self.CR: "Complete Response",
+            self.PR: "Partial Response",
+            self.SD: "Stable Disease",
+            self.PD: "Progressive Disease"
+        }[self]
 
-# response description
-response_description = {
-    Response.CR: "Complete Response",
-    Response.PR: "Partial Response",
-    Response.SD: "Stable Disease",
-    Response.PD: "Progressive Disease"
-}
-
-response_description_detailed = {
-    Response.CR: "Complete Response (CR):   100% Decrease",
-    Response.PR: "Partial Response (PR):    >= 50% Decrease",
-    Response.SD: "Stable Disease (SD):      < 50% Decrease to < 25% Increase",
-    Response.PD: "Progressive Disease (PD): >= 25% Increase"
-}
+    def description_detailed(self):
+        return {
+            self.CR: "Complete Response (CR):   100% Decrease",
+            self.PR: "Partial Response (PR):    >= 50% Decrease",
+            self.SD: "Stable Disease (SD):      < 50% Decrease to < 25% Increase",
+            self.PD: "Progressive Disease (PD): >= 25% Increase"
+        }[self]
 
 
 class TumorComponentsForEval(Enum):
+    """
+    Enumeration for different tumor components used for evaluation.
+    """
     CE = 0
     NonCE = 1
     Mixed = 2
 
-
-tumorComponentsForEval_description = {
-    TumorComponentsForEval.CE: "CE",
-    TumorComponentsForEval.NonCE: "Non-CE",
-    TumorComponentsForEval.Mixed: "Mixed",
-}
+    def description(self):
+        return {
+            self.CE: "CE",
+            self.NonCE: "Non-CE",
+            self.Mixed: "Mixed"
+        }[self]
 
 
 class RefScanRole(Enum):
+    """
+    Enumeration for different reference scan roles.
+    """
     CR = 0
     PR = 1
     SD = 2
@@ -45,66 +57,81 @@ class RefScanRole(Enum):
     PPD = 4  # preliminary progressive disease
     Baseline = 5
 
-
-refScanRole_description = {
-    RefScanRole.CR: "Complete Response (CR)",
-    RefScanRole.PR: "Partial Response (PR)",
-    RefScanRole.SD: "Stable Disease (SD)",
-    RefScanRole.PD: "Progressive Disease (PD)",
-    RefScanRole.PPD: "Preliminary Progressive Disease (PPD)",
-    RefScanRole.Baseline: "Baseline"
-}
+    def description(self):
+        return {
+            self.CR: "Complete Response (CR)",
+            self.PR: "Partial Response (PR)",
+            self.SD: "Stable Disease (SD)",
+            self.PD: "Progressive Disease (PD)",
+            self.PPD: "Preliminary Progressive Disease (PPD)",
+            self.Baseline: "Baseline"
+        }[self]
 
 
 class CurrScanRole(Enum):
+    """
+    Enumeration for different current scan roles.
+    """
     CR = 0
     PR = 1
     SD = 2
     PD = 3
 
-
-currScanRole_description = {
-    CurrScanRole.CR: "Complete Response (CR)",
-    CurrScanRole.PR: "Partial Response (PR)",
-    CurrScanRole.SD: "Stable Disease (SD)",
-    CurrScanRole.PD: "Progressive Disease (PD)"
-}
+    def description(self):
+        return {
+            self.CR: "Complete Response (CR)",
+            self.PR: "Partial Response (PR)",
+            self.SD: "Stable Disease (SD)",
+            self.PD: "Progressive Disease (PD)"
+        }[self]
 
 
 class NonTargetOrNonMeasLes(Enum):
+    """
+    Enumeration for assessment of non-target lesions or non-measurable lesions.
+    """
     NoneOrStableOrCR = 0
     Worse = 1
 
-
-nonTargetOrNonMeasLes_description = {
-    NonTargetOrNonMeasLes.NoneOrStableOrCR: "None or Stable or CR",
-    NonTargetOrNonMeasLes.Worse: "Worse"
-}
+    def description(self):
+        return {
+            self.NoneOrStableOrCR: "None or Stable or CR",
+            self.Worse: "Worse"
+        }[self]
 
 
 class ClinicalStatus(Enum):
+    """
+    Enumeration for clinical status of the patient.
+    """
     StableOrImproved = 0
     Worse = 1
 
-
-clinicalStatus_description = {
-    ClinicalStatus.StableOrImproved: "Stable or Improved",
-    ClinicalStatus.Worse: "Worse"
-}
+    def description(self):
+        return {
+            self.StableOrImproved: "Stable or Improved",
+            self.Worse: "Worse"
+        }[self]
 
 
 class SteroidDose(Enum):
+    """
+    Enumeration for steroid dose administered to the patient.
+    """
     No = 0
     Yes = 1
 
-
-steroidDose_description = {
-    SteroidDose.No: "No",
-    SteroidDose.Yes: "Yes"
-}
+    def description(self):
+        return {
+            self.No: "No",
+            self.Yes: "Yes"
+        }[self]
 
 
 class OverallResponse(Enum):
+    """
+    Enumeration for overall response assessment based on all RANO criteria.
+    """
     CR = 0
     PR = 1
     SD = 2
@@ -118,18 +145,18 @@ class OverallResponse(Enum):
     CSD = 10  # confirmed stable disease
     CPD = 11  # confirmed progressive disease
 
-
-overallResponse_description = {
-    OverallResponse.CR: "Complete Response (CR)",
-    OverallResponse.PR: "Partial Response (PR)",
-    OverallResponse.SD: "Stable Disease (SD)",
-    OverallResponse.PD: "Progressive Disease (PD)",
-    OverallResponse.PCR: "Preliminary Complete Response (PCR)",
-    OverallResponse.PPR: "Preliminary Partial Response (PPR)",
-    OverallResponse.PSD: "Preliminary Stable Disease (PSD)",
-    OverallResponse.PPD: "Preliminary Progressive Disease (PPD)",
-    OverallResponse.CCR: "Confirmed Complete Response (CCR)",
-    OverallResponse.CPR: "Confirmed Partial Response (CPR)",
-    OverallResponse.CSD: "Confirmed Stable Disease (CSD)",
-    OverallResponse.CPD: "Confirmed Progressive Disease (CPD)"
-}
+    def description(self):
+        return {
+            self.CR: "Complete Response (CR)",
+            self.PR: "Partial Response (PR)",
+            self.SD: "Stable Disease (SD)",
+            self.PD: "Progressive Disease (PD)",
+            self.PCR: "Preliminary Complete Response (PCR)",
+            self.PPR: "Preliminary Partial Response (PPR)",
+            self.PSD: "Preliminary Stable Disease (PSD)",
+            self.PPD: "Preliminary Progressive Disease (PPD)",
+            self.CCR: "Confirmed Complete Response (CCR)",
+            self.CPR: "Confirmed Partial Response (CPR)",
+            self.CSD: "Confirmed Stable Disease (CSD)",
+            self.CPD: "Confirmed Progressive Disease (CPD)"
+        }[self]
