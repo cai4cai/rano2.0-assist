@@ -28,11 +28,7 @@ extensions = [
     'sphinx.ext.viewcode',  # add links to source code
 ]
 
-
 autoapi_dirs = ['/home/slicer/Projects/rano2.0-assist/RANO', ]
-
-# autosummary_generate = True  # Generate API documentation automatically
-# autosummary_imported_members = True  # Include members of imported modules
 
 myst_enable_extensions = ["colon_fence"]  # For markdown support
 
@@ -48,3 +44,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'show-inheritance': True,
+}
