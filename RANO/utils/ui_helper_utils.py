@@ -105,10 +105,10 @@ class UIHelperMixin:
             inputVolumes_t2 = [dcm_dir_to_node(p) for p in paths_t2]
 
             # set the input volumes
-            slicer.modules.RANOWidget.ui.inputSelector_channel1.setCurrentNode(inputVolumes[0])
-            slicer.modules.RANOWidget.ui.inputSelector_channel2.setCurrentNode(inputVolumes[1])
-            slicer.modules.RANOWidget.ui.inputSelector_channel3.setCurrentNode(inputVolumes[2])
-            slicer.modules.RANOWidget.ui.inputSelector_channel4.setCurrentNode(inputVolumes[3])
+            slicer.modules.RANOWidget.ui.inputSelector_channel1_t1.setCurrentNode(inputVolumes[0])
+            slicer.modules.RANOWidget.ui.inputSelector_channel2_t1.setCurrentNode(inputVolumes[1])
+            slicer.modules.RANOWidget.ui.inputSelector_channel3_t1.setCurrentNode(inputVolumes[2])
+            slicer.modules.RANOWidget.ui.inputSelector_channel4_t1.setCurrentNode(inputVolumes[3])
 
             slicer.modules.RANOWidget.ui.inputSelector_channel1_t2.setCurrentNode(inputVolumes_t2[0])
             slicer.modules.RANOWidget.ui.inputSelector_channel2_t2.setCurrentNode(inputVolumes_t2[1])
@@ -116,7 +116,7 @@ class UIHelperMixin:
             slicer.modules.RANOWidget.ui.inputSelector_channel4_t2.setCurrentNode(inputVolumes_t2[3])
 
             # show the first channel in the views
-            self.onShowChannelButton(checked=False, timepoint='timepoint1', inputSelector=self.ui.inputSelector_channel1)
+            self.onShowChannelButton(checked=False, timepoint='timepoint1', inputSelector=self.ui.inputSelector_channel1_t1)
             self.onShowChannelButton(checked=False, timepoint='timepoint2', inputSelector=self.ui.inputSelector_channel1_t2)
 
             # center all views
@@ -139,10 +139,10 @@ class UIHelperMixin:
 
     def setup_input_box(self):
         # timepoint 1
-        self.ui.inputSelector_channel1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
-        self.ui.inputSelector_channel2.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
-        self.ui.inputSelector_channel3.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
-        self.ui.inputSelector_channel4.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
+        self.ui.inputSelector_channel1_t1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
+        self.ui.inputSelector_channel2_t1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
+        self.ui.inputSelector_channel3_t1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
+        self.ui.inputSelector_channel4_t1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
 
         # timepoint 2
         self.ui.inputSelector_channel1_t2.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
@@ -152,10 +152,10 @@ class UIHelperMixin:
 
         # show channel buttons
         for pushbutton, timepoint, inputSelector in [
-            (self.ui.showChannel1PushButton_t1, 'timepoint1', self.ui.inputSelector_channel1),
-            (self.ui.showChannel2PushButton_t1, 'timepoint1', self.ui.inputSelector_channel2),
-            (self.ui.showChannel3PushButton_t1, 'timepoint1', self.ui.inputSelector_channel3),
-            (self.ui.showChannel4PushButton_t1, 'timepoint1', self.ui.inputSelector_channel4),
+            (self.ui.showChannel1PushButton_t1, 'timepoint1', self.ui.inputSelector_channel1_t1),
+            (self.ui.showChannel2PushButton_t1, 'timepoint1', self.ui.inputSelector_channel2_t1),
+            (self.ui.showChannel3PushButton_t1, 'timepoint1', self.ui.inputSelector_channel3_t1),
+            (self.ui.showChannel4PushButton_t1, 'timepoint1', self.ui.inputSelector_channel4_t1),
             (self.ui.showChannel1PushButton_t2, 'timepoint2', self.ui.inputSelector_channel1_t2),
             (self.ui.showChannel2PushButton_t2, 'timepoint2', self.ui.inputSelector_channel2_t2),
             (self.ui.showChannel3PushButton_t2, 'timepoint2', self.ui.inputSelector_channel3_t2),
@@ -169,11 +169,9 @@ class UIHelperMixin:
 
     def update_ui_input_channel_selectors(self, modalities_path, timepoint):
         if timepoint == 1:
-            postfix = ""
-            postfix_pushbutton = "_t1"
+            postfix = "_t1"
         elif timepoint == 2:
             postfix = "_t2"
-            postfix_pushbutton = "_t2"
         else:
             raise ValueError("timepoint must be 1 or 2")
 
@@ -187,7 +185,7 @@ class UIHelperMixin:
                 self.ui.__getattribute__(f"inputSelector_channel{i + 1}" + postfix).setVisible(vis)
                 self.ui.__getattribute__(f"channel{i + 1}_label" + postfix).setVisible(vis)
                 # also make the push button visible/invisible
-                self.ui.__getattribute__(f"showChannel{i + 1}PushButton" + postfix_pushbutton).setVisible(vis)
+                self.ui.__getattribute__(f"showChannel{i + 1}PushButton" + postfix).setVisible(vis)
 
             # set the channel labels
             for i in range(4):

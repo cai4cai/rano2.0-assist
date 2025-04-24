@@ -565,7 +565,7 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="QLabel" name="channel4_label">
+       <widget class="QLabel" name="channel4_label_t1">
         <property name="text">
          <string>Channel 4:</string>
         </property>
@@ -603,7 +603,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="channel1_label">
+       <widget class="QLabel" name="channel1_label_t1">
         <property name="text">
          <string>Channel 1:</string>
         </property>
@@ -623,7 +623,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="inputSelector_channel1">
+       <widget class="qMRMLNodeComboBox" name="inputSelector_channel1_t1">
         <property name="toolTip">
          <string>Pick the input to the algorithm.</string>
         </property>
@@ -654,7 +654,7 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="qMRMLNodeComboBox" name="inputSelector_channel3">
+       <widget class="qMRMLNodeComboBox" name="inputSelector_channel3_t1">
         <property name="toolTip">
          <string>Pick the input to the algorithm.</string>
         </property>
@@ -807,7 +807,7 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="channel3_label">
+       <widget class="QLabel" name="channel3_label_t1">
         <property name="text">
          <string>Channel 3:</string>
         </property>
@@ -821,14 +821,14 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="channel2_label">
+       <widget class="QLabel" name="channel2_label_t1">
         <property name="text">
          <string>Channel 2:</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="inputSelector_channel2">
+       <widget class="qMRMLNodeComboBox" name="inputSelector_channel2_t1">
         <property name="toolTip">
          <string>Pick the input to the algorithm.</string>
         </property>
@@ -859,7 +859,7 @@
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="qMRMLNodeComboBox" name="inputSelector_channel4">
+       <widget class="qMRMLNodeComboBox" name="inputSelector_channel4_t1">
         <property name="toolTip">
          <string>Pick the input to the algorithm.</string>
         </property>
@@ -3000,7 +3000,7 @@
   <connection>
    <sender>RANO</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>inputSelector_channel4</receiver>
+   <receiver>inputSelector_channel4_t1</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -3048,7 +3048,7 @@
   <connection>
    <sender>RANO</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>inputSelector_channel1</receiver>
+   <receiver>inputSelector_channel1_t1</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -3064,7 +3064,7 @@
   <connection>
    <sender>RANO</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>inputSelector_channel2</receiver>
+   <receiver>inputSelector_channel2_t1</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -3096,7 +3096,7 @@
   <connection>
    <sender>RANO</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>inputSelector_channel3</receiver>
+   <receiver>inputSelector_channel3_t1</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">

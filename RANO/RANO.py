@@ -1,3 +1,11 @@
+"""
+RANO Module
+
+This module is part of a 3D Slicer extension and  provides tools for Response Assessment in Neuro-Oncology (RANO)
+based on the RANO 2.0 guidelines. It includes functionality for segmentation, 2D measurements,
+response classification, and report generation.
+"""
+
 import os
 import sys
 from importlib import reload
@@ -34,13 +42,13 @@ from utils.response_classification_utils import ResponseClassificationMixin
 from utils.report_creation_utils import ReportCreationMixin
 from utils.results_table_utils import ResultsTableMixin
 
-from utils.test_rano import RANOTest
+from utils.test_rano import RANOTest  # tests run in developer mode
 
-#
-# RANO
-#
+
 class RANO(ScriptedLoadableModule):
-    """Uses ScriptedLoadableModule base class, available at:
+    """
+    Required class for 3D Slicer module.
+    Uses ScriptedLoadableModule base class, available at:
     https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
     """
 
@@ -59,16 +67,18 @@ and Steve Pieper, Isomics, Inc. which was partially funded by NIH grant 3P41RR01
 #
 # RANOWidget
 #
-
-
 class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, ResponseClassificationMixin,
                  ReportCreationMixin, ResultsTableMixin,
                  ScriptedLoadableModuleWidget, VTKObservationMixin):  # these two classes have to be last because of the super() calls in their __init__ methods (MRO), otherwise the __init__ parameters are incompatible
     """
+    Required class for 3D Slicer module.
     UI elements can be accessed as follows from the Slicer python console:
-      slicer.modules.RANOWidget.ui
-    for example to access the text of the line edit widget:
-      slicer.modules.RANOWidget.ui.lineEdit.text
+
+      `slicer.modules.RANOWidget.ui`
+
+    For example, to access the text of the line edit widget:
+
+      `slicer.modules.RANOWidget.ui.lineEdit.text`
     """
 
     def __init__(self, parent=None):
@@ -83,7 +93,7 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         self.logic = None
         self._parameterNode = None
         self._updatingGUIFromParameterNode = False
-        self.lineNodePairs = LineNodePairList()
+        self.lineNodePairs = LineNodePairList()  # stores the line node pairs for the 2D measurements
 
         SegmentationMixin.__init__(self, self._parameterNode, self.ui)
         UIHelperMixin.__init__(self, self._parameterNode, self.ui)
@@ -159,7 +169,7 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         self.updateParameterNodeFromGUI()
 
         # center views on first volume
-        self.onShowChannelButton(True, timepoint='timepoint1', inputSelector=self.ui.inputSelector_channel1)
+        self.onShowChannelButton(True, timepoint='timepoint1', inputSelector=self.ui.inputSelector_channel1_t1)
         self.onShowChannelButton(True, timepoint='timepoint2', inputSelector=self.ui.inputSelector_channel1_t2)
 
     def cleanup(self):
@@ -203,17 +213,9 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         """
         # Parameter node stores all user choices in parameter values, node selections, etc.
         # so that when the scene is saved and reloaded, these settings are restored.
-
         self.setParameterNode(self.logic.getParameterNode())
+        #self.setOtherParameterNodeParameters(self._parameterNode)  # set parameters even if default parameters already set
 
-        # Select default input nodes if nothing is selected yet to save a few clicks for the user
-        if not self._parameterNode.GetNodeReference("InputVolume"):
-            firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
-            if firstVolumeNode:
-                self._parameterNode.SetNodeReferenceID("InputVolume", firstVolumeNode.GetID())
-
-        if self._parameterNode.GetParameter("segmentID"):
-            self._parameterNode.SetParameter("segmentID", "")
 
     def setParameterNode(self, inputParameterNode):
         """
@@ -230,12 +232,29 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         # those are reflected immediately in the GUI.
         if self._parameterNode is not None and self.hasObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode):
             self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+
         self._parameterNode = inputParameterNode
         if self._parameterNode is not None:
             self.addObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
 
         # Initial GUI update
         self.updateGUIFromParameterNode()
+
+    # @staticmethod
+    # def setOtherParameterNodeParameters(parameterNode):
+    #     """
+    #     This method is run each time the parameter node is set, even if default parameters are already set.
+    #     """
+    #
+    #     # Select channel 1 as input node if nothing is selected yet to save a few user clicks
+    #     if not parameterNode.GetNodeReference("InputVolume_channel1"):
+    #         firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
+    #         if firstVolumeNode:
+    #             parameterNode.SetNodeReferenceID("InputVolume_channel1", firstVolumeNode.GetID())
+    #
+    #     # No segment should be selected at the beginning
+    #     if parameterNode.GetParameter("segmentID"):
+    #         parameterNode.SetParameter("segmentID", "")
 
     def updateGUIFromParameterNode(self, caller=None, event=None):
         """
@@ -270,17 +289,17 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
 
         # Update node selectors and sliders
         # timepoint 1
-        self.ui.inputSelector_channel1.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume"))
-        self.ui.inputSelector_channel2.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel2"))
-        self.ui.inputSelector_channel3.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel3"))
-        self.ui.inputSelector_channel4.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel4"))
+        self.ui.inputSelector_channel1_t1.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel1_t1"))
+        self.ui.inputSelector_channel2_t1.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel2_t1"))
+        self.ui.inputSelector_channel3_t1.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel3_t1"))
+        self.ui.inputSelector_channel4_t1.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel4_t1"))
 
         self.ui.outputSelector.setCurrentNode(self._parameterNode.GetNodeReference("outputSegmentation"))
         self.ui.affineregCheckBox.checked = (self._parameterNode.GetParameter("AffineReg") == "true")
         self.ui.inputisbetCheckBox.checked = (self._parameterNode.GetParameter("InputIsBET") == "true")
 
         # timepoint 2
-        self.ui.inputSelector_channel1_t2.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_t2"))
+        self.ui.inputSelector_channel1_t2.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel1_t2"))
         self.ui.inputSelector_channel2_t2.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel2_t2"))
         self.ui.inputSelector_channel3_t2.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel3_t2"))
         self.ui.inputSelector_channel4_t2.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume_channel4_t2"))
@@ -312,7 +331,7 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         self.ui.checkBox_same_slc_tp.checked = (self._parameterNode.GetParameter("same_slc_tp") == "true")
 
         # Update buttons states and tooltips
-        if self._parameterNode.GetNodeReference("InputVolume") and self._parameterNode.GetNodeReference(
+        if self._parameterNode.GetNodeReference("InputVolume_channel1_t1") and self._parameterNode.GetNodeReference(
                 "outputSegmentation"):
             self.ui.applyButton.toolTip = "Compute output volume"
             self.ui.applyButton.enabled = True
@@ -345,19 +364,19 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         # timepoint 1
         self._parameterNode.SetParameter("model_key", str(self.ui.modelComboBox.currentText))
 
-        self._parameterNode.SetNodeReferenceID("InputVolume", self.ui.inputSelector_channel1.currentNodeID)
-        self._parameterNode.SetNodeReferenceID("InputVolume_channel2", self.ui.inputSelector_channel2.currentNodeID)
-        self._parameterNode.SetNodeReferenceID("InputVolume_channel3", self.ui.inputSelector_channel3.currentNodeID)
-        self._parameterNode.SetNodeReferenceID("InputVolume_channel4", self.ui.inputSelector_channel4.currentNodeID)
+        self._parameterNode.SetNodeReferenceID("InputVolume_channel1_t1", self.ui.inputSelector_channel1_t1.currentNodeID)
+        self._parameterNode.SetNodeReferenceID("InputVolume_channel2_t1", self.ui.inputSelector_channel2_t1.currentNodeID)
+        self._parameterNode.SetNodeReferenceID("InputVolume_channel3_t1", self.ui.inputSelector_channel3_t1.currentNodeID)
+        self._parameterNode.SetNodeReferenceID("InputVolume_channel4_t1", self.ui.inputSelector_channel4_t1.currentNodeID)
 
         self._parameterNode.SetNodeReferenceID("outputSegmentation", self.ui.outputSelector.currentNodeID)
         self._parameterNode.SetParameter("AffineReg", "true" if self.ui.affineregCheckBox.checked else "false")
         self._parameterNode.SetParameter("InputIsBET", "true" if self.ui.inputisbetCheckBox.checked else "false")
 
         # timepoint 2
-        self._parameterNode.SetParameter("model_key_t2", str(self.ui.modelComboBox_t2.currentIndex))
+        self._parameterNode.SetParameter("model_key_t2", str(self.ui.modelComboBox_t2.currentText))
 
-        self._parameterNode.SetNodeReferenceID("InputVolume_t2", self.ui.inputSelector_channel1_t2.currentNodeID)
+        self._parameterNode.SetNodeReferenceID("InputVolume_channel1_t2", self.ui.inputSelector_channel1_t2.currentNodeID)
         self._parameterNode.SetNodeReferenceID("InputVolume_channel2_t2", self.ui.inputSelector_channel2_t2.currentNodeID)
         self._parameterNode.SetNodeReferenceID("InputVolume_channel3_t2", self.ui.inputSelector_channel3_t2.currentNodeID)
         self._parameterNode.SetNodeReferenceID("InputVolume_channel4_t2", self.ui.inputSelector_channel4_t2.currentNodeID)

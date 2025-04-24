@@ -31,10 +31,10 @@ class SegmentationMixin:
         # timepoint 1
         try:
             # assemble input channel nodes
-            input_node_list = [n for n in [self._parameterNode.GetNodeReference("InputVolume"),
-                                           self._parameterNode.GetNodeReference("InputVolume_channel2"),
-                                           self._parameterNode.GetNodeReference("InputVolume_channel3"),
-                                           self._parameterNode.GetNodeReference("InputVolume_channel4")] if n]
+            input_node_list = [n for n in [self._parameterNode.GetNodeReference("InputVolume_channel1_t1"),
+                                           self._parameterNode.GetNodeReference("InputVolume_channel2_t1"),
+                                           self._parameterNode.GetNodeReference("InputVolume_channel3_t1"),
+                                           self._parameterNode.GetNodeReference("InputVolume_channel4_t1")] if n]
 
             if debug: print("Passing " + str(len(input_node_list)) + " input channels")
 
@@ -97,7 +97,7 @@ class SegmentationMixin:
         # timepoint 2
         try:
             # assemble input channel nodes
-            input_node_list_t2 = [n for n in [self._parameterNode.GetNodeReference("InputVolume_t2"),
+            input_node_list_t2 = [n for n in [self._parameterNode.GetNodeReference("InputVolume_channel1_t2"),
                                               self._parameterNode.GetNodeReference("InputVolume_channel2_t2"),
                                               self._parameterNode.GetNodeReference("InputVolume_channel3_t2"),
                                               self._parameterNode.GetNodeReference("InputVolume_channel4_t2")] if n]
@@ -161,7 +161,7 @@ class SegmentationMixin:
 
 
     def onCliNodeStatusUpdate(self, cliNode, event, progressBar, task_dir, tmp_path_out, output_segmentation,
-                              input_volume_list, timepoint, original_log_level=32):  # log level: 32=Warning
+                              input_volume_list, timepoint, original_log_level=32):
         if debug: print("Received an event '%s' from class '%s'" % (event, cliNode.GetClassName()))
         # print(f"Status of CLI for {timepoint} is {cliNode.GetStatusString()}")
         if cliNode.IsA('vtkMRMLCommandLineModuleNode') and not cliNode.GetStatus() == cliNode.Completed:  # do this when the cli module sends a progress update (not when it is done)
@@ -173,8 +173,9 @@ class SegmentationMixin:
             # print("Status is %s" % cliNode.GetStatusString())
             # print("cli update: progressBar value is %s" % cliNode.GetProgress(), flush=True)
             if cliNode.GetProgress() == 100:
-                if not debug: slicer.app.setPythonConsoleLogLevel(
-                    0)  # disable stderr output from VTK etc that come from the segmentation CLI, log level 0 = None
+                # disable stderr output from VTK etc that come from the segmentation CLI
+                logLevelNone = getattr(ctk.ctkErrorLogLevel, "None")
+                if not debug: slicer.app.setPythonConsoleLogLevel(logLevelNone)
 
         if cliNode.GetStatus() & cliNode.Completed:  # do this when the cli module is done
             # print("Status is %s" % cliNode.GetStatusString())

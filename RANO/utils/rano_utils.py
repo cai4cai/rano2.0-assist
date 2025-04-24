@@ -85,8 +85,7 @@ def run_segmentation(inputVolume_list,
 
         saveNode(input_volume, img_tmp_path)
 
-        if orig_fname:
-            input_volume.GetStorageNode().SetFileName(orig_fname)
+        input_volume.GetStorageNode().SetFileName(orig_fname)
 
     # provide paths (they must be absolute paths)
     out_folder = os.path.realpath(tmp_path_out)

@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import ScreenCapture
 import slicer
+import qt
 from utils.config import module_path
 
 import utils.measurements2D_utils as measurements2D_utils
@@ -23,11 +24,35 @@ class ReportCreationMixin:
         self.create_report()
 
     def create_report(self):
-        report_dir = self.get_report_dir_from_node(base_dir=os.path.join(module_path, "Resources", "Reports"),
-                                                   node=self._parameterNode.GetNodeReference("InputVolume"))
 
-        if os.path.exists(report_dir):
-            shutil.rmtree(report_dir)
+
+        suggested_report_dir = self.get_report_dir_from_node(default_report_dir=os.path.join(module_path, "Resources", "Reports"),
+                                                   node=self._parameterNode.GetNodeReference("InputVolume_channel1_t1"))
+
+        # ask the user if they want to use the suggested_report_dir or create a new report directory via QFileDialog
+        msg = qt.QMessageBox()
+        msg.setText(f"Suggested report directory: {suggested_report_dir}")
+        if os.path.exists(suggested_report_dir):
+            msg.setInformativeText("Do you want to overwrite the files in the directory?")
+        else:
+            msg.setInformativeText("Do you want to create a new report directory?")
+        msg.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+        msg.setDefaultButton(qt.QMessageBox.No)
+        ret = msg.exec_()
+        if ret == qt.QMessageBox.Yes:
+            report_dir = suggested_report_dir
+        else:
+            qfiledialog = qt.QFileDialog()
+            qfiledialog.setFileMode(qt.QFileDialog.Directory)
+            qfiledialog.setWindowTitle("Select or create a folder")
+            qfiledialog.setDirectory(suggested_report_dir)
+            report_dir = qfiledialog.getExistingDirectory()
+            if not report_dir:
+                print("No directory selected - report creation cancelled")
+                return
+
+        print(f"Selected directory: {report_dir}")
+
         os.makedirs(report_dir, exist_ok=True)
 
         self.create_json_file(report_dir)
@@ -35,9 +60,10 @@ class ReportCreationMixin:
         self.create_images(report_dir)
 
     @staticmethod
-    def get_report_dir_from_node(base_dir, node):
+    def get_report_dir_from_node(default_report_dir, node):
         if not node:
-            raise ValueError("Node is None")
+            print("Node is None - use default report directory")
+            return default_report_dir
 
         elif hasattr(node.GetStorageNode(), "GetFileName") and node.GetStorageNode().GetFileName():
             input_file_path = node.GetStorageNode().GetFileName()
@@ -47,7 +73,8 @@ class ReportCreationMixin:
                 subfolder_name = "KCH_" + os.path.basename(
                     os.path.split(os.path.dirname(input_file_path))[-2])
             else:
-                raise ValueError(f"Could not determine subfolder name from input file paths {input_file_path}")
+                print(f"No report directory specified for {input_file_path} - use default report directory")
+                return default_report_dir
 
         else:  # probably dicom data
             # assemble the subfolder name from the dicom tags
@@ -56,9 +83,12 @@ class ReportCreationMixin:
             rootID = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID))
             patientID = shNode.GetItemAttribute(rootID, "DICOM.PatientID")
             subfolder_name = patientID
-            assert subfolder_name, f"Could not determine subfolder name from input node {node.GetName()}"
 
-        report_dir = os.path.join(base_dir, subfolder_name)
+            if not subfolder_name:
+                print(f"Could not determine subfolder name from input node {node.GetName()} - use default report directory")
+                return default_report_dir
+
+        report_dir = os.path.join(default_report_dir, subfolder_name)
         return report_dir
 
 
@@ -130,11 +160,18 @@ class ReportCreationMixin:
         report_dict["SegmentationTaskDir_t2"] = task_dir_t2
 
         # 2D measurement options
-        currentSegmentID = self.ui.SegmentSelectorWidget.currentSegmentID()
-        currentSegment = self.ui.SegmentSelectorWidget.currentNode().GetSegmentation().GetSegment(currentSegmentID)
-        currentSegmentName = currentSegment.GetName() if currentSegment else "None"
-        report_dict["Segment2DMeasurement"] = currentSegmentName
-        report_dict["Method2DMeasurement"] = self.ui.method2DmeasComboBox.currentText
+        if self.ui.SegmentSelectorWidget.currentNode():
+            currentSegmentID = self.ui.SegmentSelectorWidget.currentSegmentID()
+            currentSegment = self.ui.SegmentSelectorWidget.currentNode().GetSegmentation().GetSegment(currentSegmentID)
+            currentSegmentName = currentSegment.GetName() if currentSegment else "None"
+            report_dict["Segment2DMeasurement"] = currentSegmentName
+            report_dict["Method2DMeasurement"] = self.ui.method2DmeasComboBox.currentText
+
+        # save all parameter node parameters
+        parameter_node_dict = {}
+        for param in self._parameterNode.GetParameterNames():
+            parameter_node_dict[param] = self._parameterNode.GetParameter(param)
+        report_dict["ParameterNode"] = parameter_node_dict
 
         # write the report to a json file
         with open(report_path, "w") as f:

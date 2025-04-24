@@ -159,7 +159,7 @@ class Measurements2DMixin:
                     labelmapVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLabelMapVolumeNode",
                                                                             newLabelMapVolumeName)
                     referenceVolumeNode = self._parameterNode.GetNodeReference(
-                        f"InputVolume") if i == 0 else self._parameterNode.GetNodeReference(f"InputVolume_t2")
+                        f"InputVolume_channel1_t1") if i == 0 else self._parameterNode.GetNodeReference(f"InputVolume_channel1_t2")
 
                     slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentsToLabelmapNode(newSegNode,
                                                                                           segmentIds,

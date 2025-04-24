@@ -235,10 +235,10 @@ class RANOTest(ScriptedLoadableModuleTest):
             # print(f"input volumes t2 = {inputVolumes_t2}")
 
             # set the input volumes
-            slicer.modules.RANOWidget.ui.inputSelector_channel1.setCurrentNode(inputVolumes[0])
-            slicer.modules.RANOWidget.ui.inputSelector_channel2.setCurrentNode(inputVolumes[1])
-            slicer.modules.RANOWidget.ui.inputSelector_channel3.setCurrentNode(inputVolumes[2])
-            slicer.modules.RANOWidget.ui.inputSelector_channel4.setCurrentNode(inputVolumes[3])
+            slicer.modules.RANOWidget.ui.inputSelector_channel1_t1.setCurrentNode(inputVolumes[0])
+            slicer.modules.RANOWidget.ui.inputSelector_channel2_t1.setCurrentNode(inputVolumes[1])
+            slicer.modules.RANOWidget.ui.inputSelector_channel3_t1.setCurrentNode(inputVolumes[2])
+            slicer.modules.RANOWidget.ui.inputSelector_channel4_t1.setCurrentNode(inputVolumes[3])
 
             slicer.modules.RANOWidget.ui.inputSelector_channel1_t2.setCurrentNode(inputVolumes_t2[0])
             slicer.modules.RANOWidget.ui.inputSelector_channel2_t2.setCurrentNode(inputVolumes_t2[1])
