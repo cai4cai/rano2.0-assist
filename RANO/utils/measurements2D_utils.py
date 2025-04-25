@@ -1,3 +1,8 @@
+"""
+This module contains the Measurements2DMixin class, which is used to perform 2D measurements on
+lesions in medical images. The class provides methods for calculating, displaying, and managing
+lesion measurements, as well as handling user interactions with the GUI.
+"""
 import functools
 from collections import defaultdict
 
@@ -21,23 +26,71 @@ from utils.config import debug
 
 
 class Measurements2DMixin:
+    """
+    This mixin class provides methods for performing 2D measurements on lesions in medical images.
+    It includes methods for calculating, displaying, and managing lesion measurements, as well as
+    handling user interactions with the GUI.
+    """
 
     def __init__(self, parameterNode, ui, lineNodePairs):
         self._parameterNode = parameterNode
+        """The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
+        so that when the scene is saved and reloaded, these settings are restored."""
+
         self.ui = ui
+        """The UI elements of the module. This is a dictionary containing all the widgets in the module."""
+
         self.lineNodePairs = lineNodePairs
+        """List of line node pairs used for 2D measurements."""
+
         self.instance_segmentations_matched = None
+        """List of instance segmentations (numpy arrays) with matching labels across time points."""
+
         self.resampledVolumeNodes = None
+        """List of instance segmentations (vtkMRMLLabelMapVolumeNode) transformed and resampled to the reference input volume space."""
+
         self.previous_timepoint_orientation = {}
+        """Dictionary to store the orientation of the lesions in the previous timepoint to enable consistent 2D measurement orientation across timepoints."""
+
         self.previous_timepoint_center = {}
+        """Dictionary to store the center of the lesions in the previous timepoint to enable consistent 2D measurement slices across timepoints."""
+
         self.observations = []
+        """Store observers for the line nodes to handle user interactions."""
+
         self.observations2 = []
+        """Store observers for the line nodes to handle user interactions."""
 
     def onCalc2DButton(self):
+        """
+        This method is called when the "Calculate 2D" button is pressed.
+
+        It performs the following steps:
+        1. Get the selected segmentations and instance segmentations.
+        2. Match the instance segmentations across timepoints.
+        3. Transform and resample the instance segmentations in the original reference image space.
+        4. For each timepoint and lesion, place the RANO lines.
+        5. Evaluate the 2D measurements and store the results in a dictionary.
+        6. Display the results in the UI.
+        7. Update the line pair UI list.
+        8. Calculate the results table.
+        """
+
         if debug: print("Calc 2D button pressed")
+
+        # determine the method to use for 2D measurements
         method2DmeasComboBox = self.ui.method2DmeasComboBox.currentText
 
         def create_lineNodePairs(lesion_stats):
+            """
+            From line coordinates stored in lesion_stats, create lineNodePairs that are used to display the lines in the
+            UI views.
+
+            Args:
+                lesion_stats: dictionary containing the line coordinates for each lesion and timepoint
+            Returns:
+                lineNodePairs: LineNodePairList containing the line node pairs for each lesion and timepoint
+            """
             lineNodePairs = LineNodePairList()
             for les_idx in lesion_stats:
                 for tp in lesion_stats[les_idx]:
@@ -52,6 +105,15 @@ class Measurements2DMixin:
             return lineNodePairs
 
         def setLinePairViews(lineNodePairs):
+            """
+            Set the views for the line node pairs in the UI, i.e. it will make sure that lines of timepoint1 are shown in
+            the timepoint1 views and lines of timepoint2 are shown in the timepoint2 views.
+
+            It will also center the views of each timepoint on the first available line node pair in the list.
+            Args:
+                lineNodePairs: LineNodePairList containing the line node pairs for each lesion and timepoint
+
+            """
             tp_view_set = []  # keep track of which timepoint views have already been set
             for pair in lineNodePairs:
                 les_idx = pair.lesion_idx
@@ -59,8 +121,6 @@ class Measurements2DMixin:
                 lineNode1, lineNode2 = pair[0], pair[1]
 
                 self.setViews(pair, tp)
-                lineNode1.GetDisplayNode().SetSelectedColor((0, 1, 0))
-                lineNode2.GetDisplayNode().SetSelectedColor((0, 1, 0))
 
                 if tp not in tp_view_set:  # to set views for this timepoint only once
                     tp_view_set.append(tp)
@@ -96,15 +156,36 @@ class Measurements2DMixin:
             return instance_segmentations_matched
 
         def transform_to_and_resample_in_original_img_space(instance_segmentations_matched, segNodes):
-            # here the instance_segmentations_matched need to be transformed and resampled in the original spaces,
-            # i.e., seg1 to the space of the original input volume of timepoint1 and seg2 to the space of the original input volume of timepoint2
-            # this is so that the RANO lines can be placed on slices of the original input volumes
-            # steps:
-            # 1. create segmentation node for each instance segmentation and place instance segments in there. Then apply
-            # the transform to the segmentation node. This will give a segmentation node in the original space, but with spacing 1x1x1
-            # 2. resample the image to the original input volume space
+            """
+            The instance_segmentations_matched need to be transformed and resampled in the reference spaces, i.e.,
+            seg1 to the reference space of timepoint1 and seg2 to the reference space of timepoint2. This is so that the
+            RANO lines can be placed on slices of the original input volumes.
+            Currently, the reference space are given by the channel1 input volumes, but this can be changed in the future.
+            This means, the RANO lines are placed on slices of the channel1 input volumes (reference space).
+
+            Steps:
+            1. Create a segmentation node for each instance segmentation and place instance segments in there.
+               Then apply the transform to the segmentation node. This will give a segmentation node in the original space,
+               but with spacing 1x1x1.
+            2. Resample the image to the original reference input volume space.
+
+            Args:
+                instance_segmentations_matched: list of instance segmentations (numpy arrays) with matching labels across time points
+                segNodes: list of segmentation nodes for each time point
+
+            Returns:
+                resampledVolumeNodes: list of vtkMRMLLabelMapVolumeNode objects with the resampled instance segmentations
+            """
+
+            assert(len(instance_segmentations_matched) == len(segNodes)), "Number of instance segmentations and segmentation nodes must be equal"
+            num_timepoints = len(segNodes)
+
+            # get the transforms and reference volumes for each timepoint (currently only channel1)
+            transformNodes = [slicer.util.getNode(f"Transform_timepoint{i + 1}_channel1 (-)") for i in range(num_timepoints)]
+            referenceVolumeNodes = [self._parameterNode.GetNodeReference(f"InputVolume_channel1_t{i + 1}") for i in range(num_timepoints)]
+
             resampledVolumeNodes = []
-            for i, (seg, segNode) in enumerate(zip(instance_segmentations_matched, segNodes)):
+            for i, (seg, segNode, transformNode, referenceVolumeNode) in enumerate(zip(instance_segmentations_matched, segNodes, transformNodes, referenceVolumeNodes)):
                 # new segmentation node to store the matched instance segmentations
                 newSegNodeName = f"matched_instance_segmentation_t{i + 1}"
                 # if the segmentation node already exists, remove it
@@ -143,7 +224,6 @@ class Measurements2DMixin:
                 newSegNode.GetDisplayNode().SetVisibility(False)
 
                 # apply the transform to the new segmentation node
-                transformNode = slicer.util.getNode(f"Transform_timepoint{i + 1}_channel1 (-)")
                 if transformNode:
                     newSegNode.SetAndObserveTransformNodeID(transformNode.GetID())
 
@@ -158,8 +238,6 @@ class Measurements2DMixin:
                         slicer.mrmlScene.RemoveNode(slicer.mrmlScene.GetFirstNodeByName(newLabelMapVolumeName))
                     labelmapVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLabelMapVolumeNode",
                                                                             newLabelMapVolumeName)
-                    referenceVolumeNode = self._parameterNode.GetNodeReference(
-                        f"InputVolume_channel1_t1") if i == 0 else self._parameterNode.GetNodeReference(f"InputVolume_channel1_t2")
 
                     slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentsToLabelmapNode(newSegNode,
                                                                                           segmentIds,

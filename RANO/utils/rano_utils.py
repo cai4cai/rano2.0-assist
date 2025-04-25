@@ -325,6 +325,18 @@ def get_instance_segmentation_by_connected_component_analysis(bin_seg):
 
 
 def match_instance_segmentations_by_IoU(instance_segs):
+    """
+    Given a list of instance segmentations, this function relabels the segmentations so that the labels match
+    between timepoints. It does so by finding the optimal matching of labels based on the IoU (Intersection over
+    Union) of the instances.
+
+    Args:
+        instance_segs: list of instance segmentations, where each segmentation is a 3D numpy array with shape (W, H, D) and
+        labels 0, ..., num_instances (number of instances)
+    Returns:
+        matched_instance_segs: list of instance segmentations with matching labels between timepoints
+
+    """
     def get_matched_labels(seg1, seg2):
         # calculate the overlap between each pair of connected components
         ccs_t1 = np.array([c for c in np.unique(seg1) if c != 0])
@@ -369,7 +381,9 @@ def match_instance_segmentations_by_IoU(instance_segs):
         # update the labels in seg2
         instance_segs[i] = relabel_seg(labels_t1, labels_t2, seg2)
 
-    return instance_segs
+    matched_instance_segs = instance_segs
+
+    return matched_instance_segs
 
 
 def get_max_orthogonal_line_product_coords_multipairs_and_volumes(seg, opening_radius=None):
