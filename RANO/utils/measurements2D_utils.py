@@ -7,6 +7,7 @@ import functools
 from collections import defaultdict
 
 import numpy as np
+from nibabel.orientations import aff2axcodes, io_orientation
 
 import qt
 import slicer
@@ -45,6 +46,9 @@ class Measurements2DMixin:
 
         self.instance_segmentations_matched = None
         """List of instance segmentations (numpy arrays) with matching labels across time points."""
+
+        self.resampledSegNodes = None
+        """List of segmentation nodes (vtkMRMLSegmentationNode) containing the matched instance segmentations."""
 
         self.resampledVolumeNodes = None
         """List of instance segmentations (vtkMRMLLabelMapVolumeNode) transformed and resampled to the reference input volume space."""
@@ -118,15 +122,25 @@ class Measurements2DMixin:
             for pair in lineNodePairs:
                 les_idx = pair.lesion_idx
                 tp = pair.timepoint
-                lineNode1, lineNode2 = pair[0], pair[1]
 
+                # make sure the line node pair is displayed in the correct view
                 self.setViews(pair, tp)
 
+                # center on the first available line node pair in the list
                 if tp not in tp_view_set:  # to set views for this timepoint only once
                     tp_view_set.append(tp)
                     self.centerTimepointViewsOnCenterPoint(pair, tp)
 
         def get_binary_semantic_segmentations(segNodes, segmentId):
+            """
+            Extract the binary semantic segmentations of a segment from the segmentation nodes as numpy arrays.
+
+            Args:
+                segNodes: list of segmentation nodes for each time point
+                segmentId: ID of the segment to extract
+            Returns:
+                binary_semantic_segmentations: list of binary semantic segmentations of the segment (numpy arrays)
+            """
             binary_semantic_segmentations = []
             for node in segNodes:
                 node.CreateBinaryLabelmapRepresentation()
@@ -142,6 +156,16 @@ class Measurements2DMixin:
             return binary_semantic_segmentations
 
         def get_instance_segmentations(binary_segmentations):
+            """
+            Convert the binary segmentations to instance segmentations.
+            Currently, this is done by connected component analysis.
+            Args:
+                binary_segmentations: list of binary segmentations (numpy arrays)
+            Returns:
+                instance_segmentations: list of instance segmentations (numpy arrays) for each time point. Note that at
+                the moment, the instance segmentations are not matched across time points, i.e., the labels do not
+                correspond to the same instance across time points.
+            """
             instance_segmentations = []
             for seg in binary_segmentations:
                 instance_seg = get_instance_segmentation_by_connected_component_analysis(seg)
@@ -149,9 +173,17 @@ class Measurements2DMixin:
             return instance_segmentations
 
         def matched_instances_across_timepoints(instance_segmentations):
-            # change the labels of the instances to be consistent across timepoints
-            # For example if the first timepoint has instances 1, 2, 3 and the second timepoint can have instance 1, 3, 4
-            # then instance 2 is missing in the second timepoint (disappeared) and instance 4 is a new instance in the second timepoint
+            """
+            Match the instance segmentations across time points. For example, as an output, if the first timepoint
+            has instances 1, 2, 3 and the second timepoint can have instance 1, 3, 4 then instance 2 is missing in
+            the second timepoint (disappeared) and instance 4 is a new instance in the second timepoint.
+
+            Args:
+                instance_segmentations: list of instance segmentations (numpy arrays) for each time point
+            Returns:
+                instance_segmentations_matched: list of instance segmentations (numpy arrays) with matching labels across
+                time points.
+            """
             instance_segmentations_matched = match_instance_segmentations_by_IoU(instance_segmentations)
             return instance_segmentations_matched
 
@@ -184,6 +216,7 @@ class Measurements2DMixin:
             transformNodes = [slicer.util.getNode(f"Transform_timepoint{i + 1}_channel1 (-)") for i in range(num_timepoints)]
             referenceVolumeNodes = [self._parameterNode.GetNodeReference(f"InputVolume_channel1_t{i + 1}") for i in range(num_timepoints)]
 
+            resampledSegNodes = []
             resampledVolumeNodes = []
             for i, (seg, segNode, transformNode, referenceVolumeNode) in enumerate(zip(instance_segmentations_matched, segNodes, transformNodes, referenceVolumeNodes)):
                 # new segmentation node to store the matched instance segmentations
@@ -251,10 +284,22 @@ class Measurements2DMixin:
                     print(f"No segments found in {newSegNode.GetName()}")
                     labelmapVolumeNode = None
 
+                resampledSegNodes.append(newSegNode)
                 resampledVolumeNodes.append(labelmapVolumeNode)
+
+            self.resampledSegNodes = resampledSegNodes
             return resampledVolumeNodes
 
         def open_instance_segmentation(instance_seg, radius=3):
+            """
+            Open the instance segmentation using the method specified in the method2DmeasComboBox.
+
+            Args:
+                instance_seg: instance segmentation (numpy array)
+                radius: radius of the opening operation
+            Returns:
+                seg_open: opened instance segmentation (numpy array)
+            """
             seg_open = np.zeros_like(instance_seg)
             for lab in np.unique(instance_seg):
                 if lab == 0:
@@ -275,6 +320,15 @@ class Measurements2DMixin:
             return seg_open
 
         def open_instance_segmentations(instance_segmentations, opening_radius):
+            """
+            Loop over the instance segmentations and perform morphological opening on each segmentation.
+
+            Args:
+                instance_segmentations: list of instance segmentations (numpy arrays)
+                opening_radius: radius of the opening operation
+            Returns:
+                opened_segmentations: list of opened instance segmentations (numpy arrays)
+            """
             # open the segmentations
             opened_segmentations = []
             for seg in instance_segmentations:
@@ -283,6 +337,18 @@ class Measurements2DMixin:
             return opened_segmentations
 
         def evaluate_instance_segmentation(resampledVolumeNode):
+            """
+            Evaluate the instance segmentation. Specifically, retrieve the coordinates of the 2D measurements considering the
+            specified options (orientation, slice consistency, etc.) and the method selected in the UI.
+            Also, calculate the volume of the lesions.
+
+            Args:
+                resampledVolumeNode: vtkMRMLLabelMapVolumeNode containing the matched instance segmentation.
+
+            Returns:
+                lesion_dict: dictionary containing the line pair coordinates and volume of each lesion for the current timepoint.
+
+            """
             lesion_dict = defaultdict(lambda: {"coords": [], "volume": np.nan})
             if not resampledVolumeNode:
                 print("resampledVolumeNode is None. Assuming no lesions for this timepoint.")
@@ -298,11 +364,7 @@ class Measurements2DMixin:
 
                     # store the orientation of the lesion in the current timepoint
                     orientation_consistency_across_timepoints = self._parameterNode.GetParameter("orient_cons_tp") == "true"
-                    previous_timepoint_orientation_current_lesion = self.previous_timepoint_orientation.get(lab,
-                                                                                                            None)  # TODO: want to replace axis here with "closest orientation"
-                    # Need to be able to convert between axis and orientation
-                    # That means I need the IJK to RAS matrix of the instance segmentation
-                    # This should be found via the reference image of the segmentation node
+                    previous_timepoint_orientation_current_lesion = self.previous_timepoint_orientation.get(lab, None)
 
                     if orientation_consistency_across_timepoints and previous_timepoint_orientation_current_lesion:
                         valid_orientations = [previous_timepoint_orientation_current_lesion]
@@ -318,76 +380,88 @@ class Measurements2DMixin:
                         center_world = previous_timepoint_center_current_lesion
                         # need to convert world center point to IJK point
                         worldToIJK = get_ijk_to_world_matrix(resampledVolumeNode)
-                        # worldToIJK = slicer.util.arrayFromVTKMatrix(worldToIJK)
-                        # worldToIJK = np.linalg.inv(worldToIJK)
                         worldToIJK.Invert()
 
                         center_IJK = transform_world_to_ijk_coord(center_world, worldToIJK)
 
                     def convert_to_IJK_axis(orientation, resampledVolumeNode):
+                        """
+                        Convert the anatomical orientation to the corresponding IJK axis index using the IJK to RAS matrix.
 
-                        ornt_idx = {"sagittal": 0, "coronal": 1, "axial": 2}[orientation]
+                        Args:
+                            orientation: anatomical orientation ("sagittal", "coronal", "axial")
+                            resampledVolumeNode: vtkMRMLLabelMapVolumeNode containing the matched instance segmentations
+                        Returns:
+                            ijk_axis_idx: IJK axis index corresponding to the anatomical orientation
+                        """
+
+                        # mapping from anatomical orientations to anatomical axis indices in 3D slicer (RAS)
+                        orientation_to_world_axis_idx = {"sagittal": 0, "coronal": 1, "axial": 2}
+                        world_axis_idx = orientation_to_world_axis_idx[orientation]  # get the current world axis index
+
                         # get the RAS to IJK matrix
                         ijkToWorld = get_ijk_to_world_matrix(resampledVolumeNode)
                         ijkToWorld = slicer.util.arrayFromVTKMatrix(ijkToWorld)
                         worldToIJK = np.linalg.inv(ijkToWorld)
 
-                        # convert the orientation to IJK axis
-                        from nibabel.orientations import aff2axcodes
-                        # get the IJK axis
-                        labels = ((0, 0), (1, 1), (2, 2))  # don't care about direction
-                        ornt = aff2axcodes(worldToIJK, labels)  # get the IJK axis for each orientation
-                        ijk_axis = ornt[ornt_idx]  # pick the IJK axis for the orientation
+                        # convert from world axis index to IJK axis index
+                        ornt = io_orientation(worldToIJK)  # mapping from RAS axes to IJK axes
+                        ijk_axis_idx = int(ornt[world_axis_idx][0])  # [0] picks the corresponding axis in the IJK space ([1] picks the direction)
 
-                        return ijk_axis
-
-                    def ijk_axis_idx_to_jki(idx):
-                        if idx == 0:
-                            return 2
-                        elif idx == 2:
-                            return 0
-                        else:
-                            return idx
+                        return ijk_axis_idx
 
                     # need to convert world orientation to IJK axis
                     valid_axes_IJK = [convert_to_IJK_axis(orien, resampledVolumeNode) for orien in valid_orientations]
                     # need to go back to numpy order (KJI)
-                    # convert 0 to 2 and 2 to 0
-                    valid_axes_IJK = [ijk_axis_idx_to_jki(idx) for idx in valid_axes_IJK]
+                    ijk_axis_idx_to_kji = {0: 2, 1: 1, 2: 0}  # convert 0 to 2 and 2 to 0 and leave 1 as is
+                    valid_axes_IJK = [ijk_axis_idx_to_kji[idx] for idx in valid_axes_IJK]
 
+                    # get the line pair coordinates for the current lesion
                     coords_IJK = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK)
 
                     if len(coords_IJK) > 0:
-                        ########this_timepoint_orientation_curr_lesion, this_timepoint_curr_slc = find_plane_of_coords(coords)
+
                         def find_RAS_orientation(coords_IJK, resampledVolumeNode):
+                            """
+                            Find the closest RAS orientation based on the line pair coordinates in IJK space. This is
+                            needed to determine the orientation of the lesion in the current timepoint which may be
+                            used to fix the orientation of the lesion in the next timepoint.
+
+                            Args:
+                                coords_IJK: coordinates of the line pair in IJK space
+                                resampledVolumeNode: vtkMRMLLabelMapVolumeNode containing the matched instance segmentations
+                            Returns:
+                                orientation: RAS orientation of the line pair described by the coordinates
+                            """
                             # find the closest plane to the lesion in the IJK space
-                            ijk_normal_axis = find_closest_plane(coords_IJK)
-                            # coords_IJK is in KJI order
-                            # therefore, convert 0 to 2 and 2 to 0 and leave 1 as is
-                            ijk_normal_axis = ijk_axis_idx_to_jki(ijk_normal_axis)
+                            ijk_normal_axis_idx = find_closest_plane(coords_IJK)
+                            # coords_IJK is actually in KJI order, therefore, convert 0 to 2 and 2 to 0 and leave 1
+                            ijk_normal_axis_idx = ijk_axis_idx_to_kji[ijk_normal_axis_idx]
 
                             # get the IJK to RAS matrix
                             ijkToWorld = get_ijk_to_world_matrix(resampledVolumeNode)
                             ijkToWorld = slicer.util.arrayFromVTKMatrix(ijkToWorld)
 
                             # convert the IJK axis to RAS orientation based on the IJK to RAS matrix
-                            from nibabel.orientations import aff2axcodes
+
                             # get the RAS orientation
                             labels = (("sagittal", "sagittal"), ("coronal", "coronal"),
-                                      ("axial", "axial"))  # don't care about direction
+                                      ("axial", "axial"))  # direction is not important here
                             axcodes = aff2axcodes(ijkToWorld, labels)  # get the orientations for each IJK axis
-                            orientation = axcodes[ijk_normal_axis]  # pick the orientation for the normal axis
+                            orientation = axcodes[ijk_normal_axis_idx]  # pick the orientation for the normal axis
 
                             return orientation
 
                         this_timepoint_orientation_curr_lesion = find_RAS_orientation(coords_IJK, resampledVolumeNode)
 
+                        # get the center of the line pair in IJK space to allow for consistent slice selection across timepoints
                         center_IJK = point_closest_to_two_lines(coords_IJK)
-
+                        # convert the center point to world coordinates
                         ijkToWorld = get_ijk_to_world_matrix(resampledVolumeNode)
                         center_world = transform_ijk_to_world_coord(center_IJK, ijkToWorld)
                         this_timepoint_center_world_curr_lesion = center_world
 
+                        # store the orientation and center of the lesion in the current timepoint
                         self.previous_timepoint_orientation[lab] = this_timepoint_orientation_curr_lesion
                         self.previous_timepoint_center[lab] = this_timepoint_center_world_curr_lesion
 
@@ -407,6 +481,13 @@ class Measurements2DMixin:
 
 
         def display_opened_segmentations(opened_segmentations, segNodes):
+            """
+            The  opened segmentations (numpy arrays) are added to the segmentation nodes as new segments.
+
+            Args:
+                opened_segmentations: list of opened segmentations (numpy arrays)
+                segNodes: list of segmentation nodes for each time point
+            """
             for i, (seg, segNode) in enumerate(zip(opened_segmentations, segNodes)):
 
                 nextSegmentId = str(int(max(segNode.GetSegmentation().GetSegmentIDs())) + 1)
@@ -435,7 +516,18 @@ class Measurements2DMixin:
                 segmentNameSelectedForOpening = segNode.GetSegmentation().GetSegment(segmentIdSelectedForOpening).GetName()
                 segNode.GetSegmentation().GetSegment(nextSegmentId).SetName(f"{segmentNameSelectedForOpening}_opened")
 
+
         def get_lesion_stats(resampledVolumeNodes):
+            """
+            For each timepoint, evaluate the instance segmentation and store the line pair coordinates and volume of the
+            lesions in a dictionary.
+
+            Args:
+                resampledVolumeNodes: list of vtkMRMLLabelMapVolumeNode containing the matched instance segmentations
+            Returns:
+                lesion_stats: dictionary of dictionaries containing the line pair coordinates and volume of each lesion
+                (key=lesion_idx) for each timepoint (key=timepoint).
+            """
             lesion_stats = defaultdict(lambda: defaultdict(lambda: {}))
 
             # reset the previous timepoint orientation and center, so the previous run does not affect the current run
@@ -449,7 +541,9 @@ class Measurements2DMixin:
                     lesion_stats[les_idx][tp] = lesion_dict_tp[les_idx]
             return lesion_stats
 
+
         segNodes = [self.ui.outputSelector.currentNode(), self.ui.outputSelector_t2.currentNode()]
+
         binary_semantic_segmentations = get_binary_semantic_segmentations(segNodes,
                                                                           segmentId=self.ui.SegmentSelectorWidget.currentSegmentID())
 
@@ -494,12 +588,19 @@ class Measurements2DMixin:
         results_table_utils.ResultsTableMixin.calculate_results_table(self.lineNodePairs)
 
     def onToggleShowInstanceSegButton(self):
+        """
+        This method is called when the "Show/Hide Lesions" button is pressed. It shows or hides the lesions in the
+        slice views based on the resampled labelmap volumes. In the 3D views they are shown based on the resampled
+        segmentation nodes (because the resampled labelmap volumes are not displayed smoothly in 3D, but voxelized).
+        """
         # show or hide the label volumes via the slicecontrollerwidget
         for timepoint in ["timepoint1", "timepoint2"]:
             if timepoint == 'timepoint1':
                 viewnames = ["Red", "Yellow", "Green"]
+                tp = 0
             elif timepoint == 'timepoint2':
                 viewnames = ["Red_2", "Yellow_2", "Green_2"]
+                tp = 1
             else:
                 raise ValueError("timepoint must be 'timepoint1' or 'timepoint2'")
 
@@ -517,7 +618,27 @@ class Measurements2DMixin:
                     else:
                         controller.setLabelMapHidden(True)
 
+            # show or hide the 3D view
+            node = self.resampledSegNodes[tp] if self.resampledSegNodes else None
+            if node:
+                if checked:
+                    node.GetDisplayNode().SetVisibility(True)
+                    node.GetDisplayNode().SetVisibility2D(False)
+                    node.GetDisplayNode().SetVisibility3D(True)
+                    # set opacity
+                    node.GetDisplayNode().SetOpacity(0.5)
+                else:
+                    node.GetDisplayNode().SetVisibility(False)
+
+
     def onAddLinePairButton(self, timepoint):
+        """
+        This method is called when the "Add Lines t1" or "Add Lines t2" button is pressed.
+        It allows the user to add a new line pair for the selected timepoint by placing two lines in the slice views of
+        the corresponding timepoint. The lines are added to the lineNodePairs list and displayed in the UI.
+        Args:
+            timepoint: the timepoint for which the line pair is added (e.g., "timepoint1" or "timepoint2")
+        """
         if debug: print("Add line pair button pressed")
         lesion_idx = int(self.ui.add_line_lesidx_spinBox.value)
 
@@ -550,17 +671,23 @@ class Measurements2DMixin:
                     if int(lineNode2.GetNumberOfControlPoints()) == 2:
                         slicer.modules.markups.logic().StartPlaceMode(0)  # exit placement mode
 
+                    def add_linePair(lineNode2):
+                        if lineNode2.GetNumberOfControlPoints() == 2:
+                            line_lenghts = newLineNodePair.get_line_lengths()
+                            newLineNodePair.measurable = True if all(
+                                [l > 10 for l in line_lenghts]) else False
+                            self.lineNodePairs.append(newLineNodePair)
+                            self.update_linepair_ui_list()
+                            # set the views again after both lines have been defined so they can be removed from the views in which they are not orthogonal
+                            self.setViews(newLineNodePair, timepoint)
+
+                            for observedNode, observer in self.observations2:
+                                observedNode.RemoveObserver(observer)
+
+                    add_linePair(lineNode2)
+
                 # add callback to end placement mode AFTER the second line is placed
                 self.observations2.append([newLineNode2, newLineNode2.AddObserver(newLineNode2.PointPositionDefinedEvent, end_placement)])
-
-        def add_linePair(lineNode2, arg2):
-            if lineNode2.GetNumberOfControlPoints() == 2:
-                line_lenghts = newLineNodePair.get_line_lengths()
-                newLineNodePair.measurable = True if all([l > 10 for l in line_lenghts]) else False  # TODO: pix to mm conversion
-                self.lineNodePairs.append(newLineNodePair)
-                self.update_linepair_ui_list()
-                # set the views again after both lines have been defined so they can be removed from the views in which they are not orthogonal
-                self.setViews(newLineNodePair, timepoint)
 
         def onPointRemovedEvent(lineNode, event):
             if slicer.app.applicationLogic().GetInteractionNode().GetCurrentInteractionMode() == 2:
@@ -580,13 +707,18 @@ class Measurements2DMixin:
             observedNode.RemoveObserver(observer)
 
         self.observations2.append([newLineNode1, newLineNode1.AddObserver(newLineNode1.PointPositionDefinedEvent, place_line2)])
-        self.observations2.append([newLineNode2, newLineNode2.AddObserver(newLineNode2.PointPositionDefinedEvent, add_linePair)])
+        #self.observations2.append([newLineNode2, newLineNode2.AddObserver(newLineNode2.PointPositionDefinedEvent, add_linePair)])
 
         # add callback to remove the line pair if the user cancels the placement of either line
         self.observations2.append([newLineNode1, newLineNode1.AddObserver(newLineNode1.PointRemovedEvent, onPointRemovedEvent)])
         self.observations2.append([newLineNode2, newLineNode2.AddObserver(newLineNode2.PointRemovedEvent, onPointRemovedEvent)])
 
     def update_linepair_ui_list(self):
+        """
+        This method updates the UI list of line pairs by populating the table with the lesion index, timepoint, and
+        whether the lesion is enhancing, measurable, and target. It also sets the background color of the rows such that
+        rows of the same lesion index are grouped together for better readability.
+        """
         def onCellClicked(row, col):
             """Called when a cell is clicked."""
             les_idx = int(self.ui.tableWidget.item(row, 0).text())
@@ -751,6 +883,9 @@ class Measurements2DMixin:
 
 
     def coords_ijk_to_world(self, coords_ijk, node):
+        """
+        Convert the coordinates from IJK to world coordinates.
+        """
         if len(coords_ijk) == 0:
             return []
 
@@ -769,6 +904,10 @@ class Measurements2DMixin:
 
     @staticmethod
     def setViews(node, timepoint):
+        """
+        Set the views for the line node pair such that the lines are only shown in the views corresponding to the
+        timepoint and the line orientation (sagittal, coronal, axial) of the line pair.
+        """
         if timepoint == 'timepoint1':
             viewnames = ["Red", "Yellow", "Green"]
             viewname_3D = "view3d_1"
@@ -819,6 +958,12 @@ class Measurements2DMixin:
 
     @staticmethod
     def centerTimepointViewsOnFirstMarkupPoint(lineNode, tp):
+        """
+        Center the slice views and cameras on the first markup point of the line node.
+        Args:
+            lineNode: the line node to center on
+            tp: the timepoint to center on (e.g., "timepoint1" or "timepoint2")
+        """
         # center view group on the first markup point
         # Center slice views and cameras on this position
         position = lineNode.GetNthControlPointPositionWorld(0)
@@ -835,6 +980,12 @@ class Measurements2DMixin:
 
     @staticmethod
     def centerTimepointViewsOnCenterPoint(lineNodePair, tp):
+        """
+        Center the slice views and cameras on the center point of the line node pair.
+        Args:
+            lineNodePair: the line node pair to center on
+            tp: the timepoint to center on (e.g., "timepoint1" or "timepoint2")
+        """
         coords = lineNodePair.get_coords()
         center = point_closest_to_two_lines(coords)
         position = center
@@ -851,21 +1002,45 @@ class Measurements2DMixin:
 
 
 class LineNodePair(list):
+    """
+    A class that represents a pair of line nodes for a lesion in a timepoint. The class inherits from list to allow
+    easy access to the line nodes. The class also contains methods to create the line nodes, set and get their
+    coordinates, and set the views for the line nodes. The class also contains methods to create a fiducial node for
+    the text label of the line nodes and to handle events when the line nodes are modified.
+    The class also contains methods to set the enhancing, measurable, and target properties of the line nodes.
+
+    Args:
+        lesion_idx: the index of the lesion
+        timepoint: the timepoint for which the line nodes are created (e.g., "timepoint1" or "timepoint2")
+        enhancing: whether the lesion is enhancing or not (default: True)
+        measurable: whether the lesion is measurable or not (default: True)
+        target: whether the lesion is a target lesion or not (default: False)
+    """
     def __init__(self, lesion_idx, timepoint, enhancing=True, measurable=True, target=False):
         lineNode1, lineNode2 = self.create_twoLineNodes(lesion_idx, timepoint)
         super().__init__([lineNode1, lineNode2])
         self.lesion_idx = lesion_idx
+        """Lesion index"""
+
         self.timepoint = timepoint
+        """Timepoint for which the line node pair is created"""
 
         self.enhancing = enhancing
+        """Whether the lesion is enhancing or not"""
+
         self.measurable = measurable
+        """Whether the lesion is measurable or not"""
+
         self.target = target
+        """Whether the lesion is a target lesion or not"""
 
         self.fiducialNodeForText = self.create_fiducialNodeFor_text()
+        """Fiducial node for the text label of the line nodes"""
 
-        # set up observer
         self.observations = []
+        """List of observers for the line nodes"""
 
+        # add the observers for the lines that trigger when the line nodes are modified
         self.observations.append([lineNode1, lineNode1.AddObserver(vtk.vtkCommand.ModifiedEvent,
                                                                    functools.partial(self.uponLineNodeModifiedEvent,
                                                                                      lineNode1=lineNode1,
@@ -878,16 +1053,21 @@ class LineNodePair(list):
                                                                                      fiducialNodeForText=self.fiducialNodeForText))])
 
     def set_coords(self, coords):
-        for lineNode, coord in zip(self,
-                                   coords):  # note: looping over self returns the line nodes because self is a list of line nodes
+        """
+        Set the coordinates of the line nodes to the given world coordinates.
+        """
+        for lineNode, coord in zip(self, coords):  # note: looping over self returns the line nodes because self is a list of line nodes
             if not isinstance(coord, np.ndarray):
                 coord = np.array(coord)
             slicer.util.updateMarkupsControlPointsFromArray(lineNode, coord)
 
     def get_coords(self):
+        """
+        Get the coordinates of the line nodes in world coordinates.
+        """
         coords = np.zeros((2, 2, 3)) * np.nan
         for i, lineNode in enumerate(self):
-            # check if both control points existus
+            # check if both control points exist
             controlpoint1_exists = lineNode.ControlPointExists(0)
             controlpoint2_exists = lineNode.ControlPointExists(1)
 
@@ -897,30 +1077,29 @@ class LineNodePair(list):
             coords[i] = np.array([lineNode.GetNthControlPointPositionWorld(j) for j in range(2)])
         return coords
 
-    def get_coords_ijk(self):
-        coords = np.zeros((2, 2, 3)) * np.nan
-        for i, lineNode in enumerate(self):
-            # check if both control points existus
-            controlpoint1_exists = lineNode.ControlPointExists(0)
-            controlpoint2_exists = lineNode.ControlPointExists(1)
-
-            if not controlpoint1_exists or not controlpoint2_exists:
-                continue  # leave the coords nan
-
-            coords[i] = np.array([lineNode.GetNthControlPointPosition(j) for j in range(2)])
-        return coords
-
     def get_line_lengths(self):
+        """
+        Get the lengths of the lines in world coordinates.
+        """
         len1 = self[0].GetLineLengthWorld()
         len2 = self[1].GetLineLengthWorld()
         return len1, len2
 
     def get_line_length_product(self):
+        """
+        Get the product of the lengths of the lines in world coordinates.
+        """
         len1, len2 = self.get_line_lengths()
         return len1 * len2
 
     @staticmethod
     def create_twoLineNodes(les_idx, timepoint):
+        """
+        Create two line nodes for the line pair and set their properties.
+        Args:
+            les_idx: the index of the lesion
+            timepoint: the timepoint for which the line nodes are created (e.g., "timepoint1" or "timepoint2")
+        """
         # get the line nodes
         lineNode1Name = f"l1_les{int(les_idx)}_{timepoint.replace('timepoint', 't')}"
         lineNode2Name = f"l2_les{int(les_idx)}_{timepoint.replace('timepoint', 't')}"
@@ -953,6 +1132,9 @@ class LineNodePair(list):
         return lineNode1, lineNode2
 
     def create_fiducialNodeFor_text(self):
+        """
+        Create a fiducial node for the text label of the line nodes.
+        """
         # create an extra fiducial point that is only used to annotate the linePair (hiding the ctrlPoint point itself)
         fiducialNodeName = f"text_fiducial_les{int(self.lesion_idx)}_{self.timepoint.replace('timepoint', 't')}"
         fiducialNode = slicer.mrmlScene.GetFirstNodeByName(fiducialNodeName)
@@ -980,6 +1162,15 @@ class LineNodePair(list):
 
     @staticmethod
     def set_color_depending_on_orthogonality(n, e, lineNode1, lineNode2, fiducialNodeForText=None):
+        """
+        Set the color of the lines depending on whether they are orthogonal or not.
+        Args:
+            n: the event name
+            e: the event object
+            lineNode1: the first line node
+            lineNode2: the second line node
+            fiducialNodeForText: the fiducial node for the text label of the line nodes
+        """
         # set the color of the lines depending on whether they are orthogonal
         # get the two lines
 
@@ -1022,6 +1213,9 @@ class LineNodePair(list):
             fiducialNodeForText.GetDisplayNode().SetSelectedColor(tuple([v / 2 for v in color]))
 
     def annotate_with_text(self):
+        """
+        Annotate the line nodes with the length of the lines in world coordinates.
+        """
         # set the location of the text to the middle of the line
         coords = self.get_coords()
 
@@ -1056,22 +1250,37 @@ class LineNodePair(list):
                                                              f"Les {int(self.lesion_idx)}: {line1LengthWorld:.1f} x {line2LengthWorld:.1f}")
 
     def uponLineNodeModifiedEvent(self, n, e, lineNode1, lineNode2, fiducialNodeForText):
+        """
+        This method is called when the line nodes are modified.
+        It sets the color of the lines depending on whether they are orthogonal or not and updates the text label
+        of the line nodes with the length of the lines in world coordinates.
+        Args:
+            n: the event name
+            e: the event object
+            lineNode1: the first line node
+            lineNode2: the second line node
+            fiducialNodeForText: the fiducial node for the text label of the line nodes
+        """
         # print("LineNode modified event")
         self.set_color_depending_on_orthogonality(n, e, lineNode1, lineNode2, fiducialNodeForText)
         slicer.modules.RANOWidget.calculate_results_table(slicer.modules.RANOWidget.lineNodePairs)
         self.annotate_with_text()
 
     def cleanup(self):
+        """
+        Cleanup the line node pair by removing the observers and the fiducial node.
+        """
         # upon deletion of the object, remove the observers
         for observedNode, observer in self.observations:
             observedNode.RemoveObserver(observer)
+
+        # remove the fiducial node
+        slicer.mrmlScene.RemoveNode(self.fiducialNodeForText)
 
         # remove the line nodes
         slicer.mrmlScene.RemoveNode(self[0])
         slicer.mrmlScene.RemoveNode(self[1])
 
-        # remove the fiducial node
-        slicer.mrmlScene.RemoveNode(self.fiducialNodeForText)
 
     def __repr__(self):
         return (f"LineNodePair(lesion_idx={self.lesion_idx}, timepoint={self.timepoint}, "
@@ -1079,38 +1288,57 @@ class LineNodePair(list):
 
 
 class LineNodePairList(list):
-    # behaves like a list but makes sure that line nodes contained in the lineNodePairs are removed from the scene when
-    # removed from the list
+    """
+    A list of LineNodePair objects. This class inherits from list to allow easy access to the line node pairs.
+    The class also contains methods to add, remove, and modify the line node pairs. The class also contains methods
+    to update the UI and the response assessment based on the line node pairs.
+    """
+
     def __delitem__(self, index):
+        """
+        Makes sure that line nodes contained in the LineNodePairList are removed from the scene when removed from the list
+        """
         self[index].cleanup()
         super().__delitem__(index)
         self.uponModified()
 
     def pop(self, index):
+        """
+        Makes sure that line nodes contained in the LineNodePairList are removed from the scene when popped from the list
+        """
         self[index].cleanup()
         out = super().pop(index)
         self.uponModified()
         return out
 
     def uponModified(self):
+        """
+        This method is called when the line node pairs are modified. It updates the UI and the response assessment
+        based on the line node pairs.
+        """
         slicer.modules.RANOWidget.calculate_results_table(self)
         slicer.modules.RANOWidget.update_response_assessment(slicer.modules.RANOWidget.ui, self)
         slicer.modules.RANOWidget.update_linepair_ui_list()
 
     # make sure that the list is returned as a LineNodePairList when sorted
     def custom_sort(self, *args, **kwargs):
+        """
+        Sort the list of LineNodePair objects and return a new LineNodePairList object.
+        """
         sorted_items = sorted(self, *args, **kwargs)
         return LineNodePairList(sorted_items)
 
     def decide_enhancing(self):
-        # for now, all lesions are considered enhancing
+        """
+        Logic to decide whether the lesion is enhancing or not. For now, all lesions are considered enhancing initially.
+        """
         for pair in self:
             pair.enhancing = True
         self.uponModified()
 
     def decide_measurable(self):
         """
-        Decide whether the lesion is measurable or not based on the orthogonal lines
+        Decide whether the lesion is measurable or not based on the orthogonal lines.
         """
         # for now if both lines are more than 10 pixels long, the lesion is measurable
         for pair in self:
@@ -1121,6 +1349,16 @@ class LineNodePairList(list):
         self.uponModified()
 
     def decide_target(self, strategy="two_largest_enhancing"):
+        """
+        Logic to decide whether the lesion is a target lesion or not. The strategy can be one of the following:
+        - "two_largest_enhancing": select the two largest enhancing lesions
+        - "three_largest_enhancing": select the three largest enhancing lesions
+        - "two_largest_enhancing_and_two_largest_non_enhancing": select the two largest enhancing lesions and the two
+            largest non-enhancing lesions
+
+        Args:
+            strategy: the strategy to use for selecting the target lesions
+        """
 
         if strategy == "two_largest_enhancing" or strategy == "three_largest_enhancing":
             # sort the lesions by the product of the orthogonal lines
@@ -1199,6 +1437,10 @@ class LineNodePairList(list):
         return num_new_measurable_lesions
 
     def get_sum_of_bidimensional_products(self, timepoint):
+        """
+        Given a list of line node pairs, this function returns the sum of bidimensional products of the orthogonal lines
+        of all lesions at the given timepoint.
+        """
         sum_prod = 0
         for pair in self:
             if pair.target and pair.timepoint == timepoint:
@@ -1210,7 +1452,6 @@ class LineNodePairList(list):
         Given a list of line node pairs, this function returns the relative change of the sum of bidimensional products of the
         orthogonal lines of all lesions at timepoint 2 relative to the sum of the bidimensional products of the orthogonal
         lines of all lesions at timepoint 1.
-        :return: the relative change of the sum of bidimensional products
         """
         sum_prod_t1 = self.get_sum_of_bidimensional_products("timepoint1")
         sum_prod_t2 = self.get_sum_of_bidimensional_products("timepoint2")

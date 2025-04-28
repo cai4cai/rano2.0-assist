@@ -590,6 +590,14 @@ def find_plane_of_coords(coords):
 
 
 def find_closest_plane(coords):
+    """
+    Given two lines, this function returns the axis of the plane in which the lines are placed.
+
+    Args:
+        coords: a list of two lines, where each line is a list of two points (2 lines x 2 points x 3 coordinates)
+    Returns:
+        axis_idx: the index of the axis that is perpendicular to the plane in which the lines are placed
+    """
     l1p1 = coords[0][0]
     l1p2 = coords[0][1]
     l2p1 = coords[1][0]
@@ -602,8 +610,8 @@ def find_closest_plane(coords):
     normal = normal / np.linalg.norm(normal)
 
     # find the axis with the largest component of the normal
-    axis = np.argmax(np.abs(normal))
-    return axis
+    axis_idx = np.argmax(np.abs(normal))
+    return axis_idx
 
 
 
