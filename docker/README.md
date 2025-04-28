@@ -1,4 +1,4 @@
-# docker instructions
+# Docker instructions
 
 ## Requirements
 [RANO](../RANO)
