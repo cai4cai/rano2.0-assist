@@ -30,13 +30,16 @@ def run_segmentation(inputVolume_list,
                      python_executable,
                      ):
     """
-    Run the processing algorithm.
-    Can be used without GUI widget.
-    :param inputVolume_list: list of volumes passed as input to the model
-    :param do_affinereg: whether to register input volumes to template image
-    :param input_is_bet: whether the input image is already brain extracted
-    :param task_dir: path to the task directory
-    :param python_executable: path to python executable (for example a virtual environment)
+    Run the segmentation model using the provided input volumes and parameters.
+
+    Args:
+        inputVolume_list: list of volumes passed as input to the model
+        do_affinereg: whether to register input volumes to template image
+        input_is_bet: whether to register input volumes to template image
+        task_dir: path to the task directory that contains the segmentation model
+        tmp_path_in: path to the temporary input directory
+        tmp_path_out: path to the temporary output directory
+        python_executable: path to python executable (for example a virtual environment)
     """
 
     if len(inputVolume_list) == 0:
@@ -46,12 +49,13 @@ def run_segmentation(inputVolume_list,
         if not inputVolume_list[i]:
             raise ValueError("Channel " + str(i + 1) + " input volume is invalid")
 
-    startTime = time.time()
+    startTime = time.time()  # to time the segmentation
     logging.info('Processing started')
 
     # get the path to the external inference script
     ext_inference_script_path = os.path.join(dynunet_pipeline_path, "src", "inference.py")
 
+    # empty the temporary input and output directories
     if os.path.isdir(tmp_path_in):
         shutil.rmtree(tmp_path_in)
     if os.path.isdir(tmp_path_out):
@@ -59,7 +63,7 @@ def run_segmentation(inputVolume_list,
     os.makedirs(tmp_path_in, exist_ok=True)
     os.makedirs(tmp_path_out, exist_ok=True)
 
-    # create json file with the input and output paths
+    # create json file with the input and output paths as input for the inference script
     inference_files_list = [
         {
             "images": {str(ch): os.path.join(tmp_path_in, "img_tmp_" + "{:04d}".format(ch) + ".nii.gz") for ch in
@@ -73,7 +77,7 @@ def run_segmentation(inputVolume_list,
     with open(inference_files_path, "w") as f:
         json.dump(inference_files_list, f, indent=4)
 
-    # save image to nifti file that can be read by the docker
+    # save input nodes as nifti files in the temporary input directory
     for channel, input_volume in enumerate(inputVolume_list):
         img_tmp_path = os.path.join(tmp_path_in, "img_tmp_" + "{:04d}".format(channel) + ".nii.gz")
         # saveNode overwrites the storage node with the original filename, which is needed when the user wants to
@@ -143,11 +147,15 @@ def run_segmentation(inputVolume_list,
 @jit(nopython=True)
 def keep_contained_lines(boundary_coords, mask, sample_distance=0.2):
     """
-    Given a set of boundary coordinates, this function returns the lines that are fully contained within the mask.
-    :param boundary_coords: numpy array of shape (nb_boundary_pixels, 2)
-    :param mask: binary numpy array of shape (width, height)
-    :param sample_distance: the distance between samples on the line to check if the line is contained
-    :return: a list of lines, where each line is a list of two points
+    Given a set of boundary coordinates, this method returns the lines that are fully contained within the mask.
+
+    Args:
+        boundary_coords: numpy array of shape (nb_boundary_pixels, 2)
+        mask: binary numpy array of shape (width, height)
+        sample_distance: the distance between samples on the line to check if the line is contained
+
+    Returns:
+        contained_lines: a list of lines, where each line is a list of two points.
     """
     nb_coords = len(boundary_coords)
     contained_lines = []
@@ -180,8 +188,11 @@ def get_all_contained_lines(plane):
     Given a plane, this function returns all the lines from one boundary pixel to another that are fully contained
     within the foreground.
 
-    :param plane: a 2D numpy array where background is 0 and foreground is > 0
-    :return: a list of lines, where each line is a list of two points
+    Args:
+        plane: a 2D numpy array where background is 0 and foreground is > 0
+
+    Returns:
+        contained_lines: a list of lines, where each line is a list of two points
     """
     mask = plane > 0
 
@@ -213,9 +224,14 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, degree_tol=
     """
     Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest
     product of their lengths.
-    :param all_line_coords_np: numpy array of shape (nb_lines, 2, 2) (lines x 2 points x 2 coordinates)
-    :param degree_tol: the tolerance in degrees for the orthogonality of the lines
-    :return: a list of two lines, where each line is a list of two points and the product of their lengths is maximal
+
+    Args:
+        all_line_coords_np: numpy array of shape (nb_lines, 2, 2) (lines x 2 points x 2 coordinates)
+        degree_tol: the tolerance in degrees for the orthogonality of the lines
+
+    Returns:
+        ortho_line_products_max_idx_coords: a list of two lines, where each line is a list of two points and the product
+        of their lengths is maximal
     """
 
     if debug:
@@ -315,8 +331,12 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, degree_tol=
 def get_instance_segmentation_by_connected_component_analysis(bin_seg):
     """
     Convert a binary segmentation into a segmentation where each connected component gets a different label > 0.
-    :param bin_seg: Binary segmentation with shape W, H, D and labels 0 and 1
-    :return: instance_seg: Segmentation with shape W, H, D and labels 0, ..., num_ccs (number of connected components)
+
+    Args:
+        bin_seg: Binary segmentation with shape W, H, D and labels 0 and 1
+
+    Returns:
+        instance_seg: Segmentation with shape W, H, D and labels 0, ..., num_ccs (number of connected components)
     """
     # get connected components (each CC will get a different label)
     instance_seg, num_ccs = measure.label(bin_seg, background=0, return_num=True)
@@ -386,58 +406,24 @@ def match_instance_segmentations_by_IoU(instance_segs):
     return matched_instance_segs
 
 
-def get_max_orthogonal_line_product_coords_multipairs_and_volumes(seg, opening_radius=None):
-    """
-
-    :param seg: a 3D numpy array where background is 0 and foreground is > 0
-    :param opening_radius: the radius of the circle opening operation to apply to the slice segmentation before finding
-    the orthogonal lines
-    :return: a list of line pairs, where each line pair is a list of two lines and is associated with one of the
-    connected components. Shape: (num connected components, 2 lines, 2 points, 3 coordinates)
-    """
-
-    # get connected components (each CC will get a different label)
-    seg_cc, num_ccs = measure.label(seg, background=0, return_num=True)
-
-    # get the largest connected component
-    counts = np.bincount(seg_cc.flat)
-    cc_label_sorted = np.argsort(counts)[::-1]
-
-    # get a line pair that maximizes the product of the orthogonal lines for each connected component
-    coords_ijk = np.zeros((num_ccs, 2, 2, 3))  # number of connected components, 2 lines, 2 points, 3 coordinates
-    volumes = np.zeros(num_ccs)
-    cc_idx = 0  # cc_idx is the index of the connected component sorted by size
-    for cc_lab in cc_label_sorted:  # , cc_label is the arbitrary label of the connected component
-        if cc_lab == 0:  # skip background
-            continue
-        # for this component, get coordinates of orthogonal lines
-        seg_one_cc = np.array(seg_cc == cc_lab).astype(np.int16)
-        coords_ijk[cc_idx] = get_max_orthogonal_line_product_coords(seg_one_cc, opening_radius)
-        volumes[cc_idx] = np.sum(seg_one_cc)
-        cc_idx += 1
-
-    # discard entries with nan values
-    has_nan = np.isnan(coords_ijk).any(axis=(1, 2, 3))
-    print("Removing entries of line coordinates with nan values for connected components. has_nan = ", has_nan)
-    coords_ijk = coords_ijk[~has_nan]
-    volumes = volumes[~has_nan]
-
-    return coords_ijk, volumes
-
-
 def get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=None, center_tol=5,
                                            opening_radius=None):
     """
     Given a segmentation, this function returns the two lines that are orthogonal to each other and have the largest
     product of their lengths. It does so by looping over views (axial, coronal, sagittal) and planes and finding the
     two lines with the largest product of their lengths that are orthogonal to each other.
-    :param valid_axes: the views to consider for finding the orthogonal lines
-    :param center: coordinates of a point that the plane must be close to
-    :param center_tol: tolerance for the distance between the plane and the center point
-    :param seg: a 3D numpy array where background is 0 and foreground is > 0
-    :param opening_radius: the radius of the circle opening operation to apply to the slice segmentation before finding
-    the orthogonal lines
-    :return: a list of two lines, where each line is a list of two points and the product of their lengths is maximal
+
+    Args:
+        seg: a 3D numpy array where background is 0 and foreground is > 0
+        valid_axes: the views to consider for finding the orthogonal lines
+        center: coordinates of a point that the plane must be close to
+        center_tol: tolerance for the distance between the plane and the center point
+        opening_radius: the radius of the circle opening operation to apply to the slice segmentation before finding
+        the orthogonal lines
+
+    Returns:
+        max_ortho_line_coords: a list of two lines, where each line is a list of two points and the product of their
+        lengths is maximal
     """
 
     # loop over all planes
@@ -506,13 +492,19 @@ def get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=Non
 def circle_opening(seg, labels, radius):
     """
     Given a segmentation, this function performs a circle opening operation on the specified labels.
-    This means it returns a new binary segmentation where the specified labels are removed if they are within a certain
-    distance from the boundary of the combined labels. The threshold corresponds to the radius of a circle that can
-    be placed in the combined structure without intersecting the boundary.
-    :param seg: input segmentation with multiple labels
-    :param labels: list of labels to combine for the circle opening operation
-    :param radius: the distance from the boundary of the combined labels (corresponds to the radius of the circle)
-    :return: the circle-opened segmentation
+    The opening operation is performed in 3 steps:
+    1. A mask is created as the union of the specified labels
+    2. The distance map of the mask is calculated and used to threshold the mask such that only the pixels that are
+    at least radius away from the boundary of the mask are kept. This mask corresponds to the valid centers of the
+    structuring element (the circle).
+    3. The mask is dilated by the structuring element (the circle) to get the final segmentation (the circle opened mask).
+
+    Args:
+        seg: a 2D numpy array where background is 0 and foreground is > 0
+        labels: list of labels to combine for the circle opening operation
+        radius: the distance from the boundary of the combined labels (corresponds to the radius of the circle)
+    Returns:
+        seg_circle_open: a 2D numpy array where background is 0 and foreground is 1
     """
     # create a mask
     mask = np.zeros_like(seg)
@@ -531,7 +523,7 @@ def circle_opening(seg, labels, radius):
     structure = np.zeros((radius * 2 - 1, radius * 2 - 1))
     structure[mask] = 1
 
-    # dilate the mask by the treshold
+    # dilate the mask by the threshold
     seg_circle_open = binary_dilation(dist_thresh_mask, structure)
 
     return seg_circle_open
@@ -539,8 +531,23 @@ def circle_opening(seg, labels, radius):
     # find the plane in which the line coordinates are placed
 
 
-
 def sphere_opening(seg, labels, radius):
+    """
+    Given a segmentation, this function performs a sphere opening operation on the specified labels.
+    The opening operation is performed in 3 steps:
+    1. A mask is created as the union of the specified labels
+    2. The distance map of the mask is calculated and used to threshold the mask such that only the pixels that are
+    at least radius away from the boundary of the mask are kept. This mask corresponds to the valid centers of the
+    structuring element (the sphere).
+    3. The mask is dilated by the structuring element (the sphere) to get the final segmentation (the sphere opened mask).
+
+    Args:
+        seg: a 3D numpy array where background is 0 and foreground is > 0
+        labels: list of labels to combine for the sphere opening operation
+        radius: the distance from the boundary of the combined labels (corresponds to the radius of the sphere)
+    Returns:
+        seg_open: a 3D numpy array where background is 0 and foreground is 1
+    """
     # create a mask
     mask = np.zeros_like(seg)
     for label in labels:
@@ -566,8 +573,11 @@ def sphere_opening(seg, labels, radius):
 def find_plane_of_coords(coords):
     """
     Given two lines, this function returns the axis of the plane in which the lines are placed.
-    :param coords: a list of two lines, where each line is a list of two points with shape (2 lines x 2 points x 3 coordinates)
-    :return: the axis that is perpendicular to the plane in which the lines are placed and the constant plane coordinate
+
+    Args:
+        coords: a list of two lines, where each line is a list of two points with shape (2 lines x 2 points x 3 coordinates)
+    Returns:
+        axis_of_const_coordinate_values: the axis that is perpendicular to the plane in which the lines are placeddinate
     """
     l1p1 = coords[0][0]
     l1p2 = coords[0][1]
@@ -616,6 +626,16 @@ def find_closest_plane(coords):
 
 
 def point_closest_to_two_lines(coords):
+    """
+    Given two lines, this function returns the point that is closest to both lines. This can be used to find a point
+    that can be annotated that describes a line pair.
+
+    Args:
+        coords: a list of two lines, where each line is a list of two points (2 lines x 2 points x 3 coordinates)
+    Returns:
+        closest_point: the point that is closest to both lines
+
+    """
     p11 = coords[0][0]
     p12 = coords[0][1]
     p21 = coords[1][0]
@@ -636,22 +656,29 @@ def point_closest_to_two_lines(coords):
     # if coordinates are larger or smaller than the original coordinates, return the original coordinates
     if np.any(out > np.max(coords)) or np.any(out < np.min(coords)):
         return (p11 + p12 + p21 + p22) / 4
-    return out
+
+    closest_point = out
+    return closest_point
 
 
 def circle_opening_on_slices_perpendicular_to_axis(segmentationArray, axes, labels, radius, slice_idx=None):
     """
     Given a 3D segmentation, this function performs a circle opening operation on the specified labels in the slices
     perpendicular to each of the specified axes, then returns the union of segmentations from all axes.
-    :param segmentationArray: a 3D numpy array with the segmentation
-    :param axes: the axis perpendicular to the slices where the circle opening operation is performed
-    :param labels: list of labels to combine for the circle opening operation
-    :param radius: radius of the circle for the circle opening operation
-    :param slice_idx: if the slice index is specified, the circle opening operation is only performed on that slice. If
-    None, the operation is performed on all slices along the axis. If multiple axes are specified, slice_idx must be
-    a list of the same length as axes.
-    :return: the circle-opened segmentation along the specified axis
+
+    Args:
+        segmentationArray: a 3D numpy array with the segmentation
+        axes: the axis perpendicular to the slices where the circle opening operation is performed
+        labels: list of labels to combine for the circle opening operation
+        radius: radius of the circle for the circle opening operation
+        slice_idx: if the slice index is specified, the circle opening operation is only performed on that slice. If
+        None, the operation is performed on all slices along the axis. If multiple axes are specified, slice_idx must be
+        a list of the same length as axes.
+
+    Returns:
+        the circle-opened segmentation along the specified axis
     """
+
     out = np.zeros_like(segmentationArray)
 
     for axis in axes:
@@ -686,8 +713,12 @@ def circle_opening_on_slices_perpendicular_to_axis(segmentationArray, axes, labe
 def get_ijk_to_world_matrix(node):
     """
     Given a node, this function returns the IJK to world matrix of the binary labelmap
-    :param node: the segmentation node or volume node
-    :return: the IJK to world matrix of the binary labelmap
+
+    Args:
+        node: the segmentation node or volume node
+
+    Returns:
+        ijkToWorld: the IJK to world matrix of the binary labelmap
     """
     binaryLabelmapRepresentation = slicer.vtkOrientedImageData()
 
@@ -707,9 +738,13 @@ def get_ijk_to_world_matrix(node):
 def transform_ijk_to_world_coord(ijk, ijkToWorld_matrix):
     """
     Given an IJK coordinate and the IJK to world matrix, this function returns the world coordinate
-    :param ijk: the IJK coordinates (x, y, z)
-    :param ijkToWorld_matrix: the IJK to world matrix
-    :return: the world coordinate (x, y, z)
+
+    Args:
+        ijk: the IJK coordinates (x, y, z)
+        ijkToWorld_matrix: the IJK to world matrix
+
+    Returns:
+        the world coordinate (x, y, z)
     """
     x_idx, y_idx, z_idx = 2, 1, 0  # swap z and x from numpy to slicer
     return ijkToWorld_matrix.MultiplyPoint([ijk[x_idx], ijk[y_idx], ijk[z_idx], 1])[
@@ -720,11 +755,14 @@ def transform_ijk_to_world_coord(ijk, ijkToWorld_matrix):
 def transform_world_to_ijk_coord(world, worldToIJK_matrix):
     """
     Given a world coordinate and the world to IJK matrix, this function returns the IJK coordinate
-    :param world: the world coordinates (x, y, z)
-    :param worldToIJK_matrix: the world to IJK matrix
-    :return: the IJK coordinate (x, y, z)
-    """
 
+    Args:
+        world: the world coordinates (x, y, z)
+        worldToIJK_matrix: the world to IJK matrix
+
+    Returns:
+        the IJK coordinate (x, y, z)
+    """
     kji = worldToIJK_matrix.MultiplyPoint([world[0], world[1], world[2], 1])[
           :3]  # [:3] to remove the homogeneous coordinate (1)
     return [int(round(kji[2])), int(round(kji[1])), int(round(kji[0]))]  # swap z and x from slicer
