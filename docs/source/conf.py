@@ -10,6 +10,8 @@ import os
 import sys
 from pathlib import Path
 
+from bs4.dammit import html_meta
+
 sys.path.insert(0, str(Path('..', '..').resolve()))  # So Sphinx can find your module
 sys.path.insert(0, str(Path('..', '..', 'RANO').resolve()))
 

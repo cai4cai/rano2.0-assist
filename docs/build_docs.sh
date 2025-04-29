@@ -1,11 +1,20 @@
 #!/bin/bash
 
-sphinx-apidoc -f -e -M -o source ../RANO
-
 THIS_DIR=$(dirname "$(readlink -f "$0")")
 
+APIDOC_SOURCE_DIR=$( realpath "$THIS_DIR/../RANO" )
 SOURCE_DIR=$(realpath "$THIS_DIR/source")
+
+echo "APIDOC_SOURCE_DIR: $APIDOC_SOURCE_DIR"
+echo "SOURCE_DIR: $SOURCE_DIR"
+
+sphinx-apidoc -f -e -M -o "$SOURCE_DIR" "$APIDOC_SOURCE_DIR"
+
+
 BUILD_DIR=$(realpath "$THIS_DIR/build")
+
+
+echo "BUILD_DIR: $BUILD_DIR"
 
 PYTHONEXEC="/home/slicer/bin/Slicer-5.8.1-linux-amd64/Slicer"
 

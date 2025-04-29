@@ -1,7 +1,10 @@
-```{include} ../../README.md
 
+```{include} README.md
+```
 
 ```{toctree}
-    :caption: 'Contents:'
-    :maxdepth: 2
+:maxdepth: 2
+:caption: 'Contents:'
+
+README.md
 ```
