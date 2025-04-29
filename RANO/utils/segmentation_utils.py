@@ -13,21 +13,34 @@ from utils.config import debug, dynunet_pipeline_path
 
 
 class SegmentationMixin:
+    """
+    Mixin class for the segmentation functionality of the RANO module.
+    This class handles the segmentation of the input volumes and the loading of the results into Slicer.
+    It also handles the progress bar and the cancellation of the segmentation process.
+    """
     def __init__(self, parameterNode, ui):
         self.start_time_t1 = None
+        """Start time for the first segmentation process"""
+
         self.start_time_t2 = None
+        """Start time for the second segmentation process"""
+
         self._parameterNode = parameterNode
+        """Parameter node for the RANO module"""
+
         self.ui = ui
+        """UI for the RANO module"""
 
     def onCalcSegmentationsButton(self):
         """
-        Run processing when user clicks "Apply" button.
+        Run processing when user clicks the "Calculate Segmentations" button.
         """
         # unset start times for the next segmentation run
         self.start_time_t1 = None
         self.start_time_t2 = None
 
         original_log_level = slicer.app.pythonConsoleLogLevel()
+
         # timepoint 1
         try:
             # assemble input channel nodes
@@ -162,6 +175,22 @@ class SegmentationMixin:
 
     def onCliNodeStatusUpdate(self, cliNode, event, progressBar, task_dir, tmp_path_out, output_segmentation,
                               input_volume_list, timepoint, original_log_level=32):
+        """
+        Callback function to handle the status update of the CLI node.
+
+        Args:
+            cliNode: The CLI node that is being observed.
+            event: The event that triggered the callback.
+            progressBar: The progress bar to update.
+            task_dir: The task directory for the segmentation.
+            tmp_path_out: The temporary output path for the segmentation.
+            output_segmentation: The output segmentation node.
+            input_volume_list: The list of input volume nodes.
+            timepoint: The timepoint for the segmentation ('timepoint1' or 'timepoint2').
+            original_log_level: The original log level for the Slicer application.
+        """
+
+
         if debug: print("Received an event '%s' from class '%s'" % (event, cliNode.GetClassName()))
         # print(f"Status of CLI for {timepoint} is {cliNode.GetStatusString()}")
         if cliNode.IsA('vtkMRMLCommandLineModuleNode') and not cliNode.GetStatus() == cliNode.Completed:  # do this when the cli module sends a progress update (not when it is done)
@@ -198,6 +227,17 @@ class SegmentationMixin:
 
     def onSegmentationCliNodeSuccess(self, input_volume_list, output_segmentation, task_dir,
                                      timepoint, tmp_path_out):
+        """
+        Callback function to handle the success of the CLI node.
+        This function loads the output segmentation into Slicer and applies the transformation if required.
+
+        Args:
+            input_volume_list: The list of input volume nodes.
+            output_segmentation: The output segmentation node.
+            task_dir: The task directory for the segmentation.
+            timepoint: The timepoint for the segmentation ('timepoint1' or 'timepoint2').
+            tmp_path_out: The temporary output path for the segmentation.
+        """
         # get output files created by external inference process
         # if no registration is required
         if not self.ui.affineregCheckBox.checked:
@@ -300,9 +340,10 @@ class SegmentationMixin:
         temporarily to include the background label (0) and then decreased by 1 again to have the original labels.
         (This is because slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode ignores the background label)
         Finally, the segmentIDs are reduced by 1 to have the correct segmentIDs in the segmentation node.
-        :param loadedLabelVolumeNode:
-        :param output_segmentation:
-        :return:
+
+        Args:
+        loadedLabelVolumeNode: The label volume node to import.
+        output_segmentation: The output segmentation node to import the label volume into.
         """
 
         # increase values by 1
@@ -336,6 +377,14 @@ class SegmentationMixin:
 
 
     def setDefaultSegmentFor2DMeasurements(self, defaultSegmentName="ETC"):
+        """
+        Set the default segment for 2D measurements in the segment selector widget.
+        This function checks if the default segment exists in either of the segmentations
+        and sets it as the current segment in the segment selector widget.
+
+        Args:
+            defaultSegmentName: The name of the default segment to set.
+        """
         # check if the default segment exists in either of the segmentations
         segNode1 = self._parameterNode.GetNodeReference("outputSegmentation")
         segNode2 = self._parameterNode.GetNodeReference("outputSegmentation_t2")
@@ -350,6 +399,15 @@ class SegmentationMixin:
 
     @staticmethod
     def get_task_dir(model_key, parameterNode):
+        """
+        Get the task directory for the given model key.
+
+        Args:
+            model_key: The key of the model to get the task directory for.
+            parameterNode: The parameter node for the RANO module.
+        Returns:
+            The task directory for the given model key.
+        """
         model_info_path = parameterNode.GetParameter("model_info_path")
         task_dir_root = os.path.normpath(os.path.join(dynunet_pipeline_path, "data/tasks"))
         model_info = json.loads(parameterNode.GetParameter("ModelInfo"))

@@ -2861,7 +2861,7 @@
       <item>
        <widget class="QPushButton" name="createReportPushButton">
         <property name="text">
-         <string>create report</string>
+         <string>Create Report</string>
         </property>
        </widget>
       </item>

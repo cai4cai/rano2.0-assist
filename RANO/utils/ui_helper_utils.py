@@ -16,11 +16,20 @@ from utils.config import debug, module_path
 
 
 class UIHelperMixin:
+    """
+    Mixin class for setting up the UI for the RANO module.
+    """
     def __init__(self, parameterNode, ui):
         self._parameterNode = parameterNode
+        """Parameter node for the RANO module"""
+
         self.ui = ui
+        """UI for the RANO module"""
 
     def setup_test_cases(self):
+        """
+        Set up the test cases for the RANO module.
+        """
         # test cases
         base_path = "/home/aaron/KCL_data/RANO/Input_Data"
 
@@ -123,6 +132,9 @@ class UIHelperMixin:
         self.ui.testCasePushButton.connect('clicked(bool)', onTestCaseLoadButton)
 
     def setup_add_data_box(self):
+        """
+        Set up the add data box for the RANO module.
+        """
         def onAddDataButton(*args, **kwargs):
             slicer.util.openAddDataDialog()
 
@@ -136,6 +148,9 @@ class UIHelperMixin:
 
 
     def setup_input_box(self):
+        """
+        Set up the input box for the RANO module.
+        """
         # timepoint 1
         self.ui.inputSelector_channel1_t1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
         self.ui.inputSelector_channel2_t1.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
@@ -166,6 +181,9 @@ class UIHelperMixin:
             pushbutton.setIconSize(qt.QSize(16, 16))
 
     def update_ui_input_channel_selectors(self, modalities_path, timepoint):
+        """
+        Update the input channel selectors based on the modalities.json file.
+        """
         if timepoint == 1:
             postfix = "_t1"
         elif timepoint == 2:
@@ -199,6 +217,9 @@ class UIHelperMixin:
                 self.ui.__getattribute__(f"channel{i + 1}_label" + postfix).setText(f"Channel {i + 1}:")
 
     def setup_autosegmentation_box(self):
+        """
+        Set up the auto-segmentation box for the RANO module.
+        """
 
         models_dict = json.loads(self._parameterNode.GetParameter("ModelInfo"))
         defaultModelIndex = self._parameterNode.GetParameter("DefaultModelIndex")
@@ -236,6 +257,9 @@ class UIHelperMixin:
 
 
     def setup_auto_2D_measurements(self):
+        """
+        Set up the auto 2D measurements box for the RANO module.
+        """
         self.ui.SegmentSelectorWidget.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
         self.ui.SegmentSelectorWidget.connect("currentSegmentChanged(QString)", self.updateParameterNodeFromGUI)
         self.ui.SegmentSelectorWidget.connect("segmentSelectionChanged(QStringList)", self.updateParameterNodeFromGUI)
@@ -260,6 +284,9 @@ class UIHelperMixin:
 
 
     def setup_manual_2D_measurements(self):
+        """
+        Set up the manual 2D measurements box for the RANO module.
+        """
 
         def onToggleShowInstanceSegButton(*args, **kwargs):
             if debug: print(f"Pushed onToggleShowInstanceSegButton, with args {args} ,  and kwargs {kwargs}")
@@ -282,6 +309,9 @@ class UIHelperMixin:
 
 
     def setup_layout(self):
+        """
+        Set up the layout for the RANO module.
+        """
         customLayout = """
                 <layout type="vertical" split="true">
                  <item splitSize="1000">
@@ -375,6 +405,9 @@ class UIHelperMixin:
 
 
     def setup_lesion_based_response_status_box(self):
+        """
+        Set up the lesion based response status box for the RANO module.
+        """
 
         def onUpdateOverallResponseParams(*args, **kwargs):
             if debug: print(f"Triggered onUpdateOverallResponseParams with args {args} and kwargs {kwargs} ")
@@ -389,6 +422,9 @@ class UIHelperMixin:
 
 
     def setup_overall_response_status_box(self):
+        """
+        Set up the overall response status box for the RANO module.
+        """
 
         def onUpdateOverallResponseStatus(*args, **kwargs):
             if debug: print(f"Triggered onUpdateOverallResponseStatus with args {args} and kwargs {kwargs} ")
@@ -458,6 +494,14 @@ class UIHelperMixin:
 
     @staticmethod
     def setBackgroundVolumes(node, timepoint, rotateSliceToLowestVolumeAxes=False):
+        """
+        Set the background volumes for the slice views.
+        Args:
+            node (vtkMRMLNode): The selected node.
+            timepoint (str): The timepoint for which to set the background volume.
+            rotateSliceToLowestVolumeAxes (bool): Whether to rotate the slice views to align with the image acquisition
+            planes
+        """
         if timepoint == 'timepoint1':
             viewnames = ["Red", "Yellow", "Green"]
         elif timepoint == 'timepoint2':
@@ -475,6 +519,12 @@ class UIHelperMixin:
 
     @staticmethod
     def setLabelVolumes(node, timepoint):
+        """
+        Set the label volumes for the slice views.
+        Args:
+            node (vtkMRMLNode): The selected node.
+            timepoint (str): The timepoint for which to set the label volume.
+        """
         if timepoint == 'timepoint1':
             viewnames = ["Red", "Yellow", "Green"]
         elif timepoint == 'timepoint2':
@@ -487,10 +537,27 @@ class UIHelperMixin:
             compositeNode.SetLabelVolumeID(node.GetID())
 
     def onNodeSelected(self, node, timepoint):
+        """
+        Called when a node is selected in the input selector.
+        Sets the node as the background volume for the slice views.
+        Args:
+            node (vtkMRMLNode): The selected node.
+            timepoint (str): The timepoint for which to set the background volume.
+        """
         if node:
             self.setBackgroundVolumes(node, timepoint)
 
     def onShowChannelButton(self, checked, timepoint, inputSelector):
+        """
+        Called when the show channel button is clicked.
+        Sets the selected node as the background volume for the slice views and makes sure that the views are aligned
+        with the acquisition plane of the volume.
+
+        Args:
+            checked (bool): Whether the button is checked or not.
+            timepoint (str): The timepoint for which to show the channel.
+            inputSelector (qt.QComboBox): The input selector for the channel.
+        """
         if debug: print(f"Triggered onShowChannelButton with checked {checked}, timepoint {timepoint}, inputSelector {inputSelector}")
         # show that node
         node = inputSelector.currentNode()

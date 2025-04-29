@@ -7,22 +7,34 @@ from utils.config import debug
 
 
 class ResponseClassificationMixin:
+    """
+    Mixin class for response classification in the RANO module.
+    """
     def __init__(self, parameterNode, ui, lineNodePairs):
         self._parameterNode = parameterNode
+        """Parameter node for the RANO module"""
+
         self.ui = ui
+        """UI for the RANO module"""
+
         self.lineNodePairs = lineNodePairs
+        """List of line node pairs for the RANO module"""
 
     @staticmethod
     def response_assessment_from_rel_area_or_vol(rel_area=None, rel_vol=None):
         """
         Given the relative size of the sum of bidimensional products or sum of volumes of the second timepoint,
         this function returns the response assessment according to the RANO 2.0 criteria.
-        :param rel_area: the relative size of bidimensional product. Defined as the sum of the bidimensional products of the
-        orthogonal lines of all lesions at timepoint 2 divided by the sum of the bidimensional products of the orthogonal
-        lines of all lesions at timepoint 1.
-        :param rel_vol: the relative size of volume. Defined as the sum of the volumes of all lesions at timepoint 2 divided
-        by the sum of the volumes of all lesions at timepoint 1.
-        :return: the response assessment according to the RANO 2.0 criteria
+
+        Args:
+            rel_area: the relative size of bidimensional product. Defined as the sum of the bidimensional products of the
+            orthogonal lines of all lesions at timepoint 2 divided by the sum of the bidimensional products of the orthogonal
+            lines of all lesions at timepoint 1.
+            rel_vol: the relative size of volume. Defined as the sum of the volumes of all lesions at timepoint 2 divided
+            by the sum of the volumes of all lesions at timepoint 1.
+
+        Returns:
+            Response: the response assessment according to the RANO 2.0 criteria
         """
         # make sure only one of the two is provided
         assert (rel_area is None) != (rel_vol is None), "Either del_area or del_vol must be provided, but not both"
@@ -44,7 +56,7 @@ class ResponseClassificationMixin:
 
             raise ValueError(f"Relative area {rel_area} does not match any of the RANO 2.0 criteria")
 
-        if rel_vol is not None:
+        elif rel_vol is not None:
             if rel_vol < 1:
                 rel_decrease = 1 - rel_vol
                 if rel_decrease == 1:
@@ -61,8 +73,11 @@ class ResponseClassificationMixin:
 
             raise ValueError(f"Relative volume {rel_vol} does not match any of the RANO 2.0 criteria")
 
+        else:
+            raise ValueError("Either rel_area or rel_vol must be provided")
+
     @staticmethod
-    def     response_assessment_overall(ref_scan=RefScanRole.Baseline,
+    def response_assessment_overall(ref_scan=RefScanRole.Baseline,
                                     curr_scan=CurrScanRole.CR,
                                     newMeasLes=False,
                                     nonTargetOrNonMeasLes=NonTargetOrNonMeasLes.NoneOrStableOrCR,
@@ -71,6 +86,22 @@ class ResponseClassificationMixin:
                                     steroidDose=SteroidDose.No,
                                     tumorComponentsForEval=TumorComponentsForEval.CE,
                                     confirmPD=True):
+        """
+        Overall response assessment according to the RANO 2.0 criteria.
+        Args:
+            ref_scan (RefScanRole): Reference scan role
+            curr_scan (CurrScanRole): Current scan role
+            newMeasLes (bool): True if new measurable lesions are present
+            nonTargetOrNonMeasLes (NonTargetOrNonMeasLes): Non-target or non-measurable lesions status
+            clinicalStatus (ClinicalStatus): Clinical status
+            increasedSteroids (bool): True if steroid dose is increased
+            steroidDose (SteroidDose): True if steroids are used
+            tumorComponentsForEval (TumorComponentsForEval): Tumor components for evaluation
+            confirmPD (bool): Confirmation required for PD
+
+        Returns:
+            OverallResponse: Overall response according to the RANO 2.0 criteria
+        """
 
         if newMeasLes:
             return OverallResponse.PD
@@ -105,6 +136,12 @@ class ResponseClassificationMixin:
 
     @staticmethod
     def update_response_assessment(ui, lineNodePairs):
+        """
+        Update the response assessment based on the line node pairs and the UI parameters.
+        Args:
+            ui: UI for the RANO module
+            lineNodePairs: List of line node pairs for the RANO module
+        """
         # update the number of target lesions, new lesions, and disappeared lesions in the UI
         num_target_les = lineNodePairs.get_number_of_targets()
         num_new_target_les = lineNodePairs.get_number_of_new_target_lesions()
@@ -146,6 +183,11 @@ class ResponseClassificationMixin:
 
     @staticmethod
     def update_overall_response_params(ui):
+        """
+        Update the overall response parameters based on the UI.
+        Args:
+            ui: UI for the RANO module
+        """
         # parameters
         # ceOrNonCeComboBox = ui.ceOrNonCeComboBox
         # confirmationRequiredForPdCheckBox = ui.confirmationRequiredForPdCheckBox
@@ -164,6 +206,11 @@ class ResponseClassificationMixin:
 
     @staticmethod
     def update_overall_response_status(ui):
+        """
+        Update the overall response status based on the UI parameters.
+        Args:
+            ui: UI for the RANO module
+        """
         # resulting response status combo box
         if debug:
             print("Updating overall response status")

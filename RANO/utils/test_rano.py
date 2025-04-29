@@ -13,6 +13,12 @@ from utils.config import module_path
 # RANOTest
 #
 class RANOTest(ScriptedLoadableModuleTest):
+    """
+    This is the test class for the RANO module.
+    It is used to test the RANO module and its functionality.
+    Upon clicking the "Reload and Test" button in the module (only shown when the module is loaded in developer mode),
+    this classes runTest() method is called.
+    """
     def setUp(self):
         """ Do whatever is needed to reset the state - typically a scene clear will be enough.
         """

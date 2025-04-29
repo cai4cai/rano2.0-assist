@@ -7,6 +7,9 @@ import vtk
 
 
 class ResultsTableMixin:
+    """
+    Mixin class for creating a results table for the RANO module.
+    """
     def __init__(self, parameterNode, ui, lineNodePairs):
         self._parameterNode = parameterNode
         self.ui = ui
@@ -14,6 +17,14 @@ class ResultsTableMixin:
 
     @staticmethod
     def calculate_results_table(lineNodePairs):
+        """
+        Calculate the results table for the RANO module.
+        This function calculates the perpendicular product and volume for each line pair
+        and adds the results to a table.
+
+        Args:
+            lineNodePairs: List of line node pairs for the RANO module.
+        """
         instance_segmentations_matched = slicer.modules.RANOWidget.instance_segmentations_matched
 
         # calculate the perpendicular product for each line pair
@@ -56,6 +67,15 @@ class ResultsTableMixin:
 
     @staticmethod
     def present_table(table_dict, delete_existing=False):
+        """
+        Present a table in the table view.
+        This function creates a table node in the scene and adds the columns and values
+        to the table. It also shows the table in the view layout.
+
+        Args:
+            table_dict (dict): Dictionary containing the table data.
+            delete_existing (bool): If True, delete existing table node with the same name.
+        """
         # show table based on table_dict
         # Create a table from result arrays
         # add new node if it doesn't exist

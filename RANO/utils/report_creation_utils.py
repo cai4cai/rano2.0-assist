@@ -14,16 +14,30 @@ from utils.rano_utils import find_closest_plane
 
 
 class ReportCreationMixin:
+    """
+    Mixin class for creating a report for the RANO module.
+    """
     def __init__(self, parameterNode, ui, lineNodePairs):
         self._parameterNode = parameterNode
+        """Parameter node for the RANO module"""
+
         self.ui = ui
+        """UI for the RANO module"""
+
         self.lineNodePairs = lineNodePairs
+        """List of line node pairs for the RANO module"""
 
     def onCreateReportButton(self):
+        """
+        Triggered when the user clicks the "Create Report" button.
+        """
         # create a report
         self.create_report()
 
     def create_report(self):
+        """
+        Create a report for the RANO module.
+        """
 
 
         suggested_report_dir = self.get_report_dir_from_node(default_report_dir=os.path.join(module_path, "Resources", "Reports"),
@@ -93,6 +107,12 @@ class ReportCreationMixin:
 
 
     def create_images(self, report_dir):
+        """
+        Create images for the report.
+
+        Args:
+            report_dir (str): Directory to save the images.
+        """
         # create one image for each line pair
         for pair in self.lineNodePairs:
             timepoint = pair.timepoint
@@ -132,6 +152,12 @@ class ReportCreationMixin:
 
     @staticmethod
     def table_to_csv(report_dir):
+        """
+        Save the results table to a CSV file.
+
+        Args:
+            report_dir (str): Directory to save the CSV file.
+        """
         csv_path = os.path.join(report_dir, "ResultsTable.csv")
         tableName = "Results"
         resultTableNode = slicer.mrmlScene.GetFirstNodeByName(tableName)
@@ -142,6 +168,12 @@ class ReportCreationMixin:
 
 
     def create_json_file(self, report_dir):
+        """
+        Create a JSON file with the report information.
+
+        Args:
+            report_dir (str): Directory to save the JSON file.
+        """
         report_path = os.path.join(report_dir, "report.json")
 
         print(f"Creating report at {report_path}")
