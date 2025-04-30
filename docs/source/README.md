@@ -47,22 +47,44 @@ following directory:
 data/input_data
 ```
 
+#### Add the extension to 3D Slicer
+
+To add the extension to 3D Slicer, follow these steps:
+
+
+
 ### Installation with Docker
-For Docker installation, follow instructions here: [docker/README.md](docker/README.md).
+For Docker installation, follow instructions here: [docker/README.md](../../docker/README.md).
 
 
 ### Usage
-1. Start 3D Slicer by clicking on the Slicer symbol: 
+
+#### Running the tool
+- Start 3D Slicer by clicking on the Slicer symbol: 
 <img src="_static/SlicerWatermark.png" alt="drawing" width="20"/>
 
-2. Start the RANO annotation plugin by clicking on the following symbol in the menu:
+- Start the RANO annotation plugin by clicking on the following symbol in the menu: 
 <img src="_static/RANO.png" alt="drawing" width="20"/>
 
-3. Select the patient and time points in the Test Cases Box and click Load
+#### Loading the image data
+
+##### 1. Loading the test data
+- Select the patient and time points in the Test Cases Box and click Load
 
 <img src="_static/testCasesBox.png" alt="drawing" width="300"/>
 
 This will load all required scans in the "Inputs" box
+
+##### 2. Loading your own data
+- Drag and drop the MRI scans onto the 3D Slicer window. 3D Slicer will open a dialog to load the images.
+
+- Alternatively you can follow the "Add Data" or "Add Dicom Data" buttons in the "Add Data" box. 
+
+- After the images are loaded, select the volumes in the "Inputs" box. Note that all visible input channels
+are required for automatic segmentation.
+
+
+#### Automatic segmentation
 
 4. Automatic segmentation: make sure the "Affine registration" checkbox is checked
 and the Input is skull-stripped checkbox is unchecked. Select the model "task4001" and
