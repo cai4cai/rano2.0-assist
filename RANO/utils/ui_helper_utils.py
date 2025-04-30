@@ -7,12 +7,13 @@ from glob import glob
 import os
 
 from DICOMLib import DICOMUtils
+
 from utils import measurements2D_utils
 from utils.enums import (Response, TumorComponentsForEval, RefScanRole, CurrScanRole, NonTargetOrNonMeasLes,
                          ClinicalStatus, SteroidDose, OverallResponse)
 import utils.segmentation_utils as segmentation_utils
 import utils.response_classification_utils as response_classification_utils
-from utils.config import debug, module_path
+from utils.config import debug, test_data_path
 
 
 class UIHelperMixin:
@@ -31,8 +32,7 @@ class UIHelperMixin:
         Set up the test cases for the RANO module.
         """
         # test cases
-        base_path = "/home/aaron/KCL_data/RANO/Input_Data"
-
+        base_path = os.path.join(test_data_path, "KCH-internal")
         patients = glob(os.path.join(base_path, "Patient_*"))
 
         timepoints = {}
@@ -41,6 +41,10 @@ class UIHelperMixin:
             timepoints_this_patient = glob(os.path.join(base_path, p, "TimePoint*"))
             if len(timepoints_this_patient) > 1:
                 timepoints[p] = timepoints_this_patient
+
+        # show the test cases collapsible box only if developer mode is enabled
+        if not self.developerMode:
+            self.ui.testCasesCollapsibleButton.setVisible(False)
 
 
         # make sure the timepoint comboboxes show only the available timepoints

@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_7">
+    <widget class="ctkCollapsibleButton" name="testCasesCollapsibleButton">
      <property name="text">
       <string>Test Cases</string>
      </property>

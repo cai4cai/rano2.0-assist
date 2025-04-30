@@ -39,8 +39,7 @@ class ReportCreationMixin:
         Create a report for the RANO module.
         """
 
-
-        suggested_report_dir = self.get_report_dir_from_node(default_report_dir=os.path.join(module_path, "Resources", "Reports"),
+        suggested_report_dir = self.get_report_dir_from_node(default_report_dir=os.path.join(module_path, "..", "Reports"),
                                                    node=self._parameterNode.GetNodeReference("InputVolume_channel1_t1"))
 
         # ask the user if they want to use the suggested_report_dir or create a new report directory via QFileDialog
@@ -65,6 +64,7 @@ class ReportCreationMixin:
                 print("No directory selected - report creation cancelled")
                 return
 
+        report_dir = os.path.normpath(report_dir)
         print(f"Selected directory: {report_dir}")
 
         os.makedirs(report_dir, exist_ok=True)
@@ -102,7 +102,7 @@ class ReportCreationMixin:
                 print(f"Could not determine subfolder name from input node {node.GetName()} - use default report directory")
                 return default_report_dir
 
-        report_dir = os.path.join(default_report_dir, subfolder_name)
+        report_dir = os.path.normpath(os.path.join(default_report_dir, subfolder_name))
         return report_dir
 
 

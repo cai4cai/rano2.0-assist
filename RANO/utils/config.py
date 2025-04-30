@@ -11,3 +11,8 @@ module_path = os.path.dirname(os.path.dirname(__file__))
 
 dynunet_pipeline_path = os.path.join(module_path, "..", "dynunet_pipeline")
 """Path to the dynunet_pipeline directory used for running the segmentation pipeline."""
+
+test_data_path = os.path.normpath(os.path.join(module_path, "..", "data", "test_data"))
+"""Path to the test data directory containing test cases."""
+
+reports_path = os.path.normpath(os.path.join(module_path, "..", "Reports"))

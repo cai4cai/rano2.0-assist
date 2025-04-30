@@ -34,7 +34,7 @@ class RANOLogic(ScriptedLoadableModuleLogic):
 
         # load the model information and store it in the parameter node
         tasks_dir = os.path.join(dynunet_pipeline_path, 'data', 'tasks')
-        model_dirs = [os.path.abspath(os.path.join(tasks_dir, p)) for p in os.listdir(tasks_dir) if p.startswith('task')]
+        model_dirs = [os.path.normpath(os.path.join(tasks_dir, p)) for p in os.listdir(tasks_dir) if p.startswith('task')]
         modelInfo = {}
         for model_dir in model_dirs:
             with open(os.path.join(model_dir, 'config', 'modalities.json'), 'r') as jsonfile:

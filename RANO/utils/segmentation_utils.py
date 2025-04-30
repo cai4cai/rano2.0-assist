@@ -9,7 +9,7 @@ import slicer
 import numpy as np
 
 from utils.rano_utils import run_segmentation
-from utils.config import debug, dynunet_pipeline_path
+from utils.config import debug
 
 
 class SegmentationMixin:
@@ -240,12 +240,12 @@ class SegmentationMixin:
         """
         # get output files created by external inference process
         # if no registration is required
-        if not self.ui.affineregCheckBox.checked:
+        if not self.ui.affineregCheckBox.checked:  # TODO: t1 or t2 check?
             tmp_file_path_out = os.path.join(tmp_path_out, "output.nii.gz")
         else:  # want to load the segmentation in the segmentation input template space
             tmp_file_path_out = os.path.join(tmp_path_out, "preprocessed", "registered", "output.nii.gz")
-            tmp_transform_file_img0 = os.path.join(tmp_path_out, "preprocessed", "registered", "image_0000",
-                                                   "img_tmp_0000_ANTsregistered_0GenericAffine.mat")
+        tmp_transform_file_img0 = os.path.join(tmp_path_out, "preprocessed", "registered", "image_0000",
+                                               "img_tmp_0000_ANTsregistered_0GenericAffine.mat")
 
         # check if the output file exists
         if not os.path.exists(tmp_file_path_out):
@@ -253,17 +253,21 @@ class SegmentationMixin:
             return
 
         # load the transformation file
-        if self.ui.affineregCheckBox.checked:
-            if not os.path.exists(tmp_transform_file_img0):
-                slicer.util.errorDisplay("Transformation file not found: " + tmp_transform_file_img0)
-                return
+        if not self.ui.affineregCheckBox.checked:  # TODO: t1 or t2 check?
+            #slicer.util.errorDisplay("Transformation file not found: " + tmp_transform_file_img0)
+            print("Transformation file not found: " + tmp_transform_file_img0)
+            print("Creating identity transform instead")
+            # create a transform node with the identity transform
+            transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
+        else:
             # load the transform
             transformNode = slicer.util.loadTransform(tmp_transform_file_img0)
-            # set the transform name
-            transformNode.SetName("Transform_" + timepoint + "_channel1")
-            # invert the transform
-            transformNode.Inverse()
-            transformNode.InverseName()
+
+        # set the transform name
+        transformNode.SetName("Transform_" + timepoint + "_channel1")
+        # invert the transform
+        transformNode.Inverse()
+        transformNode.InverseName()
 
         # get previous reference image for the output segmentation
         referenceImageVolumeNode = output_segmentation.GetNodeReference('referenceImageGeometryRef')
