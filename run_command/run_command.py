@@ -8,9 +8,9 @@ from pathlib import Path
 
 if __name__ == '__main__':
     # define progress bar steps as fraction of 1
-    docker_command_received = 0.1
-    first_output_from_docker = 0.2
-    tqdm_start = docker_command_received + first_output_from_docker
+    command_received_progress = 0.1
+    first_output_progress = 0.2
+    tqdm_start = command_received_progress + first_output_progress
     tqdm_end = 1.0
 
     command = sys.argv[1]
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     print("""<filter-start><filter-name>TestFilter</filter-name><filter-comment>ibid</filter-comment></filter-start>""")
     sys.stdout.flush()
 
-    print("""<filter-progress>{}</filter-progress>""".format(docker_command_received))
+    print("""<filter-progress>{}</filter-progress>""".format(command_received_progress))
     sys.stdout.flush()
 
     # create startup environment for subprocess (to run python outside slicer)
@@ -54,7 +54,7 @@ if __name__ == '__main__':
         stderr_line = popen.stderr.readline()
 
         if loop_idx == 0:
-            print("""<filter-progress>{}</filter-progress>""".format(first_output_from_docker))
+            print("""<filter-progress>{}</filter-progress>""".format(first_output_progress))
             sys.stdout.flush()
 
         if stdout_line:
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         if not stdout_line and not stderr_line and popen.poll() is not None:
             break
 
-        # check if tqdm sent a progress line from docker (via stderr)
+        # check if tqdm sent a progress line (via stderr)
         pattern = r"[\s]*([\d]+)%\|"
         match = re.findall(pattern, stderr_line)
         if match:

@@ -408,15 +408,9 @@ class SegmentationMixin:
         Returns:
             The task directory for the given model key.
         """
-        model_info_path = parameterNode.GetParameter("model_info_path")
-        task_dir_root = os.path.normpath(os.path.join(dynunet_pipeline_path, "data/tasks"))
-        model_info = json.loads(parameterNode.GetParameter("ModelInfo"))
-
         if model_key == "":
             return ""
-        elif model_key not in model_info:
-            raise ValueError(f"Model key {model_key} not found in model info")
-
-        task_dir_basename = os.path.normpath(model_info[str(model_key)])
-        task_dir = os.path.abspath(os.path.join(os.path.dirname(model_info_path), task_dir_root, task_dir_basename))
-        return task_dir
+        else:
+            model_info = json.loads(parameterNode.GetParameter("ModelInfo"))
+            task_dir = model_info[str(model_key)]
+            return task_dir

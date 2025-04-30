@@ -5,7 +5,7 @@ from slicer.ScriptedLoadableModule import *
 
 debug = False
 
-from utils.config import module_path, debug
+from utils.config import module_path, debug, dynunet_pipeline_path
 
 
 class RANOLogic(ScriptedLoadableModuleLogic):
@@ -33,13 +33,18 @@ class RANOLogic(ScriptedLoadableModuleLogic):
         parameterNode.SetParameter("DefaultParamsSet", "true")
 
         # load the model information and store it in the parameter node
-        model_info_path = os.path.join(module_path, "Resources", "model_info.json")
-        parameterNode.SetParameter("model_info_path", model_info_path)
-        if debug: print(f"Loading model info from ", model_info_path)
-        with open(model_info_path) as jsonfile:
-            modelInfo = json.load(jsonfile)
-            parameterNode.SetParameter("ModelInfo", json.dumps(modelInfo))
-            parameterNode.SetParameter("DefaultModelIndex", "1")
+        tasks_dir = os.path.join(dynunet_pipeline_path, 'data', 'tasks')
+        model_dirs = [os.path.abspath(os.path.join(tasks_dir, p)) for p in os.listdir(tasks_dir) if p.startswith('task')]
+        modelInfo = {}
+        for model_dir in model_dirs:
+            with open(os.path.join(model_dir, 'config', 'modalities.json'), 'r') as jsonfile:
+                modalities = json.load(jsonfile).values()
+            key = ", ".join(modalities) + ": " + os.path.basename(model_dir).split('_')[0]
+            value = model_dir
+            modelInfo[key] = value
+
+        parameterNode.SetParameter("ModelInfo", json.dumps(modelInfo))
+        parameterNode.SetParameter("DefaultModelIndex", "0")
 
         parameterNode.SetParameter("AffineReg", "true")
         parameterNode.SetParameter("InputIsBET", "false")
