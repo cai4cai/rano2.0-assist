@@ -35,16 +35,22 @@ class RANOLogic(ScriptedLoadableModuleLogic):
         # load the model information and store it in the parameter node
         tasks_dir = os.path.join(dynunet_pipeline_path, 'data', 'tasks')
         model_dirs = [os.path.normpath(os.path.join(tasks_dir, p)) for p in os.listdir(tasks_dir) if p.startswith('task')]
-        modelInfo = {}
+        model_info = {}
         for model_dir in model_dirs:
             with open(os.path.join(model_dir, 'config', 'modalities.json'), 'r') as jsonfile:
                 modalities = json.load(jsonfile).values()
             key = ", ".join(modalities) + ": " + os.path.basename(model_dir).split('_')[0]
             value = model_dir
-            modelInfo[key] = value
+            model_info[key] = value
 
-        parameterNode.SetParameter("ModelInfo", json.dumps(modelInfo))
-        parameterNode.SetParameter("DefaultModelIndex", "0")
+        default_seg_model_key = "t1c, t1n, t2f, t2w: task4001"
+        if default_seg_model_key in model_info:
+            model_index = list(model_info.keys()).index(default_seg_model_key)
+        else:
+            model_index = 0
+
+        parameterNode.SetParameter("ModelInfo", json.dumps(model_info))
+        parameterNode.SetParameter("DefaultModelIndex", str(model_index))
 
         parameterNode.SetParameter("AffineReg", "true")
         parameterNode.SetParameter("InputIsBET", "false")
