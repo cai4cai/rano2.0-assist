@@ -5,7 +5,7 @@ import json
 import ScreenCapture
 import slicer
 import qt
-from utils.config import module_path
+from utils.config import reports_path
 
 import utils.measurements2D_utils as measurements2D_utils
 import utils.segmentation_utils as segmentation_utils
@@ -39,8 +39,10 @@ class ReportCreationMixin:
         Create a report for the RANO module.
         """
 
-        suggested_report_dir = self.get_report_dir_from_node(default_report_dir=os.path.join(module_path, "..", "Reports"),
-                                                   node=self._parameterNode.GetNodeReference("InputVolume_channel1_t1"))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        suggested_report_dir = self.get_report_dir_from_node(default_report_dir=reports_path,
+                                                             node=self._parameterNode.GetNodeReference("InputVolume_channel1_t1"),
+                                                             timestamp=timestamp)
 
         # ask the user if they want to use the suggested_report_dir or create a new report directory via QFileDialog
         msg = qt.QMessageBox()
@@ -69,15 +71,17 @@ class ReportCreationMixin:
 
         os.makedirs(report_dir, exist_ok=True)
 
-        self.create_json_file(report_dir)
+        self.create_json_file(report_dir, timestamp)
         self.table_to_csv(report_dir)
         self.create_images(report_dir)
 
     @staticmethod
-    def get_report_dir_from_node(default_report_dir, node):
+    def get_report_dir_from_node(default_report_dir, node, timestamp):
+
+        fallback_report_dir = os.path.join(default_report_dir, "RANO_Report_" + timestamp)
         if not node:
             print("Node is None - use default report directory")
-            return default_report_dir
+            return fallback_report_dir
 
         elif hasattr(node.GetStorageNode(), "GetFileName") and node.GetStorageNode().GetFileName():
             input_file_path = node.GetStorageNode().GetFileName()
@@ -88,7 +92,7 @@ class ReportCreationMixin:
                     os.path.split(os.path.dirname(input_file_path))[-2])
             else:
                 print(f"No report directory specified for {input_file_path} - use default report directory")
-                return default_report_dir
+                return fallback_report_dir
 
         else:  # probably dicom data
             # assemble the subfolder name from the dicom tags
@@ -100,7 +104,7 @@ class ReportCreationMixin:
 
             if not subfolder_name:
                 print(f"Could not determine subfolder name from input node {node.GetName()} - use default report directory")
-                return default_report_dir
+                return fallback_report_dir
 
         report_dir = os.path.normpath(os.path.join(default_report_dir, subfolder_name))
         return report_dir
@@ -167,7 +171,7 @@ class ReportCreationMixin:
             print("No table found or table does not have GetID method")
 
 
-    def create_json_file(self, report_dir):
+    def create_json_file(self, report_dir, timestamp):
         """
         Create a JSON file with the report information.
 
@@ -180,7 +184,7 @@ class ReportCreationMixin:
 
         report_dict = {}
 
-        report_dict["ReportTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        report_dict["ReportTime"] = timestamp
 
         report_dict["Segmentation"] = {}
         # segmentation models

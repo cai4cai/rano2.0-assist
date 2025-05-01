@@ -16,3 +16,4 @@ test_data_path = os.path.normpath(os.path.join(module_path, "..", "data", "test_
 """Path to the test data directory containing test cases."""
 
 reports_path = os.path.normpath(os.path.join(module_path, "..", "Reports"))
+"""Path to the reports directory where the generated reports will be saved."""
