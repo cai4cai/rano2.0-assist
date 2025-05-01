@@ -1,8 +1,12 @@
 #!/bin/bash
 # This script is used to run the docker container for the RANO 2.0 pipeline.
 
-INPUT_DIR=/home/aaron/KCL_data/RANO/Input_Data  # Change this to your input data directory
-REPORTS_DIR=/home/slicer/Projects/Reports  # Change this to your reports directory
+THIS_DIR=$(dirname "$(readlink -f "$0")")
+RANO_DIR=$(dirname "$THIS_DIR")
+TEST_DATA_DIR=${RANO_DIR}/data/test_data
+
+INPUT_DIR=${RANO_DIR}/data/test_data  # Change this to your input data directory if needed
+REPORTS_DIR=${RANO_DIR}/Reports  # Change this to your reports directory if needed
 
 # Check if the input directory exists
 if [ ! -d "$INPUT_DIR" ]; then
@@ -35,8 +39,9 @@ docker run \
 --ulimit memlock=-1 \
 --ulimit stack=67108864 \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
--v "${INPUT_DIR}":/home/aaron/KCL_data/RANO/Input_Data \
--v "${REPORTS_DIR}":/home/researcher/rano2.0-assist/RANO/Resources/Reports \
+-v "${INPUT_DIR}":/home/researcher/rano2.0-assist/data \
+-v "${REPORTS_DIR}":/home/researcher/rano2.0-assist/Reports \
+-v "${TEST_DATA_DIR}":/home/researcher/rano2.0-assist/data/test_data \
 --user "${UID}:${GID}" \
 slicerrano "${@}"
 

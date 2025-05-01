@@ -9,4 +9,4 @@ CONTEXT_DIR="$THIS_DIR/.."
 echo CONTEX_DIR: "$CONTEXT_DIR"
 cd "$CONTEXT_DIR"
 
-docker build -f docker/Dockerfile -t slicerrano .
+docker build -f docker/Dockerfile -t slicerrano . "${@}"
