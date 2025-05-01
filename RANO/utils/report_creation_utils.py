@@ -182,22 +182,54 @@ class ReportCreationMixin:
 
         report_dict["ReportTime"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+        report_dict["Segmentation"] = {}
         # segmentation models
         model_key = self.ui.modelComboBox.currentText
         task_dir_t1 = segmentation_utils.SegmentationMixin.get_task_dir(model_key, self._parameterNode)
-        report_dict["SegmentationTaskDir_t1"] = task_dir_t1
+        report_dict["Segmentation"]["SegmentationTaskDir_t1"] = task_dir_t1
 
         model_key = self.ui.modelComboBox_t2.currentText
         task_dir_t2 = segmentation_utils.SegmentationMixin.get_task_dir(model_key, self._parameterNode)
-        report_dict["SegmentationTaskDir_t2"] = task_dir_t2
+        report_dict["Segmentation"]["SegmentationTaskDir_t2"] = task_dir_t2
 
         # 2D measurement options
+        report_dict["2DMeasurement"] = {}
         if self.ui.SegmentSelectorWidget.currentNode():
             currentSegmentID = self.ui.SegmentSelectorWidget.currentSegmentID()
             currentSegment = self.ui.SegmentSelectorWidget.currentNode().GetSegmentation().GetSegment(currentSegmentID)
             currentSegmentName = currentSegment.GetName() if currentSegment else "None"
-            report_dict["Segment2DMeasurement"] = currentSegmentName
-            report_dict["Method2DMeasurement"] = self.ui.method2DmeasComboBox.currentText
+            report_dict["2DMeasurement"]["Segment2DMeasurement"] = currentSegmentName
+            report_dict["2DMeasurement"]["Method2DMeasurement"] = self.ui.method2DmeasComboBox.currentText
+
+
+        # Response Status (Lesion based)
+        report_dict["ResponseStatus"] = {}
+
+        report_dict["ResponseStatus"]["Number of indep. target lesions"] = self.ui.numTargetLesSpinBox.value
+        report_dict["ResponseStatus"]["Number of new target lesions"] = self.ui.numNewLesSpinBox.value
+        report_dict["ResponseStatus"]["Number of disapp. target lesions"] = self.ui.numDisappLesSpinBox.value
+        report_dict["ResponseStatus"]["Number of new measurable lesions"] = self.ui.numNewMeasLesSpinBox.value
+
+        report_dict["ResponseStatus"]["Sum of bidim. products timepoint 1"] = self.ui.sum_lineprods_t1_spinbox.value
+        report_dict["ResponseStatus"]["Sum of bidim. products timepoint 2"] = self.ui.sum_lineprods_t2_spinbox.value
+
+        report_dict["ResponseStatus"]["Relative change"] = self.ui.sum_lineprods_relchange_spinbox.value
+        report_dict["ResponseStatus"]["Lesion Response Status"] = self.ui.responseStatusComboBox.currentText
+
+        # Overall Response Status
+        report_dict["OverallResponseStatus"] = {}
+        report_dict["OverallResponseStatus"]["Type of Tumor Component to Evaluate"] = self.ui.ceOrNonCeComboBox.currentText
+        report_dict["OverallResponseStatus"]["Confirmation required for PD"] = self.ui.confirmationRequiredForPdCheckBox.isChecked()
+        report_dict["OverallResponseStatus"]["Reference scan"] = self.ui.referenceScanComboBox.currentText
+        report_dict["OverallResponseStatus"]["Curr. scan lesion response"] = self.ui.currScanComboBox.currentText
+        report_dict["OverallResponseStatus"]["New Measurable Disease"] = self.ui.newMeasLesCheckBox.isChecked()
+        report_dict["OverallResponseStatus"]["Nontarget and nonmeasurable Lesion(s)"] = self.ui.nonTargetNonMeasComboBox.currentText
+        report_dict["OverallResponseStatus"]["Clinical Status"] = self.ui.clinicalStatusComboBox.currentText
+        report_dict["OverallResponseStatus"]["Increased Steroid Use"] = self.ui.increasedSteroidUseCheckBox.isChecked()
+        report_dict["OverallResponseStatus"]["Steroid Dose"] = self.ui.steroidDoseComboBox.currentText
+        report_dict["OverallResponseStatus"]["Second line medication"] = self.ui.secondLineMedicationCheckBox.isChecked()
+        report_dict["OverallResponseStatus"]["Overall Response Status"] = self.ui.overallResponseStatusComboBox.currentText
+
 
         # save all parameter node parameters
         parameter_node_dict = {}
