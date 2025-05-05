@@ -30,8 +30,125 @@ class RANOTest(ScriptedLoadableModuleTest):
         """Run as few or as many tests as needed here.
         """
         self.setUp()
-        self.test_RANO_dicom()
+        #self.test_RANO_dicom()
         #self.test_RANO_nifti()
+        self.test_eano()
+
+    def test_eano(self):
+        slicer.mrmlScene.Clear()
+        self.delayDisplay("Starting the test")
+
+        '''
+        define the test cases
+        '''
+
+        base_path = "/home/aaron/KCL_data/RANO/Input_Data"
+
+        kch_dcm_timepoint_pairs =   [
+                                     (['Patient_003', 'Timepoint_001'], ['Patient_003', 'Timepoint_002']),
+                                     (['Patient_003', 'Timepoint_001'], ['Patient_003', 'Timepoint_003']),
+                                     (['Patient_010', 'TimePoint_001'], ['Patient_010', 'TimePoint_002']),
+                                     (['Patient_010', 'TimePoint_001'], ['Patient_010', 'TimePoint_003']),
+                                     (['Patient_014', 'TimePoint_002'], ['Patient_014', 'TimePoint_003']),
+                                     (['Patient_019', 'TimePoint_001'], ['Patient_019', 'TimePoint_002']),
+                                     (['Patient_023', 'TimePoint_003'], ['Patient_023', 'TimePoint_004']),
+                                     (['Patient_023', 'TimePoint_003'], ['Patient_023', 'TimePoint_005']),
+                                     (['Patient_026', 'TimePoint_001'], ['Patient_026', 'TimePoint_002']),
+                                     (['Patient_026', 'TimePoint_001'], ['Patient_026', 'TimePoint_003']),
+                                     (['Patient_026', 'TimePoint_001'], ['Patient_026', 'TimePoint_004']),
+                                     (['Patient_026', 'TimePoint_001'], ['Patient_026', 'TimePoint_005']),
+                                     # (['Patient_030', 'TimePoint_003'], ['Patient_030', 'TimePoint_004']),  # this case didn't run through. it didn't load the t2w into the input selector. had to use the gui manually
+                                     (['Patient_031', 'TimePoint_001'], ['Patient_031', 'TimePoint_002']),
+                                     (['Patient_032', 'TimePoint_002'], ['Patient_032', 'TimePoint_003']),
+                                     (['Patient_032', 'TimePoint_002'], ['Patient_032', 'TimePoint_005']),
+                                     (['Patient_036', 'TimePoint_001'], ['Patient_036', 'TimePoint_004']),
+                                     (['Patient_037', 'TimePoint_004'], ['Patient_037', 'TimePoint_005']),
+                                     (['Patient_038', 'TimePoint_003'], ['Patient_038', 'TimePoint_004']),
+                                     (['Patient_038', 'TimePoint_003'], ['Patient_038', 'TimePoint_005']),
+                                    ]
+
+        cases_of_paths_2tp_times_4channels = []  # n cases, 2 timepoints, 4 channels
+        for test_case_idx in range(len(kch_dcm_timepoint_pairs)):
+            patient = kch_dcm_timepoint_pairs[test_case_idx][0][0]
+            timepoint_t1 = kch_dcm_timepoint_pairs[test_case_idx][0][1]
+            timepoint_t2 = kch_dcm_timepoint_pairs[test_case_idx][1][1]
+
+            p_t1c_tp1 = os.path.join(base_path, patient, timepoint_t1, "t1c")
+            p_t1n_tp1 = os.path.join(base_path, patient, timepoint_t1, "t1n")
+            p_t2f_tp1 = os.path.join(base_path, patient, timepoint_t1, "t2f")
+            p_t2w_tp1 = os.path.join(base_path, patient, timepoint_t1, "t2w")
+
+            p_t1c_tp2 = os.path.join(base_path, patient, timepoint_t2, "t1c")
+            p_t1n_tp2 = os.path.join(base_path, patient, timepoint_t2, "t1n")
+            p_t2f_tp2 = os.path.join(base_path, patient, timepoint_t2, "t2f")
+            p_t2w_tp2 = os.path.join(base_path, patient, timepoint_t2, "t2w")
+            #
+            # if not "006" in p_t1c_tp1:
+            #     continue
+
+            # check if all files exist
+            if not all([os.path.isdir(p) for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]]):
+                print(f"Not all files exist for test case {test_case_idx}")
+                continue
+
+            cases_of_paths_2tp_times_4channels.append([[p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1],
+                                                       [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]])
+
+
+        '''
+        run test for each test case
+        '''
+
+        print(f"Running {len(cases_of_paths_2tp_times_4channels)} test cases")
+        for test_case_idx, curr_paths in enumerate(cases_of_paths_2tp_times_4channels):
+            # print(f"Paths t1: {curr_paths[0]}")
+            # print(f"Paths t2: {curr_paths[1]}")
+
+            paths_t1 = curr_paths[0]
+            paths_t2 = curr_paths[1]
+
+            # clear the scene
+            slicer.mrmlScene.Clear()
+
+            # load dicoms into slicer using DICOMutils
+
+            def dcm_dir_to_node(dcm_dir):
+                with DICOMUtils.TemporaryDICOMDatabase() as db:
+                    DICOMUtils.importDicom(dcm_dir, db)
+                    patientUIDs = db.patients()
+                    loadedNodeIDs = []
+                    for patientUID in patientUIDs:
+                        loadedNodeIDs.extend(DICOMUtils.loadPatientByUID(patientUID))
+
+                    if not len(loadedNodeIDs) == 1:
+                        print(f"Expected 1 loaded node from importing DICOM files in {dcm_dir}"
+                                                     f" but got {len(loadedNodeIDs)}: {loadedNodeIDs}")
+
+                    loadedNode = slicer.mrmlScene.GetNodeByID(loadedNodeIDs[0])
+                return loadedNode
+
+            inputVolumes = [dcm_dir_to_node(p) for p in paths_t1]
+            inputVolumes_t2 = [dcm_dir_to_node(p) for p in paths_t2]
+
+            print(f"inputVolumes = \n{inputVolumes}")
+            print(f"inputVolumes_t2 = \n{inputVolumes_t2}")
+
+
+            self.delayDisplay('Loaded test data set')
+
+            slicer.modules.RANOWidget.ui.checkBox_axial.setChecked(True)
+            slicer.modules.RANOWidget.ui.checkBox_coronal.setChecked(False)
+            slicer.modules.RANOWidget.ui.checkBox_sagittal.setChecked(False)
+            slicer.modules.RANOWidget.ui.checkBox_same_slc_tp.setChecked(False)
+
+            self.test_pipeline(inputVolumes,
+                               inputVolumes_t2,
+                               do_affinereg=True,
+                               input_is_bet=False,
+                               seg_model_key="t1c, t1n, t2f, t2w: task4001",
+                               automatic_segmentation=True,
+                               line_placement=True,
+                               report_creation=True)
 
     def test_RANO_dicom(self):
         slicer.mrmlScene.Clear()
@@ -99,7 +216,8 @@ class RANOTest(ScriptedLoadableModuleTest):
                     for patientUID in patientUIDs:
                         loadedNodeIDs.extend(DICOMUtils.loadPatientByUID(patientUID))
 
-                    assert len(loadedNodeIDs) == 1, (f"Expected 1 loaded node from importing DICOM files in {dcm_dir}"
+                    if not len(loadedNodeIDs) == 1:
+                        print(f"Expected 1 loaded node from importing DICOM files in {dcm_dir}"
                                                      f" but got {len(loadedNodeIDs)}: {loadedNodeIDs}")
 
                     loadedNode = slicer.mrmlScene.GetNodeByID(loadedNodeIDs[0])

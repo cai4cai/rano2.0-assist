@@ -41,7 +41,8 @@ class ReportCreationMixin:
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         suggested_report_dir = self.get_report_dir_from_node(default_report_dir=reports_path,
-                                                             node=self._parameterNode.GetNodeReference("InputVolume_channel1_t1"),
+                                                             node1=self._parameterNode.GetNodeReference("InputVolume_channel1_t1"),
+                                                             node2=self._parameterNode.GetNodeReference("InputVolume_channel1_t2"),
                                                              timestamp=timestamp)
 
         # ask the user if they want to use the suggested_report_dir or create a new report directory via QFileDialog
@@ -76,34 +77,48 @@ class ReportCreationMixin:
         self.create_images(report_dir)
 
     @staticmethod
-    def get_report_dir_from_node(default_report_dir, node, timestamp):
+    def get_report_dir_from_node(default_report_dir, node1, node2, timestamp):
 
         fallback_report_dir = os.path.join(default_report_dir, "RANO_Report_" + timestamp)
-        if not node:
-            print("Node is None - use default report directory")
+        if not node1:
+            print(f"Node {node1} is None - use default report directory")
+            return fallback_report_dir
+        if not node2:
+            print(f"Node {node2} is None - use default report directory")
             return fallback_report_dir
 
-        elif hasattr(node.GetStorageNode(), "GetFileName") and node.GetStorageNode().GetFileName():
-            input_file_path = node.GetStorageNode().GetFileName()
-            if "BraTS" in input_file_path:
-                subfolder_name = os.path.basename(os.path.dirname(input_file_path)).replace(".nii.gz", "")
-            elif "TimePoint" in input_file_path:  # KCH data
-                subfolder_name = "KCH_" + os.path.basename(
-                    os.path.split(os.path.dirname(input_file_path))[-2])
+        elif hasattr(node1.GetStorageNode(), "GetFileName") and node1.GetStorageNode().GetFileName() \
+            and hasattr(node2.GetStorageNode(), "GetFileName") and node2.GetStorageNode().GetFileName():
+            input_file_path_1 = node1.GetStorageNode().GetFileName()
+            input_file_path_2 = node2.GetStorageNode().GetFileName()
+            if "BraTS" in input_file_path_1 and "BraTS" in input_file_path_2:  # BraTS data
+                id1 = os.path.basename(os.path.dirname(input_file_path_1)).replace(".nii.gz", "")
+                id2 = os.path.basename(os.path.dirname(input_file_path_2)).replace(".nii.gz", "")
+                subfolder_name = f"BraTS_{id1}_{id2}"
+            elif "TimePoint" in input_file_path_1 and "TimePoint" in input_file_path_2:  # KCH data
+                id1 = os.path.basename(os.path.split(os.path.dirname(input_file_path_1))[-2])
+                id2 = os.path.basename(os.path.split(os.path.dirname(input_file_path_2))[-2])
+                subfolder_name = f"KCH_{id1}_{id2}"
             else:
-                print(f"No report directory specified for {input_file_path} - use default report directory")
+                print(f"No report directory specified for {input_file_path_1} and {input_file_path_2} - use default report directory")
                 return fallback_report_dir
 
         else:  # probably dicom data
             # assemble the subfolder name from the dicom tags
             shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
-            dataNodeItemID = shNode.GetItemByDataNode(node)
-            rootID = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID))
-            patientID = shNode.GetItemAttribute(rootID, "DICOM.PatientID")
-            subfolder_name = patientID
+
+            dataNodeItemID_1 = shNode.GetItemByDataNode(node1)
+            rootID_1 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_1))
+            patientID_1 = shNode.GetItemAttribute(rootID_1, "DICOM.PatientID")  # is actually ScanID for KCH dataset
+
+            dataNodeItemID_2 = shNode.GetItemByDataNode(node2)
+            rootID_2 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_2))
+            patientID_2 = shNode.GetItemAttribute(rootID_2, "DICOM.PatientID")  # is actually ScanID for KCH dataset
+
+            subfolder_name = f"KCH_{patientID_1}_{patientID_2}"
 
             if not subfolder_name:
-                print(f"Could not determine subfolder name from input node {node.GetName()} - use default report directory")
+                print(f"Could not determine subfolder name from input nodes {node1.GetName()} and {node2.GetName()} - use default report directory")
                 return fallback_report_dir
 
         report_dir = os.path.normpath(os.path.join(default_report_dir, subfolder_name))
@@ -120,6 +135,8 @@ class ReportCreationMixin:
         # create one image for each line pair
         for pair in self.lineNodePairs:
             timepoint = pair.timepoint
+            # select the reference input image so that line pairs are in the plane
+
             # focus the view on the line pair
             measurements2D_utils.Measurements2DMixin.centerTimepointViewsOnCenterPoint(pair, timepoint)
 

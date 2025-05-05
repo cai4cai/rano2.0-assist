@@ -417,7 +417,7 @@ class Measurements2DMixin:
                     valid_axes_IJK = [ijk_axis_idx_to_kji[idx] for idx in valid_axes_IJK]
 
                     # get the line pair coordinates for the current lesion
-                    coords_IJK = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK)
+                    coords_IJK = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK, ijkToWorld=get_ijk_to_world_matrix(resampledVolumeNode))
 
                     if len(coords_IJK) > 0:
 
@@ -576,6 +576,10 @@ class Measurements2DMixin:
 
         self.lineNodePairs = create_lineNodePairs(lesion_stats)
         setLinePairViews(self.lineNodePairs)
+
+        # center views on first volume (reference volume)
+        self.onShowChannelButton(True, timepoint='timepoint1', inputSelector=self.ui.inputSelector_channel1_t1)
+        self.onShowChannelButton(True, timepoint='timepoint2', inputSelector=self.ui.inputSelector_channel1_t2)
 
         self.update_linepair_ui_list()
 
@@ -1041,16 +1045,8 @@ class LineNodePair(list):
         """List of observers for the line nodes"""
 
         # add the observers for the lines that trigger when the line nodes are modified
-        self.observations.append([lineNode1, lineNode1.AddObserver(vtk.vtkCommand.ModifiedEvent,
-                                                                   functools.partial(self.uponLineNodeModifiedEvent,
-                                                                                     lineNode1=lineNode1,
-                                                                                     lineNode2=lineNode2,
-                                                                                     fiducialNodeForText=self.fiducialNodeForText))])
-        self.observations.append([lineNode2, lineNode2.AddObserver(vtk.vtkCommand.ModifiedEvent,
-                                                                   functools.partial(self.uponLineNodeModifiedEvent,
-                                                                                     lineNode1=lineNode2,
-                                                                                     lineNode2=lineNode1,
-                                                                                     fiducialNodeForText=self.fiducialNodeForText))])
+        self.observations.append([lineNode1, lineNode1.AddObserver(vtk.vtkCommand.ModifiedEvent, self.uponLineNodeModifiedEvent)])
+        self.observations.append([lineNode2, lineNode2.AddObserver(vtk.vtkCommand.ModifiedEvent, self.uponLineNodeModifiedEvent)])
 
     def set_coords(self, coords):
         """
@@ -1060,6 +1056,8 @@ class LineNodePair(list):
             if not isinstance(coord, np.ndarray):
                 coord = np.array(coord)
             slicer.util.updateMarkupsControlPointsFromArray(lineNode, coord)
+
+        self.uponLineNodeModifiedEvent(n=None, e=None)
 
     def get_coords(self):
         """
@@ -1180,12 +1178,18 @@ class LineNodePair(list):
         line2 = np.array(
             [lineNode2.GetNthControlPointPositionWorld(i) for i in range(lineNode2.GetNumberOfControlPoints())])
 
+        print(f"line1 = {line1}")
+        print(f"line2 = {line2}")
+
         # get the direction vectors of the lines
         if not (len(line1) == 2 and len(line2) == 2):
             return
 
         dir1 = line1[-1] - line1[0]
         dir2 = line2[-1] - line2[0]
+
+        print(f"dir1 = {dir1}")
+        print(f"dir2 = {dir2}")
 
         # normalize the direction vectors
         dir1 /= np.linalg.norm(dir1)
@@ -1194,8 +1198,10 @@ class LineNodePair(list):
         # calculate the dot product of the direction vectors
         dot_product = np.dot(dir1, dir2)
 
+        print(f"dot_product = {dot_product}")
+
         # set the color of the lines depending on the dot product
-        tolerance_deg = 1
+        tolerance_deg = 2.5
         min_deg = 90 - tolerance_deg
         max_deg = 90 + tolerance_deg
         min_rad = np.deg2rad(min_deg)
@@ -1203,8 +1209,16 @@ class LineNodePair(list):
 
         if min_rad < np.arccos(dot_product) < max_rad:
             color = (0, 1, 0)  # green
+            print(f"setting color to green")
+            print(f"min_rad = {min_rad}")
+            print(f"max_rad = {max_rad}")
+            print(np.arccos(dot_product))
         else:
             color = (1, 0, 0)  # red
+            print(f"setting color to red")
+            print(f"min_rad = {min_rad}")
+            print(f"max_rad = {max_rad}")
+            print(np.arccos(dot_product))
 
         lineNode1.GetDisplayNode().SetSelectedColor(color)
         lineNode2.GetDisplayNode().SetSelectedColor(color)
@@ -1249,7 +1263,7 @@ class LineNodePair(list):
             self.fiducialNodeForText.SetNthControlPointLabel(0,
                                                              f"Les {int(self.lesion_idx)}: {line1LengthWorld:.1f} x {line2LengthWorld:.1f}")
 
-    def uponLineNodeModifiedEvent(self, n, e, lineNode1, lineNode2, fiducialNodeForText):
+    def uponLineNodeModifiedEvent(self, n, e):
         """
         This method is called when the line nodes are modified.
         It sets the color of the lines depending on whether they are orthogonal or not and updates the text label
@@ -1257,12 +1271,9 @@ class LineNodePair(list):
         Args:
             n: the event name
             e: the event object
-            lineNode1: the first line node
-            lineNode2: the second line node
-            fiducialNodeForText: the fiducial node for the text label of the line nodes
         """
         # print("LineNode modified event")
-        self.set_color_depending_on_orthogonality(n, e, lineNode1, lineNode2, fiducialNodeForText)
+        self.set_color_depending_on_orthogonality(n, e, self[0], self[1], self.fiducialNodeForText)
         slicer.modules.RANOWidget.calculate_results_table(slicer.modules.RANOWidget.lineNodePairs)
         self.annotate_with_text()
 
