@@ -218,7 +218,7 @@ def get_all_contained_lines(plane):
     return contained_lines
 
 @jit(nopython=True)
-def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, all_line_coords_np_3d_world, degree_tol=0, ):
+def get_max_orthogonal_line_product_coords_plane(all_line_coords_np_3d_world, degree_tol=0, ):
     """
     Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest
     product of their lengths.
@@ -233,10 +233,11 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, all_line_co
     """
 
     if debug:
-        # pick only 1000 lines
-        all_line_coords_np = all_line_coords_np[:10]
+        # pick only 10 lines
+        all_line_coords_np_3d_world = all_line_coords_np_3d_world[:10]
 
-    if not len(all_line_coords_np) >= 2:
+    num_lines = len(all_line_coords_np_3d_world)
+    if not num_lines >= 2:
         return None
 
     radians_tol = np.deg2rad(degree_tol)
@@ -277,16 +278,12 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, all_line_co
     line_lengths = np.sqrt(np.sum(vecs_world ** 2, axis=1))
 
 
-    # sort all_line_coords_np, vecs, angles, line_lengths by angle
+    # sort all_line_coords_np_3d_world, vecs, angles, line_lengths by angle
     # this is necessary to make the search for orthogonal lines more efficient
     line_lengths_sorted_idx = np.argsort(angles)
-    all_line_coords_np = all_line_coords_np[line_lengths_sorted_idx]
     all_line_coords_np_3d_world = all_line_coords_np_3d_world[line_lengths_sorted_idx]
     angles = angles[line_lengths_sorted_idx]
     line_lengths = line_lengths[line_lengths_sorted_idx]
-
-    # get the product of all pairs of lines
-    num_lines = all_line_coords_np.shape[0]
 
     # indices of the two lines with the maximum product
     max_l1 = -1
@@ -296,7 +293,7 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, all_line_co
     for l1 in range(num_lines):
         angle = angles[l1]
 
-        # condition 1: the angle must be orthogonal (within a certain tolerance radians_tol)
+        # condition 1: the angle must be orthogonal (within tolerance radians_tol)
         # exact orthogonal angle
         o = angle + np.pi / 2
 
@@ -327,19 +324,21 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, all_line_co
                 continue
 
             # condition 3: make sure that the two lines are intersecting
-            l1p1 = [all_line_coords_np[l1, 0, ax1], all_line_coords_np[l1, 0, ax2]]
-            l1p2 = [all_line_coords_np[l1, 1, ax1], all_line_coords_np[l1, 1, ax2]]
-            l2p1 = [all_line_coords_np[l2, 0, ax1], all_line_coords_np[l2, 0, ax2]]
-            l2p2 = [all_line_coords_np[l2, 1, ax1], all_line_coords_np[l2, 1, ax2]]
+            l1p1 = [all_line_coords_np_3d_world[l1, 0, ax1], all_line_coords_np_3d_world[l1, 0, ax2]]
+            l1p2 = [all_line_coords_np_3d_world[l1, 1, ax1], all_line_coords_np_3d_world[l1, 1, ax2]]
+            l2p1 = [all_line_coords_np_3d_world[l2, 0, ax1], all_line_coords_np_3d_world[l2, 0, ax2]]
+            l2p2 = [all_line_coords_np_3d_world[l2, 1, ax1], all_line_coords_np_3d_world[l2, 1, ax2]]
 
+            # this solution of checking if the lines intersect is from https://stackoverflow.com/a/9997374
+            # it doesn't work for parallel lines, but we already checked that the lines are orthogonal
             def ccw(A, B, C):
+                # check if the points are in counter clockwise order
                 return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])  # check if the points are in counter clockwise order
 
             # Return true if line segments AB and CD intersect
             def intersect(A, B, C, D):
                 return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 
-            # check if the two lines intersect
             if not intersect(l1p1, l1p2, l2p1, l2p2):
                 continue
 
@@ -353,7 +352,7 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np, all_line_co
         return None
 
     # get the coordinates of the two lines with the maximum product
-    ortho_line_products_max_idx_coords = [all_line_coords_np[max_l1, :, :], all_line_coords_np[max_l2, :, :]]
+    ortho_line_products_max_idx_coords = [all_line_coords_np_3d_world[max_l1, :, :], all_line_coords_np_3d_world[max_l2, :, :]]
 
     # for a_idx, angle in enumerate(angles):
     #     print(a_idx, angle, all_line_coords_np_3d_world[a_idx])
@@ -524,8 +523,7 @@ def get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=Non
                                                     all_line_coords_np_3d_homo)[:, :, :3]
 
 
-            ortho_line_coords = get_max_orthogonal_line_product_coords_plane(all_line_coords_np,
-                                                                             all_line_coords_np_3d_world,
+            ortho_line_coords = get_max_orthogonal_line_product_coords_plane(all_line_coords_np_3d_world,
                                                                              degree_tol=0.1)
 
             if not ortho_line_coords:
@@ -538,11 +536,6 @@ def get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=Non
 
             if line_length_product > max_line_length_product:
                 max_line_length_product = line_length_product
-
-                # insert the slice index i in the orthogonal line coordinates in the view index dimension to go from
-                # 2D to 3D coordinates
-                ortho_line_coords[0] = np.insert(ortho_line_coords[0], view, i, axis=1)
-                ortho_line_coords[1] = np.insert(ortho_line_coords[1], view, i, axis=1)
 
                 max_ortho_line_coords = ortho_line_coords
 

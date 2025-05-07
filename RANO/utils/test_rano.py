@@ -45,8 +45,8 @@ class RANOTest(ScriptedLoadableModuleTest):
         base_path = "/home/aaron/KCL_data/RANO/Input_Data"
 
         kch_dcm_timepoint_pairs =   [
-                                     (['Patient_003', 'Timepoint_001'], ['Patient_003', 'Timepoint_002']),
-                                     (['Patient_003', 'Timepoint_001'], ['Patient_003', 'Timepoint_003']),
+                                     (['Patient_003', 'TimePoint_001'], ['Patient_003', 'TimePoint_002']),
+                                     (['Patient_003', 'TimePoint_001'], ['Patient_003', 'TimePoint_003']),
                                      (['Patient_010', 'TimePoint_001'], ['Patient_010', 'TimePoint_002']),
                                      (['Patient_010', 'TimePoint_001'], ['Patient_010', 'TimePoint_003']),
                                      (['Patient_014', 'TimePoint_002'], ['Patient_014', 'TimePoint_003']),
@@ -129,10 +129,6 @@ class RANOTest(ScriptedLoadableModuleTest):
 
             inputVolumes = [dcm_dir_to_node(p) for p in paths_t1]
             inputVolumes_t2 = [dcm_dir_to_node(p) for p in paths_t2]
-
-            print(f"inputVolumes = \n{inputVolumes}")
-            print(f"inputVolumes_t2 = \n{inputVolumes_t2}")
-
 
             self.delayDisplay('Loaded test data set')
 

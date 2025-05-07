@@ -417,48 +417,14 @@ class Measurements2DMixin:
                     valid_axes_IJK = [ijk_axis_idx_to_kji[idx] for idx in valid_axes_IJK]
 
                     # get the line pair coordinates for the current lesion
-                    coords_IJK = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK, ijkToWorld=get_ijk_to_world_matrix(resampledVolumeNode))
+                    ccords_world = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK, ijkToWorld=get_ijk_to_world_matrix(resampledVolumeNode))
 
-                    if len(coords_IJK) > 0:
-
-                        def find_RAS_orientation(coords_IJK, resampledVolumeNode):
-                            """
-                            Find the closest RAS orientation based on the line pair coordinates in IJK space. This is
-                            needed to determine the orientation of the lesion in the current timepoint which may be
-                            used to fix the orientation of the lesion in the next timepoint.
-
-                            Args:
-                                coords_IJK: coordinates of the line pair in IJK space
-                                resampledVolumeNode: vtkMRMLLabelMapVolumeNode containing the matched instance segmentations
-                            Returns:
-                                orientation: RAS orientation of the line pair described by the coordinates
-                            """
-                            # find the closest plane to the lesion in the IJK space
-                            ijk_normal_axis_idx = find_closest_plane(coords_IJK)
-                            # coords_IJK is actually in KJI order, therefore, convert 0 to 2 and 2 to 0 and leave 1
-                            ijk_normal_axis_idx = ijk_axis_idx_to_kji[ijk_normal_axis_idx]
-
-                            # get the IJK to RAS matrix
-                            ijkToWorld = get_ijk_to_world_matrix(resampledVolumeNode)
-                            ijkToWorld = slicer.util.arrayFromVTKMatrix(ijkToWorld)
-
-                            # convert the IJK axis to RAS orientation based on the IJK to RAS matrix
-
-                            # get the RAS orientation
-                            labels = (("sagittal", "sagittal"), ("coronal", "coronal"),
-                                      ("axial", "axial"))  # direction is not important here
-                            axcodes = aff2axcodes(ijkToWorld, labels)  # get the orientations for each IJK axis
-                            orientation = axcodes[ijk_normal_axis_idx]  # pick the orientation for the normal axis
-
-                            return orientation
-
-                        this_timepoint_orientation_curr_lesion = find_RAS_orientation(coords_IJK, resampledVolumeNode)
+                    if len(ccords_world) > 0:
+                        world_normal_axis_idx = find_closest_plane(ccords_world)
+                        this_timepoint_orientation_curr_lesion = {0: 'sagittal', 1: 'coronal', 2: 'axial'}[world_normal_axis_idx]
 
                         # get the center of the line pair in IJK space to allow for consistent slice selection across timepoints
-                        center_IJK = point_closest_to_two_lines(coords_IJK)
-                        # convert the center point to world coordinates
-                        ijkToWorld = get_ijk_to_world_matrix(resampledVolumeNode)
-                        center_world = transform_ijk_to_world_coord(center_IJK, ijkToWorld)
+                        center_world = point_closest_to_two_lines(ccords_world)
                         this_timepoint_center_world_curr_lesion = center_world
 
                         # store the orientation and center of the lesion in the current timepoint
@@ -468,14 +434,12 @@ class Measurements2DMixin:
                     volume = np.sum(bin_seg)
 
                 elif method2DmeasComboBox == "Random":
-                    coords_IJK = np.random.randint(0, 100, (2, 2, 3))  # 2 lines, 2 points, 3 coordinates
+                    ccords_world = np.random.randint(0, 100, (2, 2, 3))  # 2 lines, 2 points, 3 coordinates
                     volume = np.random.rand(2, 2, 3) * 100
                 else:
                     raise ValueError(f"Method {method2DmeasComboBox} not recognized")
 
-                coords = self.coords_ijk_to_world(coords_IJK, resampledVolumeNode)
-
-                lesion_dict[lab] = {"coords": coords, "volume": volume}
+                lesion_dict[lab] = {"coords": ccords_world, "volume": volume}
 
             return lesion_dict
 
@@ -1178,8 +1142,8 @@ class LineNodePair(list):
         line2 = np.array(
             [lineNode2.GetNthControlPointPositionWorld(i) for i in range(lineNode2.GetNumberOfControlPoints())])
 
-        print(f"line1 = {line1}")
-        print(f"line2 = {line2}")
+        # print(f"line1 = {line1}")
+        # print(f"line2 = {line2}")
 
         # get the direction vectors of the lines
         if not (len(line1) == 2 and len(line2) == 2):
@@ -1188,8 +1152,8 @@ class LineNodePair(list):
         dir1 = line1[-1] - line1[0]
         dir2 = line2[-1] - line2[0]
 
-        print(f"dir1 = {dir1}")
-        print(f"dir2 = {dir2}")
+        # print(f"dir1 = {dir1}")
+        # print(f"dir2 = {dir2}")
 
         # normalize the direction vectors
         dir1 /= np.linalg.norm(dir1)
@@ -1198,7 +1162,7 @@ class LineNodePair(list):
         # calculate the dot product of the direction vectors
         dot_product = np.dot(dir1, dir2)
 
-        print(f"dot_product = {dot_product}")
+        # print(f"dot_product = {dot_product}")
 
         # set the color of the lines depending on the dot product
         tolerance_deg = 2.5
@@ -1209,16 +1173,10 @@ class LineNodePair(list):
 
         if min_rad < np.arccos(dot_product) < max_rad:
             color = (0, 1, 0)  # green
-            print(f"setting color to green")
-            print(f"min_rad = {min_rad}")
-            print(f"max_rad = {max_rad}")
-            print(np.arccos(dot_product))
+            # print(f"setting color to green")
         else:
             color = (1, 0, 0)  # red
-            print(f"setting color to red")
-            print(f"min_rad = {min_rad}")
-            print(f"max_rad = {max_rad}")
-            print(np.arccos(dot_product))
+            # print(f"setting color to red")
 
         lineNode1.GetDisplayNode().SetSelectedColor(color)
         lineNode2.GetDisplayNode().SetSelectedColor(color)
@@ -1371,43 +1329,47 @@ class LineNodePairList(list):
             strategy: the strategy to use for selecting the target lesions
         """
 
+        # set all target flags to False
+        for pair in self:
+            pair.target = False
+
+        # sort the lesions by the product of the orthogonal lines
+        sorted_list = self.custom_sort(key=lambda x: x[0].GetLineLengthWorld() * x[1].GetLineLengthWorld(),
+                                       reverse=True)
+
+        sorted_list_t1 = [pair for pair in sorted_list if pair.timepoint == "timepoint1"]
+        sorted_list_t2 = [pair for pair in sorted_list if pair.timepoint == "timepoint2"]
+
         if strategy == "two_largest_enhancing" or strategy == "three_largest_enhancing":
             # sort the lesions by the product of the orthogonal lines
-            sorted_list = self.custom_sort(key=lambda x: x[0].GetLineLengthWorld() * x[1].GetLineLengthWorld(),
-                                           reverse=True)
 
             counter_target_les = 0
-            for pair in sorted_list:
+            for pair in sorted_list_t1:
                 num_max = 2 if strategy == "two_largest_enhancing" else 3
                 if pair.measurable and counter_target_les < num_max:
                     pair.target = True
                     counter_target_les += 1
-                else:
-                    pair.target = False
-            self.uponModified()
 
         elif strategy == "two_largest_enhancing_and_two_largest_non_enhancing":
-            # sort the lesions by the product of the orthogonal lines
-            sorted_list = self.custom_sort(key=lambda x: x[0].GetLineLengthWorld() * x[1].GetLineLengthWorld(),
-                                           reverse=True)
-
             counter_enhancing = 0
             counter_non_enhancing = 0
-            for pair in sorted_list:
+            for pair in sorted_list_t1:
                 if pair.enhancing:
                     if counter_enhancing < 2:
                         pair.target = True
                         counter_enhancing += 1
-                    else:
-                        pair.target = False
                 else:
                     if counter_non_enhancing < 2:
                         pair.target = True
                         counter_non_enhancing += 1
-                    else:
-                        pair.target = False
 
-            self.uponModified()
+        # also set corresponding lesions in timepoint2 as targets
+        for pair_t2 in sorted_list_t2:
+            for pair in sorted_list_t1:
+                if pair_t2.lesion_idx == pair.lesion_idx:
+                    pair_t2.target = pair.target
+
+        self.uponModified()
 
     def get_number_of_targets(self):
         """
