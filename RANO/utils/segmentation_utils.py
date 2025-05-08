@@ -239,8 +239,10 @@ class SegmentationMixin:
             tmp_path_out: The temporary output path for the segmentation.
         """
         # get output files created by external inference process
+        # depending on whether registration is required or not, the output file is in a different location
         # if no registration is required
-        if not self.ui.affineregCheckBox.checked:  # TODO: t1 or t2 check?
+        affine_checkbox = self.ui.affineregCheckBox if timepoint == 'timepoint1' else self.ui.affineregCheckBox_t2
+        if not affine_checkbox.checked:
             tmp_file_path_out = os.path.join(tmp_path_out, "output.nii.gz")
         else:  # want to load the segmentation in the segmentation input template space
             tmp_file_path_out = os.path.join(tmp_path_out, "preprocessed", "registered", "output.nii.gz")
@@ -253,7 +255,7 @@ class SegmentationMixin:
             return
 
         # load the transformation file
-        if not self.ui.affineregCheckBox.checked:  # TODO: t1 or t2 check?
+        if not affine_checkbox.checked:
             #slicer.util.errorDisplay("Transformation file not found: " + tmp_transform_file_img0)
             print("Transformation file not found: " + tmp_transform_file_img0)
             print("Creating identity transform instead")

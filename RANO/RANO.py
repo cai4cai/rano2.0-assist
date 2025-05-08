@@ -233,7 +233,6 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         # Parameter node stores all user choices in parameter values, node selections, etc.
         # so that when the scene is saved and reloaded, these settings are restored.
         self.setParameterNode(self.logic.getParameterNode())
-        #self.setOtherParameterNodeParameters(self._parameterNode)  # set parameters even if default parameters already set  # TODO: remove this line if not needed
 
 
     def setParameterNode(self, inputParameterNode):
@@ -262,24 +261,6 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         # Initial GUI update
         self.updateGUIFromParameterNode()
 
-    # @staticmethod
-    # def setOtherParameterNodeParameters(parameterNode):
-    #     """
-    #     This method is run each time the parameter node is set, even if default parameters are already set.
-    #
-    #     Args:
-    #         parameterNode: The parameter node to set.
-    #     """
-    #
-    #     # Select channel 1 as input node if nothing is selected yet to save a few user clicks
-    #     if not parameterNode.GetNodeReference("InputVolume_channel1"):
-    #         firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
-    #         if firstVolumeNode:
-    #             parameterNode.SetNodeReferenceID("InputVolume_channel1", firstVolumeNode.GetID())
-    #
-    #     # No segment should be selected at the beginning
-    #     if parameterNode.GetParameter("segmentID"):
-    #         parameterNode.SetParameter("segmentID", "")
 
     def updateGUIFromParameterNode(self, caller=None, event=None):
         """
