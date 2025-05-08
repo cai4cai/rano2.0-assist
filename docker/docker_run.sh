@@ -5,7 +5,7 @@ THIS_DIR=$(dirname "$(readlink -f "$0")")
 RANO_DIR=$(dirname "$THIS_DIR")
 TEST_DATA_DIR=${RANO_DIR}/data/test_data
 
-INPUT_DIR=${RANO_DIR}/data/test_data  # Change this to your input data directory if needed
+INPUT_DIR=${RANO_DIR}/data  # Change this to your input data directory if needed
 REPORTS_DIR=${RANO_DIR}/Reports  # Change this to your reports directory if needed
 
 # Check if the input directory exists
