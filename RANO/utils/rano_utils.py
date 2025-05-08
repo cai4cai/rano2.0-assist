@@ -218,34 +218,36 @@ def get_all_contained_lines(plane):
     return contained_lines
 
 @jit(nopython=True)
-def get_max_orthogonal_line_product_coords_plane(all_line_coords_np_3d_world, degree_tol=0, ):
+def get_max_orthogonal_line_product_coords_plane(line_coords, degree_tol=0):
     """
+
     Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest
-    product of their lengths.
+    product of their lengths. The third condition is that the lines must intersect. The function
+    loops over all lines and checks if the angle between the lines is orthogonal (within the given tolerance).
+    It is assumed that all lines lie in a plane (one of the acquisition planes). This plane can have any orientation in
+    world space.
 
     Args:
-        all_line_coords_np: numpy array of shape (nb_lines, 2, 2) (lines x 2 points x 2 coordinates)
+        line_coords: numpy array of shape (nb_lines, 2, 3) (lines x 2 points x 3 coordinates)
         degree_tol: the tolerance in degrees for the orthogonality of the lines
 
     Returns:
-        ortho_line_products_max_idx_coords: a list of two lines, where each line is a list of two points and the product
+        ortho_line_max_prod_coords: a list of two lines, where each line is a list of two points and the product
         of their lengths is maximal
     """
 
     if debug:
         # pick only 10 lines
-        all_line_coords_np_3d_world = all_line_coords_np_3d_world[:10]
+        line_coords = line_coords[:10]
 
-    num_lines = len(all_line_coords_np_3d_world)
+    num_lines = len(line_coords)
     if not num_lines >= 2:
         return None
 
     radians_tol = np.deg2rad(degree_tol)
 
-    ortho_line_products_max = 0  # current maximum product of line lengths
-
     # precalculate the line lengths and angles with respect to one of the lines in the plane
-    vecs_world = all_line_coords_np_3d_world[:, 1, :] - all_line_coords_np_3d_world[:, 0, :]
+    vecs_world = line_coords[:, 1, :] - line_coords[:, 0, :]
 
     ref_line = vecs_world[0, :]  # reference line
 
@@ -254,40 +256,43 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np_3d_world, de
         crossprod = np.cross(ref_line, ref_line2)
         normcrossprod = np.linalg.norm(crossprod)
 
-        if normcrossprod > 1e-6:  # check if the two lines are not parallel
+        if normcrossprod > 1e-6:  # check if the two lines are not parallel. set threshold to avoid numerical issues
             break
     else:
         #print("No orthogonal vectors found.")
         return None
 
+    # get the plane normal
     normal = crossprod / np.linalg.norm(crossprod)
 
-    view = np.argmax(normal)
-    ax1, ax2 = np.delete(np.arange(3), view)
-
     # get the signed angle between the reference line and the other lines by projecting on the normal
+    # sorting the angles is done to assess only roughly orthogonal lines and avoid O(n^2) complexity
     angles = np.arctan2(np.dot(normal, np.cross(ref_line, vecs_world).T), np.dot(ref_line, vecs_world.T))
 
-    # print("ref_line: ", ref_line)
-    # print("ref_line2: ", ref_line2)
-    # print("normal: ", normal)
-    # print(">>>> angles: ")
-    # for a_idx, angle in enumerate(angles):
-    #     print(a_idx, "\t", angle, "\t",  np.degrees(angle), "\t", vecs_world[a_idx], "\t", all_line_coords_np_3d_world[a_idx])
-
+    # calculate the line lengths
     line_lengths = np.sqrt(np.sum(vecs_world ** 2, axis=1))
 
-
-    # sort all_line_coords_np_3d_world, vecs, angles, line_lengths by angle
+    # sort angles, line_coords, line_lengths by angle
     # this is necessary to make the search for orthogonal lines more efficient
-    line_lengths_sorted_idx = np.argsort(angles)
-    all_line_coords_np_3d_world = all_line_coords_np_3d_world[line_lengths_sorted_idx]
-    angles = angles[line_lengths_sorted_idx]
-    line_lengths = line_lengths[line_lengths_sorted_idx]
+    angles_sorted_idx = np.argsort(angles)
+    angles = angles[angles_sorted_idx]
+    line_coords = line_coords[angles_sorted_idx]
+    line_lengths = line_lengths[angles_sorted_idx]
 
-    # indices of the two lines with the maximum product
+    # keep track of current maximum product of line lengths and corresponding line indices
+    ortho_line_products_max = 0
     max_l1 = -1
     max_l2 = -1
+
+    # to check if the lines are in the same plane, we later project the lines onto a 2D plane
+    # we need to define 2 basis vectors and a coordinate center to describe coordinates in the plane in 2D
+    # pick an arbitrary vector that is orthogonal to the normal
+    basis1 = np.array([normal[1], -normal[0], 0])
+    basis1 = basis1 / np.linalg.norm(basis1)
+    basis2 = np.cross(normal, basis1)
+    basis2 = basis2 / np.linalg.norm(basis2)
+    # the center can be the first point of the first line
+    center2D = line_coords[0, 0, :]
 
     start_idx = 0  # start index for the search of orthogonal lines (initially 0) to avoid checking all angles
     for l1 in range(num_lines):
@@ -323,21 +328,28 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np_3d_world, de
             if not line_length_product > ortho_line_products_max:
                 continue
 
-            # condition 3: make sure that the two lines are intersecting
-            l1p1 = [all_line_coords_np_3d_world[l1, 0, ax1], all_line_coords_np_3d_world[l1, 0, ax2]]
-            l1p2 = [all_line_coords_np_3d_world[l1, 1, ax1], all_line_coords_np_3d_world[l1, 1, ax2]]
-            l2p1 = [all_line_coords_np_3d_world[l2, 0, ax1], all_line_coords_np_3d_world[l2, 0, ax2]]
-            l2p2 = [all_line_coords_np_3d_world[l2, 1, ax1], all_line_coords_np_3d_world[l2, 1, ax2]]
+            # condition 3: make sure that the two lines are intersecting in the plane
+            # get the 2x2 points of the two lines in terms of the basis vectors defined above
+            l1p1 = line_coords[l1, 0, :]
+            l1p2 = line_coords[l1, 1, :]
+            l2p1 = line_coords[l2, 0, :]
+            l2p2 = line_coords[l2, 1, :]
+
+            # project the points onto the 2D plane
+            l1p1 = [np.dot(l1p1 - center2D, basis1), np.dot(l1p1 - center2D, basis2)]
+            l1p2 = [np.dot(l1p2 - center2D, basis1), np.dot(l1p2 - center2D, basis2)]
+            l2p1 = [np.dot(l2p1 - center2D, basis1), np.dot(l2p1 - center2D, basis2)]
+            l2p2 = [np.dot(l2p2 - center2D, basis1), np.dot(l2p2 - center2D, basis2)]
 
             # this solution of checking if the lines intersect is from https://stackoverflow.com/a/9997374
             # it doesn't work for parallel lines, but we already checked that the lines are orthogonal
-            def ccw(A, B, C):
-                # check if the points are in counter clockwise order
-                return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])  # check if the points are in counter clockwise order
+            def ccw(p1, p2, p3):
+                # Check if the points p1, p2, p3 are in counter-clockwise order
+                return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0])
 
             # Return true if line segments AB and CD intersect
-            def intersect(A, B, C, D):
-                return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+            def intersect(a1, a2, b1, b2):
+                return ccw(a1, b1, b2) != ccw(a2, b1, b2) and ccw(a1, a2, b1) != ccw(a1, a2, b2)
 
             if not intersect(l1p1, l1p2, l2p1, l2p2):
                 continue
@@ -348,33 +360,13 @@ def get_max_orthogonal_line_product_coords_plane(all_line_coords_np_3d_world, de
             max_l2 = l2
 
     if max_l1 == -1 or max_l2 == -1:
-        # print("No orthogonal lines found")
+        if debug: print("No orthogonal lines found")
         return None
 
     # get the coordinates of the two lines with the maximum product
-    ortho_line_products_max_idx_coords = [all_line_coords_np_3d_world[max_l1, :, :], all_line_coords_np_3d_world[max_l2, :, :]]
+    ortho_line_max_prod_coords = [line_coords[max_l1, :, :], line_coords[max_l2, :, :]]
 
-    # for a_idx, angle in enumerate(angles):
-    #     print(a_idx, angle, all_line_coords_np_3d_world[a_idx])
-    # print("Accepted lines: ", max_l1, " and ", max_l2, " with product ", ortho_line_products_max)
-    # print("the angles are: ", angles[max_l1] * 180 / np.pi, " and ", angles[max_l2] * 180 / np.pi)
-    # print("and angle difference ", abs(angles[max_l1] - angles[max_l2]) * 180 / np.pi)
-    # print("the lines are: ", all_line_coords_np_3d_world[max_l1], " and ", all_line_coords_np_3d_world[max_l2])
-    # print("the reference line is: ", ref_line)
-    # print("the reference line 2 is: ", ref_line2)
-    # print("the normal is: ", normal)
-    #
-    #
-    # #recalculate the angle:
-    # vec1 = all_line_coords_np_3d_world[max_l1, 1, :] - all_line_coords_np_3d_world[max_l1, 0, :]
-    # vec2 = all_line_coords_np_3d_world[max_l2, 1, :] - all_line_coords_np_3d_world[max_l2, 0, :]
-    # angle = np.arctan2(np.linalg.norm(np.cross(vec1, vec2)), np.dot(vec1, vec2.T))
-    #
-    # print("Angle between the two lines: ", angle * 180 / np.pi)
-    #
-    # if abs(angle * 180 / np.pi - 59.93848) < 0.0001:
-    #     raise
-    return ortho_line_products_max_idx_coords
+    return ortho_line_max_prod_coords
 
 
 def get_instance_segmentation_by_connected_component_analysis(bin_seg):
@@ -463,17 +455,17 @@ def get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=Non
     two lines with the largest product of their lengths that are orthogonal to each other.
 
     Args:
-        seg: a 3D numpy array where background is 0 and foreground is > 0
-        valid_axes: the views to consider for finding the orthogonal lines
-        center: coordinates of a point that the plane must be close to
-        center_tol: tolerance for the distance between the plane and the center point
+        seg: a 3D numpy array where background is 0 and foreground is > 0. The array defines the IJK space.
+        valid_axes: the IJK orientations to consider for finding the orthogonal lines
+        center: IJK coordinates of a point that the plane must be close to
+        center_tol: IJK tolerance for the distance between the plane and the center point
         opening_radius: the radius of the circle opening operation to apply to the slice segmentation before finding
         the orthogonal lines
         ijkToWorld: the transformation matrix to convert from voxel coordinates to world coordinates
 
     Returns:
         max_ortho_line_coords: a list of two lines, where each line is a list of two points and the product of their
-        lengths is maximal
+        lengths is maximal. The coordinates are in world space.
     """
 
     # loop over all planes

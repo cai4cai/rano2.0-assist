@@ -135,8 +135,6 @@ class ReportCreationMixin:
         # create one image for each line pair
         for pair in self.lineNodePairs:
             timepoint = pair.timepoint
-            # select the reference input image so that line pairs are in the plane
-
             # focus the view on the line pair
             measurements2D_utils.Measurements2DMixin.centerTimepointViewsOnCenterPoint(pair, timepoint)
 

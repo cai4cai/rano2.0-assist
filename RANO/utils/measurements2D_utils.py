@@ -306,13 +306,13 @@ class Measurements2DMixin:
                     continue
 
                 if method2DmeasComboBox == "RANO_open2D":
-                    seg_open += circle_opening_on_slices_perpendicular_to_axis(instance_seg,
-                                                                               axes=[0, 1, 2],
-                                                                               labels=[lab],
-                                                                               radius=radius,
-                                                                               )
+                    seg_open += lab * circle_opening_on_slices_perpendicular_to_axis(instance_seg,
+                                                                                     axes=[0, 1, 2],
+                                                                                     labels=[lab],
+                                                                                     radius=radius,
+                                                                                    )
                 elif method2DmeasComboBox == "RANO_open3D":
-                    seg_open += sphere_opening(instance_seg, labels=[lab], radius=radius)
+                    seg_open += lab * sphere_opening(instance_seg, labels=[lab], radius=radius)
                 else:
                     raise ValueError(
                         f"No implementation available for opening the segmentations with method {method2DmeasComboBox}")
@@ -417,14 +417,14 @@ class Measurements2DMixin:
                     valid_axes_IJK = [ijk_axis_idx_to_kji[idx] for idx in valid_axes_IJK]
 
                     # get the line pair coordinates for the current lesion
-                    ccords_world = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK, ijkToWorld=get_ijk_to_world_matrix(resampledVolumeNode))
+                    coords_world = get_max_orthogonal_line_product_coords(bin_seg, valid_axes_IJK, center_IJK, ijkToWorld=get_ijk_to_world_matrix(resampledVolumeNode))
 
-                    if len(ccords_world) > 0:
-                        world_normal_axis_idx = find_closest_plane(ccords_world)
+                    if len(coords_world) > 0:
+                        world_normal_axis_idx = find_closest_plane(coords_world)
                         this_timepoint_orientation_curr_lesion = {0: 'sagittal', 1: 'coronal', 2: 'axial'}[world_normal_axis_idx]
 
                         # get the center of the line pair in IJK space to allow for consistent slice selection across timepoints
-                        center_world = point_closest_to_two_lines(ccords_world)
+                        center_world = point_closest_to_two_lines(coords_world)
                         this_timepoint_center_world_curr_lesion = center_world
 
                         # store the orientation and center of the lesion in the current timepoint
@@ -434,12 +434,12 @@ class Measurements2DMixin:
                     volume = np.sum(bin_seg)
 
                 elif method2DmeasComboBox == "Random":
-                    ccords_world = np.random.randint(0, 100, (2, 2, 3))  # 2 lines, 2 points, 3 coordinates
+                    coords_world = np.random.randint(0, 100, (2, 2, 3))  # 2 lines, 2 points, 3 coordinates
                     volume = np.random.rand(2, 2, 3) * 100
                 else:
                     raise ValueError(f"Method {method2DmeasComboBox} not recognized")
 
-                lesion_dict[lab] = {"coords": ccords_world, "volume": volume}
+                lesion_dict[lab] = {"coords": coords_world, "volume": volume}
 
             return lesion_dict
 
@@ -1142,18 +1142,12 @@ class LineNodePair(list):
         line2 = np.array(
             [lineNode2.GetNthControlPointPositionWorld(i) for i in range(lineNode2.GetNumberOfControlPoints())])
 
-        # print(f"line1 = {line1}")
-        # print(f"line2 = {line2}")
-
         # get the direction vectors of the lines
         if not (len(line1) == 2 and len(line2) == 2):
             return
 
         dir1 = line1[-1] - line1[0]
         dir2 = line2[-1] - line2[0]
-
-        # print(f"dir1 = {dir1}")
-        # print(f"dir2 = {dir2}")
 
         # normalize the direction vectors
         dir1 /= np.linalg.norm(dir1)
@@ -1162,10 +1156,8 @@ class LineNodePair(list):
         # calculate the dot product of the direction vectors
         dot_product = np.dot(dir1, dir2)
 
-        # print(f"dot_product = {dot_product}")
-
         # set the color of the lines depending on the dot product
-        tolerance_deg = 2.5
+        tolerance_deg = 1
         min_deg = 90 - tolerance_deg
         max_deg = 90 + tolerance_deg
         min_rad = np.deg2rad(min_deg)
@@ -1173,10 +1165,8 @@ class LineNodePair(list):
 
         if min_rad < np.arccos(dot_product) < max_rad:
             color = (0, 1, 0)  # green
-            # print(f"setting color to green")
         else:
             color = (1, 0, 0)  # red
-            # print(f"setting color to red")
 
         lineNode1.GetDisplayNode().SetSelectedColor(color)
         lineNode2.GetDisplayNode().SetSelectedColor(color)
@@ -1320,10 +1310,10 @@ class LineNodePairList(list):
     def decide_target(self, strategy="two_largest_enhancing"):
         """
         Logic to decide whether the lesion is a target lesion or not. The strategy can be one of the following:
-        - "two_largest_enhancing": select the two largest enhancing lesions
-        - "three_largest_enhancing": select the three largest enhancing lesions
+        - "two_largest_enhancing": select the two largest enhancing lesions from the baseline
+        - "three_largest_enhancing": select the three largest enhancing lesions from the baseline
         - "two_largest_enhancing_and_two_largest_non_enhancing": select the two largest enhancing lesions and the two
-            largest non-enhancing lesions
+            largest non-enhancing lesions from the baseline
 
         Args:
             strategy: the strategy to use for selecting the target lesions
