@@ -372,8 +372,6 @@ def get_max_orthogonal_line_product_coords_plane(line_coords, degree_tol=0):
     # get the coordinates of the two lines with the maximum product
     ortho_line_max_prod_coords = [line_coords[max_l1, :, :], line_coords[max_l2, :, :]]
 
-    print("Max product:", ortho_line_products_max)
-
     return ortho_line_max_prod_coords
 
 

@@ -92,6 +92,7 @@ WORKDIR /home/researcher
 COPY --chown=researcher:researcher ./dynunet_pipeline /home/researcher/rano2.0-assist/dynunet_pipeline
 COPY --chown=researcher:researcher ./RANO /home/researcher/rano2.0-assist/RANO
 COPY --chown=researcher:researcher ./run_command /home/researcher/rano2.0-assist/run_command
+COPY --chown=researcher:researcher ./tests /home/researcher/rano2.0-assist/tests
 
 # copy the slicer startup script
 COPY --chown=researcher:researcher ./docker/.slicerrc.py /home/researcher/slicer/Slicer-5.8.1-linux-amd64/.slicerrc.py

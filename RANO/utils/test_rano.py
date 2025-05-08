@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 from glob import glob
 import json
@@ -30,8 +31,34 @@ class RANOTest(ScriptedLoadableModuleTest):
         """Run as few or as many tests as needed here.
         """
         self.setUp()
-        #self.test_RANO_dicom()
-        self.test_RANO_nifti()
+
+        slicer.mrmlScene.Clear()
+
+        # check which tests were specified in the command line
+        tests_to_run = []
+        for arg in sys.argv:
+            if arg.startswith("test_"):
+                tests_to_run.append(arg)
+
+        if len(tests_to_run) > 0:  # if tests were specified in the command line
+            for test in tests_to_run:
+                if hasattr(self, test):
+                    print(f"Running test {test}")
+                    # run the test
+                    try:
+                        getattr(self, test)()
+                    except Exception as e:
+                        print(f"Test {test} failed with error: {e}")
+                        sys.exit(1)
+                else:
+                    print(f"Test {test} not found")
+        else:  # if no tests were specified run all tests
+            self.test_RANO_dicom()
+            self.test_RANO_nifti()
+
+        if any(['.py' in arg for arg in sys.argv]):
+            print('Tests executed from command line. Quitting Slicer...')
+            slicer.app.quit()
 
     def test_RANO_dicom(self):
         slicer.mrmlScene.Clear()
