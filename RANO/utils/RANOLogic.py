@@ -59,10 +59,10 @@ class RANOLogic(ScriptedLoadableModuleLogic):
         parameterNode.SetParameter("InputIsBET_t2", "false")
 
         parameterNode.SetParameter("axial", "true")
-        parameterNode.SetParameter("coronal", "true")
-        parameterNode.SetParameter("sagittal", "true")
+        parameterNode.SetParameter("coronal", "false")
+        parameterNode.SetParameter("sagittal", "false")
         parameterNode.SetParameter("orient_cons_tp", "true")
-        parameterNode.SetParameter("same_slc_tp", "true")
+        parameterNode.SetParameter("same_slc_tp", "false")
 
         # Create a new Segmentation node if none is selected
         if not parameterNode.GetNodeReference("outputSegmentation"):

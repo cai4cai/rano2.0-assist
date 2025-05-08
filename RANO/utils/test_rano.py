@@ -30,8 +30,8 @@ class RANOTest(ScriptedLoadableModuleTest):
         """Run as few or as many tests as needed here.
         """
         self.setUp()
-        self.test_RANO_dicom()
-        #self.test_RANO_nifti()
+        #self.test_RANO_dicom()
+        self.test_RANO_nifti()
 
     def test_RANO_dicom(self):
         slicer.mrmlScene.Clear()

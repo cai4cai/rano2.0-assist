@@ -287,7 +287,13 @@ def get_max_orthogonal_line_product_coords_plane(line_coords, degree_tol=0):
     # to check if the lines are in the same plane, we later project the lines onto a 2D plane
     # we need to define 2 basis vectors and a coordinate center to describe coordinates in the plane in 2D
     # pick an arbitrary vector that is orthogonal to the normal
-    basis1 = np.array([normal[1], -normal[0], 0])
+    ax1 = np.argsort(np.abs(normal))[-1]  # largest component of the normal
+    ax2 = np.argsort(np.abs(normal))[-2]  # second largest component of the normal
+
+    basis1 = np.zeros(3)
+    basis1[ax1] = normal[ax2]
+    basis1[ax2] = -normal[ax1]
+
     basis1 = basis1 / np.linalg.norm(basis1)
     basis2 = np.cross(normal, basis1)
     basis2 = basis2 / np.linalg.norm(basis2)
@@ -365,6 +371,8 @@ def get_max_orthogonal_line_product_coords_plane(line_coords, degree_tol=0):
 
     # get the coordinates of the two lines with the maximum product
     ortho_line_max_prod_coords = [line_coords[max_l1, :, :], line_coords[max_l2, :, :]]
+
+    print("Max product:", ortho_line_products_max)
 
     return ortho_line_max_prod_coords
 
