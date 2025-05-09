@@ -131,18 +131,51 @@ This will load all required scans in the "Inputs" box
 - Alternatively you can follow the "Add Data" or "Add Dicom Data" buttons in the "Add Data" box. 
 
 - After the images are loaded, select the volumes in the "Inputs" box. Note that all visible input channels
-are required for automatic segmentation.
+are required for automatic segmentation. The number of input channels is determined by the segmentation model that is
+selected in the "Automatic Segmentation" box. The default model "task4001" requires 4 input channels:
+  - T1c (T1 contrast enhanced)
+  - T1 (T1 native)
+  - T2f (T2 flair)
+  - T2 (T2)
+
+The other model "task4000" requires T1c only.
 
 
 #### Automatic segmentation
 
-4. Automatic segmentation: make sure the "Affine registration" checkbox is checked
-and the Input is skull-stripped checkbox is unchecked. Select the model "task4001" and
-"Create new segmentation" under "Output Segmentation":
+- Automatic segmentation: make sure the "Affine registration" checkbox is checked
+and the "Input is skull-stripped" checkbox is checked if the input images have been skull-stripped already. For
+both timepoints, select the model "task4001". The output segmentations by default are called "Segmentation_t1" and
+"Segmentation_t2", but the user can also "Create new segmentations" under the dropdown menu. 
 
 <img src="_static/autoSegBox.png" alt="drawing" width="300"/>
 
 Click "Calculate Segmentation" to run the segmentation model.
 
-5. In the "Automatic 2D Measurements" box choose one of the predicted segments
-into which the orthogonal line pairs are to be placed:
+- In the "Automatic 2D Measurements" box choose one of the predicted segments
+into which the orthogonal line pairs are to be placed. By default, the enhancing segment (ETC) is selected.
+
+- Choose the method. Currently the following methods are available:
+    - RANO: No postprocessing of the segmentation. The method returns the line pairs that maximize the bidimensional product
+      for each connected component of the selected segment.
+    - RANO_open2D: A postprocessing is applied to "clean" the segmentation. A morphological opening with a circle of
+      user-defined radius is applied along
+      all 3 axes separately, and the union of the resulting segments is used as the new target area for the line pairs.
+      Note: If the opening operation results in the splitting of a connecting component into multiple components, only
+      one line pair is placed in that component in which the maximum bidimensional product is found.
+    - RANO_open3D: A postprocessing is applied to "clean" the segmentation. A morphological opening with a sphere of
+      user-defined radius is applied (once in 3D). The resulting segment is used as the segment for the line pairs.
+
+- Choose the orientations along which the line pairs are to be placed. The default is "axial".
+The user can also choose multiple orientations. The line pairs are then placed in 
+that orientation in which the maximum bidimensional product is found.
+
+- The "same orientation" checkbox assures that line pairs in the second timepoint are placed in the same orientation as 
+in the first timepoint. 
+
+- The "approx. same slice" checkbox assures that line pairs in the second timepoint are placed in approximately the same
+slice as in the first timepoint. Note: This frequently leads to a slice of larger tumor extent to be missed in the second
+timepoint and should be used with caution.
+
+- Click "Place Lines" to automatically place the line pairs. 
+
