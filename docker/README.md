@@ -1,15 +1,18 @@
 # Docker instructions
 
 ## Requirements
-[RANO](../RANO)
-#### [1. nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+
+#### [1. Docker](https://docs.docker.com/engine/install/)
+
+#### [2. nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 The NVIDIA Container Toolkit is a collection of libraries and utilities enabling users to build and run GPU-accelerated containers.
 
 After installing nvidia-container-toolkit, restart the Docker daemon, for example use:
 
     sudo systemctl restart docker
 
-#### [2. Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/)
+#### [3. Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/)
 Alternatively, modify the following docker scripts such that they run docker with `sudo`.
 
 
