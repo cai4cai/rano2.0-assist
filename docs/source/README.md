@@ -26,21 +26,33 @@ GPU acceleration. The local installation requires 3D Slicer and the necessary Py
 #### Requirements
 Follow the links to install the required software:
 - [3D Slicer](https://download.slicer.org/) (tested with version 5.8.1)
-- [PyTorch](https://pytorch.org/get-started/locally/) (tested with version 2.4)
 
-The following Python packages can be installed using pip. The versions listed below are the ones that have been tested with this extension.
-- numpy (tested with version 2.0.2) (pip install numpy)
-- scikit-image (tested with version 0.24.0) (pip install scikit-image)
-- numba (tested with version 0.60.0) (pip install numba)
-- nibabel (tested with version 5.3.2) (pip install nibabel)
-- tqdm (tested with version 4.67.1) (pip install tqdm))
-- pyyaml (tested with version 6.0.2) (pip install pyyaml)
-- 
-- MONAI (install from https://github.com/aaronkujawa/MONAI/tree/rano) (pip install git+https://github.com/aaronkujawa/MONAI.git@rano)
-- pytorch-ignite (tested with version pytorch-ignite 0.5.2) (pip install pytorch-ignite)
-- tensorboard (tested with version 2.19.0) (pip install tensorboard)
-- ANTsPy (tested with version 0.5.4) (pip install antspyx
-- HD-BET (requires this specific commit) (pip install git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651)
+The following Python packages can be installed in 3D Slicer's python environment. 
+The versions listed below are the ones that have been tested with this extension.
+To install the packages, you can either use the pip_install command in the 3D Slicer Python Console (e.g. 
+type `pip_install("numpy==2.0.2")` in the console) or use the command line to install the packages in the 3D Slicer Python
+environment as follow:
+
+- numpy (tested with version 2.0.2): `pip_install("numpy==2.0.2")`
+- scikit-image (tested with version 0.24.0): `pip_install("scikit-image==0.24.0")`
+- numba (tested with version 0.60.0): `pip_install("numba==0.60.0")`
+- nibabel (tested with version 5.3.2): `pip_install("nibabel==5.3.2")`
+- tqdm (tested with version 4.67.1) : `pip_install("tqdm==4.67.1")`
+- pyyaml (tested with version 6.0.2): `pip_install("pyyaml==6.0.2")`
+
+The following packages are required for the segmentation pipeline (DynUNet). These can be installed either in the 3D Slicer
+python environment or in a separate python environment whose path can be specified in the RANO module. The following 
+commands are for installing the packages in the 3D Slicer python environment.
+- PyTorch: check here which pip command is appropriate for your system (https://pytorch.org/get-started/locally/) (tested with version 2.6)
+    - for example, in 3D Slicer's python console type: `pip_install("torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124 --index-url https://download.pytorch.org/whl/cu124")`
+- MONAI (install from https://github.com/aaronkujawa/MONAI/tree/rano): `pip_install("git+https://github.com/aaronkujawa/MONAI.git@rano")`
+- pytorch-ignite (tested with version pytorch-ignite 0.5.2): `pip_install("pytorch-ignite==0.5.2")`
+- tensorboard (tested with version 2.19.0): `pip_install("tensorboard==2.19.0")`
+- ANTsPy (tested with version 0.5.4): `pip_install("antspyx==0.5.4")`
+- HD-BET (requires this specific commit): `pip_install("git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651")`
+
+Note: if a separate python environment is used, numpy, scikit-image, numba, nibabel, tqdm and pyyaml need to be installed
+in that environment on top of the installation in 3D Slicer.
 
 #### Segmentation models
 The segmentation models need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:
@@ -179,3 +191,4 @@ timepoint and should be used with caution.
 
 - Click "Place Lines" to automatically place the line pairs. 
 
+<img src="_static/automatic_2D_measurements.png" alt="drawing" width="300"/>
