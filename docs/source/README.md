@@ -24,20 +24,36 @@ GPU acceleration. The local installation requires 3D Slicer and the necessary Py
 ### Local installation
 
 #### Requirements
-- 3D Slicer (tested with version 5.8.1)
-- PyTorch (tested with version 2.4)
-- numpy (tested with version 2.0.2)
-- scikit-image (tested with version 0.24.0)
-- numba (tested with version 0.60.0)
-- pytorch (tested with version pytorch-ignite 0.5.2)
-- ANTsPy (tested with version 0.5.4)
-- MONAI (https://github.com/aaronkujawa/MONAI/tree/rano)
+Follow the links to install the required software:
+- [3D Slicer](https://download.slicer.org/) (tested with version 5.8.1)
+- [PyTorch](https://pytorch.org/get-started/locally/) (tested with version 2.4)
 
+The following Python packages can be installed using pip. The versions listed below are the ones that have been tested with this extension.
+- numpy (tested with version 2.0.2) (pip install numpy)
+- scikit-image (tested with version 0.24.0) (pip install scikit-image)
+- numba (tested with version 0.60.0) (pip install numba)
+- nibabel (tested with version 5.3.2) (pip install nibabel)
+- tqdm (tested with version 4.67.1) (pip install tqdm))
+- pyyaml (tested with version 6.0.2) (pip install pyyaml)
+- 
+- MONAI (install from https://github.com/aaronkujawa/MONAI/tree/rano) (pip install git+https://github.com/aaronkujawa/MONAI.git@rano)
+- pytorch-ignite (tested with version pytorch-ignite 0.5.2) (pip install pytorch-ignite)
+- tensorboard (tested with version 2.19.0) (pip install tensorboard)
+- ANTsPy (tested with version 0.5.4) (pip install antspyx
+- HD-BET (requires this specific commit) (pip install git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651)
 
 #### Segmentation models
 The segmentation models need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:
 ```
 dynunet_pipeline/data/tasks
+```
+such that the directory structure looks like this:
+```
+└──rano2.0-assist
+   └──dynunet_pipeline/data/tasks`
+      ├── task4000_brats24
+      ├── task4001_brats24allmod
+      └── task...
 ```
 
 #### Test data
@@ -50,8 +66,19 @@ data/input_data
 #### Add the extension to 3D Slicer
 
 To add the extension to 3D Slicer, follow these steps:
+1. Open 3D Slicer and select "Developer Tools" --> "Extension Manager" in the Modules drop down menu or search for
+   "Extension Manager" using the search tool.
 
+<img src="_static/select_extension_wizard.png" alt="drawing" width="300"/>
 
+2. In the Extension Manager, click "Select Extension" and select the "rano2.0-assist" repository folder.
+
+3. Confirm the import of the two modules.
+
+<img src="_static/confirm_module_import.png" alt="drawing" width="200"/>
+
+4. Start the RANO module by selecting "Tools" --> "RANO" in the Modules drop down menu or search for
+   "RANO" using the search tool.
 
 ### Installation with Docker
 For Docker installation, follow instructions here: [docker/README.md](../../docker/README.md).
@@ -60,16 +87,39 @@ For Docker installation, follow instructions here: [docker/README.md](../../dock
 ### Usage
 
 #### Running the tool
-- Start 3D Slicer by clicking on the Slicer symbol: 
-<img src="_static/SlicerWatermark.png" alt="drawing" width="20"/>
+- Start 3D Slicer
 
-- Start the RANO annotation plugin by clicking on the following symbol in the menu: 
-<img src="_static/RANO.png" alt="drawing" width="20"/>
+- Start the RANO module by selecting "Tools" --> "RANO" in the Modules drop down menu or search for
+  "RANO" using the search tool
 
 #### Loading the image data
 
 ##### 1. Loading the test data
-- Select the patient and time points in the Test Cases Box and click Load
+- Loading the test data ist only available in developer mode. To enable developer mode, go to the "Edit" menu and select 
+"Application Settings". 
+
+- Under "Developer" tab, check the "Enable developer mode" checkbox. Restart of 3D Slicer is required.
+
+- At the top of the RANO module, you will find the "Reload & Test" box, which is for developer use only.
+
+- The "Test Cases" box allow you to load the test data saved under `data/test_data' in the repository. The folder structure
+is as follows:
+```
+└── rano2.0-assist
+    └── data
+        └── test_data
+            ├── KCH-internal
+            │   ├── Patient_003
+            │   ├── Patient_006
+            │   └── ...
+            │
+            └── MU-Glioma-Post
+                ├── PatientID_003
+                ├── PatientID_004
+                └── ...
+```
+
+- Select the patient and time points in the Test Cases Box and click "Load" to load the data. 
 
 <img src="_static/testCasesBox.png" alt="drawing" width="300"/>
 
