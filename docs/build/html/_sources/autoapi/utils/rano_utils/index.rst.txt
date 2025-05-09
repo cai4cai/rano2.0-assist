@@ -24,6 +24,7 @@ Functions
    utils.rano_utils.circle_opening_on_slices_perpendicular_to_axis
    utils.rano_utils.get_ijk_to_world_matrix
    utils.rano_utils.transform_ijk_to_world_coord
+   utils.rano_utils.transform_ijk_to_world_coord_np
    utils.rano_utils.transform_world_to_ijk_coord
 
 
@@ -66,17 +67,20 @@ Module Contents
    :rtype: contained_lines
 
 
-.. py:function:: get_max_orthogonal_line_product_coords_plane(all_line_coords_np, degree_tol=0)
+.. py:function:: get_max_orthogonal_line_product_coords_plane(line_coords, degree_tol=0)
 
    Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest
-   product of their lengths.
+   product of their lengths. The third condition is that the lines must intersect. The function
+   loops over all lines and checks if the angle between the lines is orthogonal (within the given tolerance).
+   It is assumed that all lines lie in a plane (one of the acquisition planes). This plane can have any orientation in
+   world space.
 
-   :param all_line_coords_np: numpy array of shape (nb_lines, 2, 2) (lines x 2 points x 2 coordinates)
+   :param line_coords: numpy array of shape (nb_lines, 2, 3) (lines x 2 points x 3 coordinates)
    :param degree_tol: the tolerance in degrees for the orthogonality of the lines
 
    :returns: a list of two lines, where each line is a list of two points and the product
              of their lengths is maximal
-   :rtype: ortho_line_products_max_idx_coords
+   :rtype: ortho_line_max_prod_coords
 
 
 .. py:function:: get_instance_segmentation_by_connected_component_analysis(bin_seg)
@@ -107,21 +111,22 @@ Module Contents
    :rtype: matched_instance_segs
 
 
-.. py:function:: get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=None, center_tol=5, opening_radius=None)
+.. py:function:: get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=None, center_tol=5, opening_radius=None, ijkToWorld=None)
 
    Given a segmentation, this function returns the two lines that are orthogonal to each other and have the largest
    product of their lengths. It does so by looping over views (axial, coronal, sagittal) and planes and finding the
    two lines with the largest product of their lengths that are orthogonal to each other.
 
-   :param seg: a 3D numpy array where background is 0 and foreground is > 0
-   :param valid_axes: the views to consider for finding the orthogonal lines
-   :param center: coordinates of a point that the plane must be close to
-   :param center_tol: tolerance for the distance between the plane and the center point
+   :param seg: a 3D numpy array where background is 0 and foreground is > 0. The array defines the IJK space.
+   :param valid_axes: the IJK orientations to consider for finding the orthogonal lines
+   :param center: IJK coordinates of a point that the plane must be close to
+   :param center_tol: IJK tolerance for the distance between the plane and the center point
    :param opening_radius: the radius of the circle opening operation to apply to the slice segmentation before finding
    :param the orthogonal lines:
+   :param ijkToWorld: the transformation matrix to convert from voxel coordinates to world coordinates
 
    :returns: a list of two lines, where each line is a list of two points and the product of their
-             lengths is maximal
+             lengths is maximal. The coordinates are in world space.
    :rtype: max_ortho_line_coords
 
 
@@ -226,6 +231,16 @@ Module Contents
 
    :param ijk: the IJK coordinates (x, y, z)
    :param ijkToWorld_matrix: the IJK to world matrix
+
+   :returns: the world coordinate (x, y, z)
+
+
+.. py:function:: transform_ijk_to_world_coord_np(coord, ijkToWorld_np)
+
+   Transform a coordinate from IJK to world space using the ijkToWorld matrix given as a numpy array.
+
+   :param coord: the IJK coordinates (x, y, z)
+   :param ijkToWorld_np: the IJK to world matrix as a numpy array
 
    :returns: the world coordinate (x, y, z)
 

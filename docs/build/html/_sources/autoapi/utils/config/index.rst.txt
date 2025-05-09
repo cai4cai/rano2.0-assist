@@ -17,6 +17,8 @@ Attributes
    utils.config.debug
    utils.config.module_path
    utils.config.dynunet_pipeline_path
+   utils.config.test_data_path
+   utils.config.reports_path
 
 
 Module Contents
@@ -35,4 +37,16 @@ Module Contents
 .. py:data:: dynunet_pipeline_path
 
    Path to the dynunet_pipeline directory used for running the segmentation pipeline.
+
+.. py:data:: test_data_path
+   :value: b'.'
+
+
+   Path to the test data directory containing test cases.
+
+.. py:data:: reports_path
+   :value: b'.'
+
+
+   Path to the reports directory where the generated reports will be saved.
 

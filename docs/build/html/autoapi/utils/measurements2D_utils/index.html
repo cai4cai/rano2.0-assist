@@ -375,15 +375,12 @@ The class also contains methods to set the enhancing, measurable, and target pro
 
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.measurements2D_utils.LineNodePair.uponLineNodeModifiedEvent">
-<span class="sig-name descname"><span class="pre">uponLineNodeModifiedEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineNode1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineNode2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiducialNodeForText</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/measurements2D_utils.html#LineNodePair.uponLineNodeModifiedEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.measurements2D_utils.LineNodePair.uponLineNodeModifiedEvent" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">uponLineNodeModifiedEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/measurements2D_utils.html#LineNodePair.uponLineNodeModifiedEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.measurements2D_utils.LineNodePair.uponLineNodeModifiedEvent" title="Link to this definition"></a></dt>
 <dd><p>This method is called when the line nodes are modified.
 It sets the color of the lines depending on whether they are orthogonal or not and updates the text label
 of the line nodes with the length of the lines in world coordinates.
 :param n: the event name
-:param e: the event object
-:param lineNode1: the first line node
-:param lineNode2: the second line node
-:param fiducialNodeForText: the fiducial node for the text label of the line nodes</p>
+:param e: the event object</p>
 </dd></dl>
 
 <dl class="py method">
@@ -448,11 +445,11 @@ based on the line node pairs.</p>
 <dt class="sig sig-object py" id="utils.measurements2D_utils.LineNodePairList.decide_target">
 <span class="sig-name descname"><span class="pre">decide_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'two_largest_enhancing'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/measurements2D_utils.html#LineNodePairList.decide_target"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.measurements2D_utils.LineNodePairList.decide_target" title="Link to this definition"></a></dt>
 <dd><p>Logic to decide whether the lesion is a target lesion or not. The strategy can be one of the following:
-- “two_largest_enhancing”: select the two largest enhancing lesions
-- “three_largest_enhancing”: select the three largest enhancing lesions
+- “two_largest_enhancing”: select the two largest enhancing lesions from the baseline
+- “three_largest_enhancing”: select the three largest enhancing lesions from the baseline
 - “two_largest_enhancing_and_two_largest_non_enhancing”: select the two largest enhancing lesions and the two</p>
 <blockquote>
-<div><p>largest non-enhancing lesions</p>
+<div><p>largest non-enhancing lesions from the baseline</p>
 </div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

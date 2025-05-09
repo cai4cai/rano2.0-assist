@@ -51,10 +51,16 @@
 <li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#segmentation-models">Segmentation models</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#test-data">Test data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#add-the-extension-to-3d-slicer">Add the extension to 3D Slicer</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#installation-with-docker">Installation with Docker</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#running-the-tool">Running the tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#loading-the-image-data">Loading the image data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#automatic-segmentation">Automatic segmentation</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -114,21 +120,53 @@ GPU acceleration. The local installation requires 3D Slicer and the necessary Py
 <h3>Local installation<a class="headerlink" href="#local-installation" title="Link to this heading"></a></h3>
 <section id="requirements">
 <h4>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h4>
+<p>Follow the links to install the required software:</p>
 <ul class="simple">
-<li><p>3D Slicer (tested with version 5.8.1)</p></li>
-<li><p>PyTorch (tested with version 2.4)</p></li>
-<li><p>numpy (tested with version 2.0.2)</p></li>
-<li><p>scikit-image (tested with version 0.24.0)</p></li>
-<li><p>numba (tested with version 0.60.0)</p></li>
-<li><p>pytorch (tested with version pytorch-ignite 0.5.2)</p></li>
-<li><p>ANTsPy (tested with version 0.5.4)</p></li>
-<li><p>MONAI (https://github.com/aaronkujawa/MONAI/tree/rano)</p></li>
+<li><p><a class="reference external" href="https://download.slicer.org/">3D Slicer</a> (tested with version 5.8.1)</p></li>
 </ul>
+<p>The following Python packages can be installed in 3D Slicer’s python environment.
+The versions listed below are the ones that have been tested with this extension.
+To install the packages, you can either use the pip_install command in the 3D Slicer Python Console (e.g.
+type <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;numpy==2.0.2&quot;)</span></code> in the console) or use the command line to install the packages in the 3D Slicer Python
+environment as follow:</p>
+<ul class="simple">
+<li><p>numpy (tested with version 2.0.2): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;numpy==2.0.2&quot;)</span></code></p></li>
+<li><p>scikit-image (tested with version 0.24.0): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;scikit-image==0.24.0&quot;)</span></code></p></li>
+<li><p>numba (tested with version 0.60.0): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;numba==0.60.0&quot;)</span></code></p></li>
+<li><p>nibabel (tested with version 5.3.2): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;nibabel==5.3.2&quot;)</span></code></p></li>
+<li><p>tqdm (tested with version 4.67.1) : <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;tqdm==4.67.1&quot;)</span></code></p></li>
+<li><p>pyyaml (tested with version 6.0.2): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;pyyaml==6.0.2&quot;)</span></code></p></li>
+</ul>
+<p>The following packages are required for the segmentation pipeline (DynUNet). These can be installed either in the 3D Slicer
+python environment or in a separate python environment whose path can be specified in the RANO module. The following
+commands are for installing the packages in the 3D Slicer python environment.</p>
+<ul class="simple">
+<li><p>PyTorch: check here which pip command is appropriate for your system (https://pytorch.org/get-started/locally/) (tested with version 2.6)</p>
+<ul>
+<li><p>for example, in 3D Slicer’s python console type: <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;torch==2.6.0+cu124</span> <span class="pre">torchvision==0.21.0+cu124</span> <span class="pre">torchaudio==2.6.0+cu124</span> <span class="pre">--index-url</span> <span class="pre">https://download.pytorch.org/whl/cu124&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p>MONAI (install from https://github.com/aaronkujawa/MONAI/tree/rano): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;git+https://github.com/aaronkujawa/MONAI.git&#64;rano&quot;)</span></code></p></li>
+<li><p>pytorch-ignite (tested with version pytorch-ignite 0.5.2): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;pytorch-ignite==0.5.2&quot;)</span></code></p></li>
+<li><p>tensorboard (tested with version 2.19.0): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;tensorboard==2.19.0&quot;)</span></code></p></li>
+<li><p>ANTsPy (tested with version 0.5.4): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;antspyx==0.5.4&quot;)</span></code></p></li>
+<li><p>HD-BET (requires this specific commit): <code class="docutils literal notranslate"><span class="pre">pip_install(&quot;git+https://github.com/MIC-DKFZ/HD-BET&#64;3e3d2a5993e8288f2eae928744ffb496cfc7c651&quot;)</span></code></p></li>
+</ul>
+<p>Note: if a separate python environment is used, numpy, scikit-image, numba, nibabel, tqdm and pyyaml need to be installed
+in that environment on top of the installation in 3D Slicer.</p>
 </section>
 <section id="segmentation-models">
 <h4>Segmentation models<a class="headerlink" href="#segmentation-models" title="Link to this heading"></a></h4>
 <p>The segmentation models need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dynunet_pipeline</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">tasks</span>
+</pre></div>
+</div>
+<p>such that the directory structure looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└──rano2.0-assist
+   └──dynunet_pipeline/data/tasks`
+      ├── task4000_brats24
+      ├── task4001_brats24allmod
+      └── task...
 </pre></div>
 </div>
 </section>
@@ -140,33 +178,127 @@ following directory:</p>
 </pre></div>
 </div>
 </section>
+<section id="add-the-extension-to-3d-slicer">
+<h4>Add the extension to 3D Slicer<a class="headerlink" href="#add-the-extension-to-3d-slicer" title="Link to this heading"></a></h4>
+<p>To add the extension to 3D Slicer, follow these steps:</p>
+<ol class="arabic simple">
+<li><p>Open 3D Slicer and select “Developer Tools” –&gt; “Extension Manager” in the Modules drop down menu or search for
+“Extension Manager” using the search tool.</p></li>
+</ol>
+<img src="_static/select_extension_wizard.png" alt="drawing" width="300"/>
+<ol class="arabic simple" start="2">
+<li><p>In the Extension Manager, click “Select Extension” and select the “rano2.0-assist” repository folder.</p></li>
+<li><p>Confirm the import of the two modules.</p></li>
+</ol>
+<img src="_static/confirm_module_import.png" alt="drawing" width="200"/>
+<ol class="arabic simple" start="4">
+<li><p>Start the RANO module by selecting “Tools” –&gt; “RANO” in the Modules drop down menu or search for
+“RANO” using the search tool.</p></li>
+</ol>
+</section>
 </section>
 <section id="installation-with-docker">
 <h3>Installation with Docker<a class="headerlink" href="#installation-with-docker" title="Link to this heading"></a></h3>
-<p>For Docker installation, follow instructions here: <a class="reference internal" href="#docker/README.md"><span class="xref myst">docker/README.md</span></a>.</p>
+<p>For Docker installation, follow instructions here: <span class="xref myst">docker/README.md</span>.</p>
 </section>
 <section id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h3>
-<ol class="arabic simple">
-<li><p>Start 3D Slicer by clicking on the Slicer symbol:
-<img src="_static/SlicerWatermark.png" alt="drawing" width="20"/></p></li>
-<li><p>Start the RANO annotation plugin by clicking on the following symbol in the menu:
-<img src="_static/RANO.png" alt="drawing" width="20"/></p></li>
-<li><p>Select the patient and time points in the Test Cases Box and click Load</p></li>
-</ol>
+<section id="running-the-tool">
+<h4>Running the tool<a class="headerlink" href="#running-the-tool" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Start 3D Slicer</p></li>
+<li><p>Start the RANO module by selecting “Tools” –&gt; “RANO” in the Modules drop down menu or search for
+“RANO” using the search tool</p></li>
+</ul>
+</section>
+<section id="loading-the-image-data">
+<h4>Loading the image data<a class="headerlink" href="#loading-the-image-data" title="Link to this heading"></a></h4>
+<section id="loading-the-test-data">
+<h5>1. Loading the test data<a class="headerlink" href="#loading-the-test-data" title="Link to this heading"></a></h5>
+<ul class="simple">
+<li><p>Loading the test data ist only available in developer mode. To enable developer mode, go to the “Edit” menu and select
+“Application Settings”.</p></li>
+<li><p>Under “Developer” tab, check the “Enable developer mode” checkbox. Restart of 3D Slicer is required.</p></li>
+<li><p>At the top of the RANO module, you will find the “Reload &amp; Test” box, which is for developer use only.</p></li>
+<li><p>The “Test Cases” box allow you to load the test data saved under `data/test_data’ in the repository. The folder structure
+is as follows:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── rano2.0-assist
+    └── data
+        └── test_data
+            ├── KCH-internal
+            │   ├── Patient_003
+            │   ├── Patient_006
+            │   └── ...
+            │
+            └── MU-Glioma-Post
+                ├── PatientID_003
+                ├── PatientID_004
+                └── ...
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Select the patient and time points in the Test Cases Box and click “Load” to load the data.</p></li>
+</ul>
 <img src="_static/testCasesBox.png" alt="drawing" width="300"/>
 <p>This will load all required scans in the “Inputs” box</p>
-<ol class="arabic simple" start="4">
+</section>
+<section id="loading-your-own-data">
+<h5>2. Loading your own data<a class="headerlink" href="#loading-your-own-data" title="Link to this heading"></a></h5>
+<ul class="simple">
+<li><p>Drag and drop the MRI scans onto the 3D Slicer window. 3D Slicer will open a dialog to load the images.</p></li>
+<li><p>Alternatively you can follow the “Add Data” or “Add Dicom Data” buttons in the “Add Data” box.</p></li>
+<li><p>After the images are loaded, select the volumes in the “Inputs” box. Note that all visible input channels
+are required for automatic segmentation. The number of input channels is determined by the segmentation model that is
+selected in the “Automatic Segmentation” box. The default model “task4001” requires 4 input channels:</p>
+<ul>
+<li><p>T1c (T1 contrast enhanced)</p></li>
+<li><p>T1 (T1 native)</p></li>
+<li><p>T2f (T2 flair)</p></li>
+<li><p>T2 (T2)</p></li>
+</ul>
+</li>
+</ul>
+<p>The other model “task4000” requires T1c only.</p>
+</section>
+</section>
+<section id="automatic-segmentation">
+<h4>Automatic segmentation<a class="headerlink" href="#automatic-segmentation" title="Link to this heading"></a></h4>
+<ul class="simple">
 <li><p>Automatic segmentation: make sure the “Affine registration” checkbox is checked
-and the Input is skull-stripped checkbox is unchecked. Select the model “task4001” and
-“Create new segmentation” under “Output Segmentation”:</p></li>
-</ol>
+and the “Input is skull-stripped” checkbox is checked if the input images have been skull-stripped already. For
+both timepoints, select the model “task4001”. The output segmentations by default are called “Segmentation_t1” and
+“Segmentation_t2”, but the user can also “Create new segmentations” under the dropdown menu.</p></li>
+</ul>
 <img src="_static/autoSegBox.png" alt="drawing" width="300"/>
 <p>Click “Calculate Segmentation” to run the segmentation model.</p>
-<ol class="arabic simple" start="5">
+<ul class="simple">
 <li><p>In the “Automatic 2D Measurements” box choose one of the predicted segments
-into which the orthogonal line pairs are to be placed:</p></li>
-</ol>
+into which the orthogonal line pairs are to be placed. By default, the enhancing segment (ETC) is selected.</p></li>
+<li><p>Choose the method. Currently the following methods are available:</p>
+<ul>
+<li><p>RANO: No postprocessing of the segmentation. The method returns the line pairs that maximize the bidimensional product
+for each connected component of the selected segment.</p></li>
+<li><p>RANO_open2D: A postprocessing is applied to “clean” the segmentation. A morphological opening with a circle of
+user-defined radius is applied along
+all 3 axes separately, and the union of the resulting segments is used as the new target area for the line pairs.
+Note: If the opening operation results in the splitting of a connecting component into multiple components, only
+one line pair is placed in that component in which the maximum bidimensional product is found.</p></li>
+<li><p>RANO_open3D: A postprocessing is applied to “clean” the segmentation. A morphological opening with a sphere of
+user-defined radius is applied (once in 3D). The resulting segment is used as the segment for the line pairs.</p></li>
+</ul>
+</li>
+<li><p>Choose the orientations along which the line pairs are to be placed. The default is “axial”.
+The user can also choose multiple orientations. The line pairs are then placed in
+that orientation in which the maximum bidimensional product is found.</p></li>
+<li><p>The “same orientation” checkbox assures that line pairs in the second timepoint are placed in the same orientation as
+in the first timepoint.</p></li>
+<li><p>The “approx. same slice” checkbox assures that line pairs in the second timepoint are placed in approximately the same
+slice as in the first timepoint. Note: This frequently leads to a slice of larger tumor extent to be missed in the second
+timepoint and should be used with caution.</p></li>
+<li><p>Click “Place Lines” to automatically place the line pairs.</p></li>
+</ul>
+<img src="_static/automatic_2D_measurements.png" alt="drawing" width="300"/></section>
 </section>
 </section>
 </section>

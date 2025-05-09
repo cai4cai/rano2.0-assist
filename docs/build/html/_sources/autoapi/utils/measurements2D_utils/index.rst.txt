@@ -288,16 +288,13 @@ Module Contents
 
 
 
-   .. py:method:: uponLineNodeModifiedEvent(n, e, lineNode1, lineNode2, fiducialNodeForText)
+   .. py:method:: uponLineNodeModifiedEvent(n, e)
 
       This method is called when the line nodes are modified.
       It sets the color of the lines depending on whether they are orthogonal or not and updates the text label
       of the line nodes with the length of the lines in world coordinates.
       :param n: the event name
       :param e: the event object
-      :param lineNode1: the first line node
-      :param lineNode2: the second line node
-      :param fiducialNodeForText: the fiducial node for the text label of the line nodes
 
 
 
@@ -363,10 +360,10 @@ Module Contents
    .. py:method:: decide_target(strategy='two_largest_enhancing')
 
       Logic to decide whether the lesion is a target lesion or not. The strategy can be one of the following:
-      - "two_largest_enhancing": select the two largest enhancing lesions
-      - "three_largest_enhancing": select the three largest enhancing lesions
+      - "two_largest_enhancing": select the two largest enhancing lesions from the baseline
+      - "three_largest_enhancing": select the three largest enhancing lesions from the baseline
       - "two_largest_enhancing_and_two_largest_non_enhancing": select the two largest enhancing lesions and the two
-          largest non-enhancing lesions
+          largest non-enhancing lesions from the baseline
 
       :param strategy: the strategy to use for selecting the target lesions
 

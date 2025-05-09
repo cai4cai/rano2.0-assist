@@ -80,12 +80,13 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">DICOMLib</span><span class="w"> </span><span class="kn">import</span> <span class="n">DICOMUtils</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">measurements2D_utils</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">utils.enums</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="n">TumorComponentsForEval</span><span class="p">,</span> <span class="n">RefScanRole</span><span class="p">,</span> <span class="n">CurrScanRole</span><span class="p">,</span> <span class="n">NonTargetOrNonMeasLes</span><span class="p">,</span>
                          <span class="n">ClinicalStatus</span><span class="p">,</span> <span class="n">SteroidDose</span><span class="p">,</span> <span class="n">OverallResponse</span><span class="p">)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">utils.segmentation_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">segmentation_utils</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">utils.response_classification_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">response_classification_utils</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span><span class="p">,</span> <span class="n">module_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span><span class="p">,</span> <span class="n">test_data_path</span>
 
 
 <div class="viewcode-block" id="UIHelperMixin">
@@ -108,8 +109,7 @@
 <span class="sd">        Set up the test cases for the RANO module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># test cases</span>
-        <span class="n">base_path</span> <span class="o">=</span> <span class="s2">&quot;/home/aaron/KCL_data/RANO/Input_Data&quot;</span>
-
+        <span class="n">base_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">test_data_path</span><span class="p">,</span> <span class="s2">&quot;KCH-internal&quot;</span><span class="p">)</span>
         <span class="n">patients</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;Patient_*&quot;</span><span class="p">))</span>
 
         <span class="n">timepoints</span> <span class="o">=</span> <span class="p">{}</span>
@@ -118,6 +118,10 @@
             <span class="n">timepoints_this_patient</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;TimePoint*&quot;</span><span class="p">))</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timepoints_this_patient</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">timepoints</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">timepoints_this_patient</span>
+
+        <span class="c1"># show the test cases collapsible box only if developer mode is enabled</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">developerMode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCasesCollapsibleButton</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
 
         <span class="c1"># make sure the timepoint comboboxes show only the available timepoints</span>

@@ -82,7 +82,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">utils.rano_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_segmentation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span><span class="p">,</span> <span class="n">dynunet_pipeline_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span>
 
 
 <div class="viewcode-block" id="SegmentationMixin">
@@ -322,13 +322,15 @@
 <span class="sd">            tmp_path_out: The temporary output path for the segmentation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># get output files created by external inference process</span>
+        <span class="c1"># depending on whether registration is required or not, the output file is in a different location</span>
         <span class="c1"># if no registration is required</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
+        <span class="n">affine_checkbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span> <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox_t2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">affine_checkbox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
             <span class="n">tmp_file_path_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;output.nii.gz&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># want to load the segmentation in the segmentation input template space</span>
             <span class="n">tmp_file_path_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;preprocessed&quot;</span><span class="p">,</span> <span class="s2">&quot;registered&quot;</span><span class="p">,</span> <span class="s2">&quot;output.nii.gz&quot;</span><span class="p">)</span>
-            <span class="n">tmp_transform_file_img0</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;preprocessed&quot;</span><span class="p">,</span> <span class="s2">&quot;registered&quot;</span><span class="p">,</span> <span class="s2">&quot;image_0000&quot;</span><span class="p">,</span>
-                                                   <span class="s2">&quot;img_tmp_0000_ANTsregistered_0GenericAffine.mat&quot;</span><span class="p">)</span>
+        <span class="n">tmp_transform_file_img0</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;preprocessed&quot;</span><span class="p">,</span> <span class="s2">&quot;registered&quot;</span><span class="p">,</span> <span class="s2">&quot;image_0000&quot;</span><span class="p">,</span>
+                                               <span class="s2">&quot;img_tmp_0000_ANTsregistered_0GenericAffine.mat&quot;</span><span class="p">)</span>
 
         <span class="c1"># check if the output file exists</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmp_file_path_out</span><span class="p">):</span>
@@ -336,17 +338,21 @@
             <span class="k">return</span>
 
         <span class="c1"># load the transformation file</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmp_transform_file_img0</span><span class="p">):</span>
-                <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">errorDisplay</span><span class="p">(</span><span class="s2">&quot;Transformation file not found: &quot;</span> <span class="o">+</span> <span class="n">tmp_transform_file_img0</span><span class="p">)</span>
-                <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">affine_checkbox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
+            <span class="c1">#slicer.util.errorDisplay(&quot;Transformation file not found: &quot; + tmp_transform_file_img0)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Transformation file not found: &quot;</span> <span class="o">+</span> <span class="n">tmp_transform_file_img0</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating identity transform instead&quot;</span><span class="p">)</span>
+            <span class="c1"># create a transform node with the identity transform</span>
+            <span class="n">transformNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">AddNewNodeByClass</span><span class="p">(</span><span class="s2">&quot;vtkMRMLTransformNode&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="c1"># load the transform</span>
             <span class="n">transformNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">loadTransform</span><span class="p">(</span><span class="n">tmp_transform_file_img0</span><span class="p">)</span>
-            <span class="c1"># set the transform name</span>
-            <span class="n">transformNode</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="s2">&quot;Transform_&quot;</span> <span class="o">+</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="s2">&quot;_channel1&quot;</span><span class="p">)</span>
-            <span class="c1"># invert the transform</span>
-            <span class="n">transformNode</span><span class="o">.</span><span class="n">Inverse</span><span class="p">()</span>
-            <span class="n">transformNode</span><span class="o">.</span><span class="n">InverseName</span><span class="p">()</span>
+
+        <span class="c1"># set the transform name</span>
+        <span class="n">transformNode</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="s2">&quot;Transform_&quot;</span> <span class="o">+</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="s2">&quot;_channel1&quot;</span><span class="p">)</span>
+        <span class="c1"># invert the transform</span>
+        <span class="n">transformNode</span><span class="o">.</span><span class="n">Inverse</span><span class="p">()</span>
+        <span class="n">transformNode</span><span class="o">.</span><span class="n">InverseName</span><span class="p">()</span>
 
         <span class="c1"># get previous reference image for the output segmentation</span>
         <span class="n">referenceImageVolumeNode</span> <span class="o">=</span> <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s1">&#39;referenceImageGeometryRef&#39;</span><span class="p">)</span>
@@ -503,18 +509,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The task directory for the given model key.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">model_info_path</span> <span class="o">=</span> <span class="n">parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;model_info_path&quot;</span><span class="p">)</span>
-        <span class="n">task_dir_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dynunet_pipeline_path</span><span class="p">,</span> <span class="s2">&quot;data/tasks&quot;</span><span class="p">))</span>
-        <span class="n">model_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;ModelInfo&quot;</span><span class="p">))</span>
-
         <span class="k">if</span> <span class="n">model_key</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">elif</span> <span class="n">model_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_info</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model key </span><span class="si">{</span><span class="n">model_key</span><span class="si">}</span><span class="s2"> not found in model info&quot;</span><span class="p">)</span>
-
-        <span class="n">task_dir_basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">model_info</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model_key</span><span class="p">)])</span>
-        <span class="n">task_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">model_info_path</span><span class="p">),</span> <span class="n">task_dir_root</span><span class="p">,</span> <span class="n">task_dir_basename</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">task_dir</span></div>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;ModelInfo&quot;</span><span class="p">))</span>
+            <span class="n">task_dir</span> <span class="o">=</span> <span class="n">model_info</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model_key</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">task_dir</span></div>
 </div>
 
 </pre></div>

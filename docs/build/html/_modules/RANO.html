@@ -332,7 +332,6 @@
         <span class="c1"># so that when the scene is saved and reloaded, these settings are restored.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setParameterNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">getParameterNode</span><span class="p">())</span></div>
 
-        <span class="c1">#self.setOtherParameterNodeParameters(self._parameterNode)  # set parameters even if default parameters already set  # TODO: remove this line if not needed</span>
 
 
 <div class="viewcode-block" id="RANOWidget.setParameterNode">
@@ -364,24 +363,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">updateGUIFromParameterNode</span><span class="p">()</span></div>
 
 
-    <span class="c1"># @staticmethod</span>
-    <span class="c1"># def setOtherParameterNodeParameters(parameterNode):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     This method is run each time the parameter node is set, even if default parameters are already set.</span>
-    <span class="c1">#</span>
-    <span class="c1">#     Args:</span>
-    <span class="c1">#         parameterNode: The parameter node to set.</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # Select channel 1 as input node if nothing is selected yet to save a few user clicks</span>
-    <span class="c1">#     if not parameterNode.GetNodeReference(&quot;InputVolume_channel1&quot;):</span>
-    <span class="c1">#         firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass(&quot;vtkMRMLScalarVolumeNode&quot;)</span>
-    <span class="c1">#         if firstVolumeNode:</span>
-    <span class="c1">#             parameterNode.SetNodeReferenceID(&quot;InputVolume_channel1&quot;, firstVolumeNode.GetID())</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # No segment should be selected at the beginning</span>
-    <span class="c1">#     if parameterNode.GetParameter(&quot;segmentID&quot;):</span>
-    <span class="c1">#         parameterNode.SetParameter(&quot;segmentID&quot;, &quot;&quot;)</span>
 
 <div class="viewcode-block" id="RANOWidget.updateGUIFromParameterNode">
 <a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.updateGUIFromParameterNode">[docs]</a>

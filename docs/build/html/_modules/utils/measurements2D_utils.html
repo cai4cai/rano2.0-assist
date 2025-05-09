@@ -383,13 +383,13 @@
                     <span class="k">continue</span>
 
                 <span class="k">if</span> <span class="n">method2DmeasComboBox</span> <span class="o">==</span> <span class="s2">&quot;RANO_open2D&quot;</span><span class="p">:</span>
-                    <span class="n">seg_open</span> <span class="o">+=</span> <span class="n">circle_opening_on_slices_perpendicular_to_axis</span><span class="p">(</span><span class="n">instance_seg</span><span class="p">,</span>
-                                                                               <span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-                                                                               <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">lab</span><span class="p">],</span>
-                                                                               <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span>
-                                                                               <span class="p">)</span>
+                    <span class="n">seg_open</span> <span class="o">+=</span> <span class="n">lab</span> <span class="o">*</span> <span class="n">circle_opening_on_slices_perpendicular_to_axis</span><span class="p">(</span><span class="n">instance_seg</span><span class="p">,</span>
+                                                                                     <span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                                                                                     <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">lab</span><span class="p">],</span>
+                                                                                     <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span>
+                                                                                    <span class="p">)</span>
                 <span class="k">elif</span> <span class="n">method2DmeasComboBox</span> <span class="o">==</span> <span class="s2">&quot;RANO_open3D&quot;</span><span class="p">:</span>
-                    <span class="n">seg_open</span> <span class="o">+=</span> <span class="n">sphere_opening</span><span class="p">(</span><span class="n">instance_seg</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">lab</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">)</span>
+                    <span class="n">seg_open</span> <span class="o">+=</span> <span class="n">lab</span> <span class="o">*</span> <span class="n">sphere_opening</span><span class="p">(</span><span class="n">instance_seg</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">lab</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;No implementation available for opening the segmentations with method </span><span class="si">{</span><span class="n">method2DmeasComboBox</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -494,48 +494,14 @@
                     <span class="n">valid_axes_IJK</span> <span class="o">=</span> <span class="p">[</span><span class="n">ijk_axis_idx_to_kji</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">valid_axes_IJK</span><span class="p">]</span>
 
                     <span class="c1"># get the line pair coordinates for the current lesion</span>
-                    <span class="n">coords_IJK</span> <span class="o">=</span> <span class="n">get_max_orthogonal_line_product_coords</span><span class="p">(</span><span class="n">bin_seg</span><span class="p">,</span> <span class="n">valid_axes_IJK</span><span class="p">,</span> <span class="n">center_IJK</span><span class="p">)</span>
+                    <span class="n">coords_world</span> <span class="o">=</span> <span class="n">get_max_orthogonal_line_product_coords</span><span class="p">(</span><span class="n">bin_seg</span><span class="p">,</span> <span class="n">valid_axes_IJK</span><span class="p">,</span> <span class="n">center_IJK</span><span class="p">,</span> <span class="n">ijkToWorld</span><span class="o">=</span><span class="n">get_ijk_to_world_matrix</span><span class="p">(</span><span class="n">resampledVolumeNode</span><span class="p">))</span>
 
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords_IJK</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-
-                        <span class="k">def</span><span class="w"> </span><span class="nf">find_RAS_orientation</span><span class="p">(</span><span class="n">coords_IJK</span><span class="p">,</span> <span class="n">resampledVolumeNode</span><span class="p">):</span>
-<span class="w">                            </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                            Find the closest RAS orientation based on the line pair coordinates in IJK space. This is</span>
-<span class="sd">                            needed to determine the orientation of the lesion in the current timepoint which may be</span>
-<span class="sd">                            used to fix the orientation of the lesion in the next timepoint.</span>
-
-<span class="sd">                            Args:</span>
-<span class="sd">                                coords_IJK: coordinates of the line pair in IJK space</span>
-<span class="sd">                                resampledVolumeNode: vtkMRMLLabelMapVolumeNode containing the matched instance segmentations</span>
-<span class="sd">                            Returns:</span>
-<span class="sd">                                orientation: RAS orientation of the line pair described by the coordinates</span>
-<span class="sd">                            &quot;&quot;&quot;</span>
-                            <span class="c1"># find the closest plane to the lesion in the IJK space</span>
-                            <span class="n">ijk_normal_axis_idx</span> <span class="o">=</span> <span class="n">find_closest_plane</span><span class="p">(</span><span class="n">coords_IJK</span><span class="p">)</span>
-                            <span class="c1"># coords_IJK is actually in KJI order, therefore, convert 0 to 2 and 2 to 0 and leave 1</span>
-                            <span class="n">ijk_normal_axis_idx</span> <span class="o">=</span> <span class="n">ijk_axis_idx_to_kji</span><span class="p">[</span><span class="n">ijk_normal_axis_idx</span><span class="p">]</span>
-
-                            <span class="c1"># get the IJK to RAS matrix</span>
-                            <span class="n">ijkToWorld</span> <span class="o">=</span> <span class="n">get_ijk_to_world_matrix</span><span class="p">(</span><span class="n">resampledVolumeNode</span><span class="p">)</span>
-                            <span class="n">ijkToWorld</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">arrayFromVTKMatrix</span><span class="p">(</span><span class="n">ijkToWorld</span><span class="p">)</span>
-
-                            <span class="c1"># convert the IJK axis to RAS orientation based on the IJK to RAS matrix</span>
-
-                            <span class="c1"># get the RAS orientation</span>
-                            <span class="n">labels</span> <span class="o">=</span> <span class="p">((</span><span class="s2">&quot;sagittal&quot;</span><span class="p">,</span> <span class="s2">&quot;sagittal&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;coronal&quot;</span><span class="p">,</span> <span class="s2">&quot;coronal&quot;</span><span class="p">),</span>
-                                      <span class="p">(</span><span class="s2">&quot;axial&quot;</span><span class="p">,</span> <span class="s2">&quot;axial&quot;</span><span class="p">))</span>  <span class="c1"># direction is not important here</span>
-                            <span class="n">axcodes</span> <span class="o">=</span> <span class="n">aff2axcodes</span><span class="p">(</span><span class="n">ijkToWorld</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>  <span class="c1"># get the orientations for each IJK axis</span>
-                            <span class="n">orientation</span> <span class="o">=</span> <span class="n">axcodes</span><span class="p">[</span><span class="n">ijk_normal_axis_idx</span><span class="p">]</span>  <span class="c1"># pick the orientation for the normal axis</span>
-
-                            <span class="k">return</span> <span class="n">orientation</span>
-
-                        <span class="n">this_timepoint_orientation_curr_lesion</span> <span class="o">=</span> <span class="n">find_RAS_orientation</span><span class="p">(</span><span class="n">coords_IJK</span><span class="p">,</span> <span class="n">resampledVolumeNode</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords_world</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">world_normal_axis_idx</span> <span class="o">=</span> <span class="n">find_closest_plane</span><span class="p">(</span><span class="n">coords_world</span><span class="p">)</span>
+                        <span class="n">this_timepoint_orientation_curr_lesion</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;sagittal&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;coronal&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;axial&#39;</span><span class="p">}[</span><span class="n">world_normal_axis_idx</span><span class="p">]</span>
 
                         <span class="c1"># get the center of the line pair in IJK space to allow for consistent slice selection across timepoints</span>
-                        <span class="n">center_IJK</span> <span class="o">=</span> <span class="n">point_closest_to_two_lines</span><span class="p">(</span><span class="n">coords_IJK</span><span class="p">)</span>
-                        <span class="c1"># convert the center point to world coordinates</span>
-                        <span class="n">ijkToWorld</span> <span class="o">=</span> <span class="n">get_ijk_to_world_matrix</span><span class="p">(</span><span class="n">resampledVolumeNode</span><span class="p">)</span>
-                        <span class="n">center_world</span> <span class="o">=</span> <span class="n">transform_ijk_to_world_coord</span><span class="p">(</span><span class="n">center_IJK</span><span class="p">,</span> <span class="n">ijkToWorld</span><span class="p">)</span>
+                        <span class="n">center_world</span> <span class="o">=</span> <span class="n">point_closest_to_two_lines</span><span class="p">(</span><span class="n">coords_world</span><span class="p">)</span>
                         <span class="n">this_timepoint_center_world_curr_lesion</span> <span class="o">=</span> <span class="n">center_world</span>
 
                         <span class="c1"># store the orientation and center of the lesion in the current timepoint</span>
@@ -545,14 +511,12 @@
                     <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bin_seg</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">method2DmeasComboBox</span> <span class="o">==</span> <span class="s2">&quot;Random&quot;</span><span class="p">:</span>
-                    <span class="n">coords_IJK</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>  <span class="c1"># 2 lines, 2 points, 3 coordinates</span>
+                    <span class="n">coords_world</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>  <span class="c1"># 2 lines, 2 points, 3 coordinates</span>
                     <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Method </span><span class="si">{</span><span class="n">method2DmeasComboBox</span><span class="si">}</span><span class="s2"> not recognized&quot;</span><span class="p">)</span>
 
-                <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_ijk_to_world</span><span class="p">(</span><span class="n">coords_IJK</span><span class="p">,</span> <span class="n">resampledVolumeNode</span><span class="p">)</span>
-
-                <span class="n">lesion_dict</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;coords&quot;</span><span class="p">:</span> <span class="n">coords</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">}</span>
+                <span class="n">lesion_dict</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;coords&quot;</span><span class="p">:</span> <span class="n">coords_world</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">}</span>
 
             <span class="k">return</span> <span class="n">lesion_dict</span>
 
@@ -653,6 +617,10 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">create_lineNodePairs</span><span class="p">(</span><span class="n">lesion_stats</span><span class="p">)</span>
         <span class="n">setLinePairViews</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
+
+        <span class="c1"># center views on first volume (reference volume)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="n">inputSelector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="n">inputSelector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">update_linepair_ui_list</span><span class="p">()</span>
 
@@ -1143,16 +1111,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;List of observers for the line nodes&quot;&quot;&quot;</span>
 
         <span class="c1"># add the observers for the lines that trigger when the line nodes are modified</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lineNode1</span><span class="p">,</span> <span class="n">lineNode1</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span>
-                                                                   <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uponLineNodeModifiedEvent</span><span class="p">,</span>
-                                                                                     <span class="n">lineNode1</span><span class="o">=</span><span class="n">lineNode1</span><span class="p">,</span>
-                                                                                     <span class="n">lineNode2</span><span class="o">=</span><span class="n">lineNode2</span><span class="p">,</span>
-                                                                                     <span class="n">fiducialNodeForText</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fiducialNodeForText</span><span class="p">))])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lineNode2</span><span class="p">,</span> <span class="n">lineNode2</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span>
-                                                                   <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uponLineNodeModifiedEvent</span><span class="p">,</span>
-                                                                                     <span class="n">lineNode1</span><span class="o">=</span><span class="n">lineNode2</span><span class="p">,</span>
-                                                                                     <span class="n">lineNode2</span><span class="o">=</span><span class="n">lineNode1</span><span class="p">,</span>
-                                                                                     <span class="n">fiducialNodeForText</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fiducialNodeForText</span><span class="p">))])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lineNode1</span><span class="p">,</span> <span class="n">lineNode1</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uponLineNodeModifiedEvent</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lineNode2</span><span class="p">,</span> <span class="n">lineNode2</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uponLineNodeModifiedEvent</span><span class="p">)])</span>
 
 <div class="viewcode-block" id="LineNodePair.set_coords">
 <a class="viewcode-back" href="../../utils.measurements2D_utils.html#utils.measurements2D_utils.LineNodePair.set_coords">[docs]</a>
@@ -1163,7 +1123,9 @@
         <span class="k">for</span> <span class="n">lineNode</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>  <span class="c1"># note: looping over self returns the line nodes because self is a list of line nodes</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
                 <span class="n">coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
-            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">updateMarkupsControlPointsFromArray</span><span class="p">(</span><span class="n">lineNode</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span></div>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">updateMarkupsControlPointsFromArray</span><span class="p">(</span><span class="n">lineNode</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">uponLineNodeModifiedEvent</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="LineNodePair.get_coords">
@@ -1377,7 +1339,7 @@
 
 <div class="viewcode-block" id="LineNodePair.uponLineNodeModifiedEvent">
 <a class="viewcode-back" href="../../utils.measurements2D_utils.html#utils.measurements2D_utils.LineNodePair.uponLineNodeModifiedEvent">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">uponLineNodeModifiedEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">lineNode1</span><span class="p">,</span> <span class="n">lineNode2</span><span class="p">,</span> <span class="n">fiducialNodeForText</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">uponLineNodeModifiedEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is called when the line nodes are modified.</span>
 <span class="sd">        It sets the color of the lines depending on whether they are orthogonal or not and updates the text label</span>
@@ -1385,12 +1347,9 @@
 <span class="sd">        Args:</span>
 <span class="sd">            n: the event name</span>
 <span class="sd">            e: the event object</span>
-<span class="sd">            lineNode1: the first line node</span>
-<span class="sd">            lineNode2: the second line node</span>
-<span class="sd">            fiducialNodeForText: the fiducial node for the text label of the line nodes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># print(&quot;LineNode modified event&quot;)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_color_depending_on_orthogonality</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">lineNode1</span><span class="p">,</span> <span class="n">lineNode2</span><span class="p">,</span> <span class="n">fiducialNodeForText</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_color_depending_on_orthogonality</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fiducialNodeForText</span><span class="p">)</span>
         <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">calculate_results_table</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotate_with_text</span><span class="p">()</span></div>
 
@@ -1509,52 +1468,56 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">decide_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;two_largest_enhancing&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logic to decide whether the lesion is a target lesion or not. The strategy can be one of the following:</span>
-<span class="sd">        - &quot;two_largest_enhancing&quot;: select the two largest enhancing lesions</span>
-<span class="sd">        - &quot;three_largest_enhancing&quot;: select the three largest enhancing lesions</span>
+<span class="sd">        - &quot;two_largest_enhancing&quot;: select the two largest enhancing lesions from the baseline</span>
+<span class="sd">        - &quot;three_largest_enhancing&quot;: select the three largest enhancing lesions from the baseline</span>
 <span class="sd">        - &quot;two_largest_enhancing_and_two_largest_non_enhancing&quot;: select the two largest enhancing lesions and the two</span>
-<span class="sd">            largest non-enhancing lesions</span>
+<span class="sd">            largest non-enhancing lesions from the baseline</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            strategy: the strategy to use for selecting the target lesions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># set all target flags to False</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># sort the lesions by the product of the orthogonal lines</span>
+        <span class="n">sorted_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">()</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">(),</span>
+                                       <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">sorted_list_t1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list</span> <span class="k">if</span> <span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span> <span class="o">==</span> <span class="s2">&quot;timepoint1&quot;</span><span class="p">]</span>
+        <span class="n">sorted_list_t2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list</span> <span class="k">if</span> <span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span> <span class="o">==</span> <span class="s2">&quot;timepoint2&quot;</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;two_largest_enhancing&quot;</span> <span class="ow">or</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;three_largest_enhancing&quot;</span><span class="p">:</span>
             <span class="c1"># sort the lesions by the product of the orthogonal lines</span>
-            <span class="n">sorted_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">()</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">(),</span>
-                                           <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="n">counter_target_les</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list_t1</span><span class="p">:</span>
                 <span class="n">num_max</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;two_largest_enhancing&quot;</span> <span class="k">else</span> <span class="mi">3</span>
                 <span class="k">if</span> <span class="n">pair</span><span class="o">.</span><span class="n">measurable</span> <span class="ow">and</span> <span class="n">counter_target_les</span> <span class="o">&lt;</span> <span class="n">num_max</span><span class="p">:</span>
                     <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">counter_target_les</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">uponModified</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;two_largest_enhancing_and_two_largest_non_enhancing&quot;</span><span class="p">:</span>
-            <span class="c1"># sort the lesions by the product of the orthogonal lines</span>
-            <span class="n">sorted_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom_sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">()</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">(),</span>
-                                           <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
             <span class="n">counter_enhancing</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">counter_non_enhancing</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list_t1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">pair</span><span class="o">.</span><span class="n">enhancing</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">counter_enhancing</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
                         <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="n">counter_enhancing</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">counter_non_enhancing</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
                         <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="n">counter_non_enhancing</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">pair</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">uponModified</span><span class="p">()</span></div>
+        <span class="c1"># also set corresponding lesions in timepoint2 as targets</span>
+        <span class="k">for</span> <span class="n">pair_t2</span> <span class="ow">in</span> <span class="n">sorted_list_t2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">sorted_list_t1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pair_t2</span><span class="o">.</span><span class="n">lesion_idx</span> <span class="o">==</span> <span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span><span class="p">:</span>
+                    <span class="n">pair_t2</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">target</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">uponModified</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="LineNodePairList.get_number_of_targets">

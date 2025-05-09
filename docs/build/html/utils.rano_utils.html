@@ -213,24 +213,25 @@ within the foreground.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rano_utils.get_max_orthogonal_line_product_coords">
-<span class="sig-prename descclassname"><span class="pre">utils.rano_utils.</span></span><span class="sig-name descname"><span class="pre">get_max_orthogonal_line_product_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opening_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rano_utils.html#get_max_orthogonal_line_product_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rano_utils.get_max_orthogonal_line_product_coords" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rano_utils.</span></span><span class="sig-name descname"><span class="pre">get_max_orthogonal_line_product_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opening_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ijkToWorld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rano_utils.html#get_max_orthogonal_line_product_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rano_utils.get_max_orthogonal_line_product_coords" title="Link to this definition"></a></dt>
 <dd><p>Given a segmentation, this function returns the two lines that are orthogonal to each other and have the largest
 product of their lengths. It does so by looping over views (axial, coronal, sagittal) and planes and finding the
 two lines with the largest product of their lengths that are orthogonal to each other.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>seg</strong> – a 3D numpy array where background is 0 and foreground is &gt; 0</p></li>
-<li><p><strong>valid_axes</strong> – the views to consider for finding the orthogonal lines</p></li>
-<li><p><strong>center</strong> – coordinates of a point that the plane must be close to</p></li>
-<li><p><strong>center_tol</strong> – tolerance for the distance between the plane and the center point</p></li>
+<li><p><strong>seg</strong> – a 3D numpy array where background is 0 and foreground is &gt; 0. The array defines the IJK space.</p></li>
+<li><p><strong>valid_axes</strong> – the IJK orientations to consider for finding the orthogonal lines</p></li>
+<li><p><strong>center</strong> – IJK coordinates of a point that the plane must be close to</p></li>
+<li><p><strong>center_tol</strong> – IJK tolerance for the distance between the plane and the center point</p></li>
 <li><p><strong>opening_radius</strong> – the radius of the circle opening operation to apply to the slice segmentation before finding</p></li>
 <li><p><strong>lines</strong> (<em>the orthogonal</em>)</p></li>
+<li><p><strong>ijkToWorld</strong> – the transformation matrix to convert from voxel coordinates to world coordinates</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>a list of two lines, where each line is a list of two points and the product of their
-lengths is maximal</p>
+lengths is maximal. The coordinates are in world space.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>max_ortho_line_coords</p>
@@ -240,13 +241,16 @@ lengths is maximal</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.rano_utils.get_max_orthogonal_line_product_coords_plane">
-<span class="sig-prename descclassname"><span class="pre">utils.rano_utils.</span></span><span class="sig-name descname"><span class="pre">get_max_orthogonal_line_product_coords_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_line_coords_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rano_utils.html#get_max_orthogonal_line_product_coords_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rano_utils.get_max_orthogonal_line_product_coords_plane" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.rano_utils.</span></span><span class="sig-name descname"><span class="pre">get_max_orthogonal_line_product_coords_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rano_utils.html#get_max_orthogonal_line_product_coords_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rano_utils.get_max_orthogonal_line_product_coords_plane" title="Link to this definition"></a></dt>
 <dd><p>Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest
-product of their lengths.</p>
+product of their lengths. The third condition is that the lines must intersect. The function
+loops over all lines and checks if the angle between the lines is orthogonal (within the given tolerance).
+It is assumed that all lines lie in a plane (one of the acquisition planes). This plane can have any orientation in
+world space.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>all_line_coords_np</strong> – numpy array of shape (nb_lines, 2, 2) (lines x 2 points x 2 coordinates)</p></li>
+<li><p><strong>line_coords</strong> – numpy array of shape (nb_lines, 2, 3) (lines x 2 points x 3 coordinates)</p></li>
 <li><p><strong>degree_tol</strong> – the tolerance in degrees for the orthogonality of the lines</p></li>
 </ul>
 </dd>
@@ -255,7 +259,7 @@ product of their lengths.</p>
 of their lengths is maximal</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ortho_line_products_max_idx_coords</p>
+<dd class="field-odd"><p>ortho_line_max_prod_coords</p>
 </dd>
 </dl>
 </dd></dl>
@@ -378,6 +382,23 @@ structuring element (the sphere).
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ijk</strong> – the IJK coordinates (x, y, z)</p></li>
 <li><p><strong>ijkToWorld_matrix</strong> – the IJK to world matrix</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the world coordinate (x, y, z)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.rano_utils.transform_ijk_to_world_coord_np">
+<span class="sig-prename descclassname"><span class="pre">utils.rano_utils.</span></span><span class="sig-name descname"><span class="pre">transform_ijk_to_world_coord_np</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coord</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ijkToWorld_np</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/rano_utils.html#transform_ijk_to_world_coord_np"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.rano_utils.transform_ijk_to_world_coord_np" title="Link to this definition"></a></dt>
+<dd><p>Transform a coordinate from IJK to world space using the ijkToWorld matrix given as a numpy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coord</strong> – the IJK coordinates (x, y, z)</p></li>
+<li><p><strong>ijkToWorld_np</strong> – the IJK to world matrix as a numpy array</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

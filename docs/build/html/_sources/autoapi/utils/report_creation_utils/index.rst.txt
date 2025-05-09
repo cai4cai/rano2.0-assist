@@ -47,7 +47,7 @@ Module Contents
 
 
 
-   .. py:method:: get_report_dir_from_node(default_report_dir, node)
+   .. py:method:: get_report_dir_from_node(default_report_dir, node1, node2, timestamp)
       :staticmethod:
 
 
@@ -72,7 +72,7 @@ Module Contents
 
 
 
-   .. py:method:: create_json_file(report_dir)
+   .. py:method:: create_json_file(report_dir, timestamp)
 
       Create a JSON file with the report information.
 
