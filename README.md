@@ -1,2 +1,2 @@
 # RANO2.0-assist
-Click [here](docs/source/README.md) to see the documentation.
+Click [here](https://cai4cai.github.io/rano2.0-assist/) to see the documentation.
