@@ -5,6 +5,7 @@ import sys
 import subprocess
 import re
 from pathlib import Path
+from slicer import ScriptedLoadableModule
 
 if __name__ == '__main__':
     # define progress bar steps as fraction of 1
@@ -93,3 +94,8 @@ if __name__ == '__main__':
 
     if return_code:
         raise subprocess.CalledProcessError(return_code, command)
+
+
+# add this class so the extension wizard can import the scripted CLI
+class run_command(ScriptedLoadableModule):
+    pass

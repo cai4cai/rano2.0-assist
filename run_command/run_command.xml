@@ -7,8 +7,7 @@
   <version>0.1.0.</version>
   <documentation-url>https://github.com/username/project</documentation-url>
   <license/>
-  <contributor>Andras Lasso (PerkLab)</contributor>
-  <acknowledgements><![CDATA[This work was funded by Medtronic]]></acknowledgements>
+  <contributor>Aaron Kujawa (King's College London)</contributor>
   <parameters>
     <label>IO</label>
     <description><![CDATA[Input/output parameters]]></description>
