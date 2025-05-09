@@ -1,0 +1,45 @@
+utils.test_rano
+===============
+
+.. py:module:: utils.test_rano
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.test_rano.RANOTest
+
+
+Module Contents
+---------------
+
+.. py:class:: RANOTest(*args, **kwargs)
+
+   Bases: :py:obj:`slicer.ScriptedLoadableModule.ScriptedLoadableModuleTest`
+
+
+   This is the test class for the RANO module.
+   It is used to test the RANO module and its functionality.
+   Upon clicking the "Reload and Test" button in the module (only shown when the module is loaded in developer mode),
+   this classes runTest() method is called.
+
+
+   .. py:method:: setUp()
+
+      Do whatever is needed to reset the state - typically a scene clear will be enough.
+
+
+
+
+   .. py:method:: runTest()
+
+      Run as few or as many tests as needed here.
+
+
+
+
+   .. py:method:: test_RANO1()
+
+

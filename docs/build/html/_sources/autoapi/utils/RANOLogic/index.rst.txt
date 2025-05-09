@@ -1,0 +1,51 @@
+utils.RANOLogic
+===============
+
+.. py:module:: utils.RANOLogic
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   utils.RANOLogic.debug
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.RANOLogic.RANOLogic
+
+
+Module Contents
+---------------
+
+.. py:data:: debug
+   :value: False
+
+
+.. py:class:: RANOLogic
+
+   Bases: :py:obj:`slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic`
+
+
+   This class should implement all the actual
+   computation done by your module.  The interface
+   should be such that other python code can import
+   this class and make use of the functionality without
+   requiring an instance of the Widget.
+   Uses ScriptedLoadableModuleLogic base class, available at:
+   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+
+
+   .. py:method:: setDefaultParameters(parameterNode)
+      :staticmethod:
+
+
+      Initialize parameter node with default settings.
+
+
+

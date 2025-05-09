@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.response_classification_utils &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.response_classification_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.response_classification_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">OverallResponse</span><span class="p">,</span> <span class="n">RefScanRole</span><span class="p">,</span> <span class="n">CurrScanRole</span><span class="p">,</span> <span class="n">NonTargetOrNonMeasLes</span><span class="p">,</span> <span class="n">ClinicalStatus</span><span class="p">,</span> \
+    <span class="n">SteroidDose</span><span class="p">,</span> <span class="n">TumorComponentsForEval</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span>
+
+
+<div class="viewcode-block" id="ResponseClassificationMixin">
+<a class="viewcode-back" href="../../utils.response_classification_utils.html#utils.response_classification_utils.ResponseClassificationMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResponseClassificationMixin</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for response classification in the RANO module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">,</span> <span class="n">lineNodePairs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter node for the RANO module&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;UI for the RANO module&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">lineNodePairs</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of line node pairs for the RANO module&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ResponseClassificationMixin.response_assessment_from_rel_area_or_vol">
+<a class="viewcode-back" href="../../utils.response_classification_utils.html#utils.response_classification_utils.ResponseClassificationMixin.response_assessment_from_rel_area_or_vol">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">response_assessment_from_rel_area_or_vol</span><span class="p">(</span><span class="n">rel_area</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rel_vol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given the relative size of the sum of bidimensional products or sum of volumes of the second timepoint,</span>
+<span class="sd">        this function returns the response assessment according to the RANO 2.0 criteria.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rel_area: the relative size of bidimensional product. Defined as the sum of the bidimensional products of the</span>
+<span class="sd">            orthogonal lines of all lesions at timepoint 2 divided by the sum of the bidimensional products of the orthogonal</span>
+<span class="sd">            lines of all lesions at timepoint 1.</span>
+<span class="sd">            rel_vol: the relative size of volume. Defined as the sum of the volumes of all lesions at timepoint 2 divided</span>
+<span class="sd">            by the sum of the volumes of all lesions at timepoint 1.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response: the response assessment according to the RANO 2.0 criteria</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># make sure only one of the two is provided</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">rel_area</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">rel_vol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Either del_area or del_vol must be provided, but not both&quot;</span>
+
+        <span class="k">if</span> <span class="n">rel_area</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rel_area</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># decrease in size</span>
+                <span class="n">rel_decrease</span> <span class="o">=</span> <span class="o">-</span><span class="n">rel_area</span>
+                <span class="k">if</span> <span class="n">rel_decrease</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">CR</span>
+                <span class="k">elif</span> <span class="n">rel_decrease</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">PR</span>
+            <span class="k">elif</span> <span class="n">rel_area</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># increase in size</span>
+                <span class="n">rel_increase</span> <span class="o">=</span> <span class="n">rel_area</span>
+                <span class="k">if</span> <span class="n">rel_increase</span> <span class="o">&gt;=</span> <span class="mf">0.25</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">PD</span>
+
+            <span class="k">if</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">&lt;</span> <span class="n">rel_area</span> <span class="o">&lt;</span> <span class="mf">0.25</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">SD</span>
+
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Relative area </span><span class="si">{</span><span class="n">rel_area</span><span class="si">}</span><span class="s2"> does not match any of the RANO 2.0 criteria&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">rel_vol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rel_vol</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">rel_decrease</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">rel_vol</span>
+                <span class="k">if</span> <span class="n">rel_decrease</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">CR</span>
+                <span class="k">elif</span> <span class="n">rel_decrease</span> <span class="o">&gt;=</span> <span class="mf">0.65</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">PR</span>
+            <span class="k">elif</span> <span class="n">rel_vol</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">rel_increase</span> <span class="o">=</span> <span class="n">rel_vol</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">rel_increase</span> <span class="o">&gt;=</span> <span class="mf">0.4</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">PD</span>
+
+            <span class="k">if</span> <span class="mf">0.35</span> <span class="o">&lt;</span> <span class="n">rel_vol</span> <span class="o">&lt;</span> <span class="mf">1.4</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="n">SD</span>
+
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Relative volume </span><span class="si">{</span><span class="n">rel_vol</span><span class="si">}</span><span class="s2"> does not match any of the RANO 2.0 criteria&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either rel_area or rel_vol must be provided&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseClassificationMixin.response_assessment_overall">
+<a class="viewcode-back" href="../../utils.response_classification_utils.html#utils.response_classification_utils.ResponseClassificationMixin.response_assessment_overall">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">response_assessment_overall</span><span class="p">(</span><span class="n">ref_scan</span><span class="o">=</span><span class="n">RefScanRole</span><span class="o">.</span><span class="n">Baseline</span><span class="p">,</span>
+                                    <span class="n">curr_scan</span><span class="o">=</span><span class="n">CurrScanRole</span><span class="o">.</span><span class="n">CR</span><span class="p">,</span>
+                                    <span class="n">newMeasLes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                    <span class="n">nonTargetOrNonMeasLes</span><span class="o">=</span><span class="n">NonTargetOrNonMeasLes</span><span class="o">.</span><span class="n">NoneOrStableOrCR</span><span class="p">,</span>
+                                    <span class="n">clinicalStatus</span><span class="o">=</span><span class="n">ClinicalStatus</span><span class="o">.</span><span class="n">StableOrImproved</span><span class="p">,</span>
+                                    <span class="n">increasedSteroids</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                    <span class="n">steroidDose</span><span class="o">=</span><span class="n">SteroidDose</span><span class="o">.</span><span class="n">No</span><span class="p">,</span>
+                                    <span class="n">tumorComponentsForEval</span><span class="o">=</span><span class="n">TumorComponentsForEval</span><span class="o">.</span><span class="n">CE</span><span class="p">,</span>
+                                    <span class="n">confirmPD</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overall response assessment according to the RANO 2.0 criteria.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ref_scan (RefScanRole): Reference scan role</span>
+<span class="sd">            curr_scan (CurrScanRole): Current scan role</span>
+<span class="sd">            newMeasLes (bool): True if new measurable lesions are present</span>
+<span class="sd">            nonTargetOrNonMeasLes (NonTargetOrNonMeasLes): Non-target or non-measurable lesions status</span>
+<span class="sd">            clinicalStatus (ClinicalStatus): Clinical status</span>
+<span class="sd">            increasedSteroids (bool): True if steroid dose is increased</span>
+<span class="sd">            steroidDose (SteroidDose): True if steroids are used</span>
+<span class="sd">            tumorComponentsForEval (TumorComponentsForEval): Tumor components for evaluation</span>
+<span class="sd">            confirmPD (bool): Confirmation required for PD</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            OverallResponse: Overall response according to the RANO 2.0 criteria</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">newMeasLes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">OverallResponse</span><span class="o">.</span><span class="n">PD</span>
+
+        <span class="k">if</span> <span class="n">nonTargetOrNonMeasLes</span> <span class="o">==</span> <span class="n">NonTargetOrNonMeasLes</span><span class="o">.</span><span class="n">Worse</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">OverallResponse</span><span class="o">.</span><span class="n">PD</span>
+
+        <span class="k">if</span> <span class="n">clinicalStatus</span> <span class="o">==</span> <span class="n">ClinicalStatus</span><span class="o">.</span><span class="n">Worse</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">OverallResponse</span><span class="o">.</span><span class="n">PD</span>
+
+        <span class="k">if</span> <span class="n">increasedSteroids</span> <span class="ow">or</span> <span class="n">steroidDose</span> <span class="o">==</span> <span class="n">SteroidDose</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">OverallResponse</span><span class="o">.</span><span class="n">SD</span>  <span class="c1"># TODO: Increase in corticosteroid dose alone, in the absence of clinical</span>
+            <span class="c1"># deterioration related to tumor, will not be used as a determinant of progression. Patients with stable</span>
+            <span class="c1"># imaging studies whose corticosteroid dose was increased for reasons other than clinical deterioration</span>
+            <span class="c1"># related to tumor do not qualify for stable disease or progression. They should be observed closely. If</span>
+            <span class="c1"># their corticosteroid dose can be reduced back to baseline, they will be considered as having stable</span>
+            <span class="c1"># disease; if further clinical deterioration related to tumor becomes apparent, they will be considered to</span>
+            <span class="c1"># have progression. The date of progression should be the first time point at which corticosteroid increase</span>
+            <span class="c1"># was necessary</span>
+
+        <span class="k">if</span> <span class="n">tumorComponentsForEval</span> <span class="o">==</span> <span class="n">TumorComponentsForEval</span><span class="o">.</span><span class="n">NonCE</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c1"># TODO: In clinical trials applying the “mixed” tumor criteria, the whole evaluation should be</span>
+            <span class="c1"># performed in parallel for both the CE and the non-CE tumor burden at each timepoint in order to assign the</span>
+            <span class="c1"># response category (e.g., PD, SD, PR, . . .), then the overall response category is assigned based on both</span>
+            <span class="c1"># CE and non-CE categories: PD1SD/MR/PR/CR¼PD; MR/PR1SD¼MR/PR; CR1SD/MR/PR¼SD/MR/PR; SD1SD¼SD (see text for</span>
+            <span class="c1"># details).</span>
+
+        <span class="c1"># in all other cases overall response is the same as the current scan  # TODO: this is not correct</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">OverallResponse</span><span class="p">(</span><span class="n">curr_scan</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="ResponseClassificationMixin.update_response_assessment">
+<a class="viewcode-back" href="../../utils.response_classification_utils.html#utils.response_classification_utils.ResponseClassificationMixin.update_response_assessment">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_response_assessment</span><span class="p">(</span><span class="n">ui</span><span class="p">,</span> <span class="n">lineNodePairs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the response assessment based on the line node pairs and the UI parameters.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ui: UI for the RANO module</span>
+<span class="sd">            lineNodePairs: List of line node pairs for the RANO module</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># update the number of target lesions, new lesions, and disappeared lesions in the UI</span>
+        <span class="n">num_target_les</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_number_of_targets</span><span class="p">()</span>
+        <span class="n">num_new_target_les</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_number_of_new_target_lesions</span><span class="p">()</span>
+        <span class="n">num_disapp_target_les</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_number_of_disappeared_target_lesions</span><span class="p">()</span>
+        <span class="n">num_new_meas_les</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_number_of_new_measurable_lesions</span><span class="p">()</span>
+
+        <span class="n">num_target_les_spinbox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">numTargetLesSpinBox</span>
+        <span class="n">num_new_les_spinbox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">numNewLesSpinBox</span>
+        <span class="n">num_disapp_les_spinbox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">numDisappLesSpinBox</span>
+        <span class="n">num_new_meas_les_spinbox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">numNewMeasLesSpinBox</span>
+
+        <span class="n">num_target_les_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">num_target_les</span><span class="p">)</span>
+        <span class="n">num_new_les_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">num_new_target_les</span><span class="p">)</span>
+        <span class="n">num_disapp_les_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">num_disapp_target_les</span><span class="p">)</span>
+        <span class="n">num_new_meas_les_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">num_new_meas_les</span><span class="p">)</span>
+
+        <span class="c1"># update the sum of line products and relative change in the UI</span>
+        <span class="n">sum_line_products_t1</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_sum_of_bidimensional_products</span><span class="p">(</span><span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">)</span>
+        <span class="n">sum_line_products_t2</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_sum_of_bidimensional_products</span><span class="p">(</span><span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">)</span>
+
+        <span class="n">ui</span><span class="o">.</span><span class="n">sum_lineprods_t1_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">sum_line_products_t1</span><span class="p">)</span>
+        <span class="n">ui</span><span class="o">.</span><span class="n">sum_lineprods_t2_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">sum_line_products_t2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sum_line_products_t1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">relative_change</span> <span class="o">=</span> <span class="n">lineNodePairs</span><span class="o">.</span><span class="n">get_rel_area_change</span><span class="p">()</span>
+            <span class="n">ui</span><span class="o">.</span><span class="n">sum_lineprods_relchange_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">relative_change</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>  <span class="c1"># convert to percentage</span>
+            <span class="n">ui</span><span class="o">.</span><span class="n">sum_lineprods_relchange_spinbox</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseClassificationMixin</span><span class="o">.</span><span class="n">response_assessment_from_rel_area_or_vol</span><span class="p">(</span><span class="n">rel_area</span><span class="o">=</span><span class="n">relative_change</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ui</span><span class="o">.</span><span class="n">sum_lineprods_relchange_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+            <span class="c1"># make invisible since the relative change is not defined for division by zero</span>
+            <span class="n">ui</span><span class="o">.</span><span class="n">sum_lineprods_relchange_spinbox</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="o">.</span><span class="n">SD</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response assessment: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">, setting index to </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ui</span><span class="o">.</span><span class="n">responseStatusComboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseClassificationMixin.update_overall_response_params">
+<a class="viewcode-back" href="../../utils.response_classification_utils.html#utils.response_classification_utils.ResponseClassificationMixin.update_overall_response_params">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_overall_response_params</span><span class="p">(</span><span class="n">ui</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the overall response parameters based on the UI.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ui: UI for the RANO module</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># parameters</span>
+        <span class="c1"># ceOrNonCeComboBox = ui.ceOrNonCeComboBox</span>
+        <span class="c1"># confirmationRequiredForPdCheckBox = ui.confirmationRequiredForPdCheckBox</span>
+        <span class="c1"># referenceScanComboBox = ui.referenceScanComboBox</span>
+        <span class="n">currScanComboBox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">currScanComboBox</span>
+        <span class="n">newMeasLesCheckBox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">newMeasLesCheckBox</span>
+        <span class="c1"># nonTargetNonMeasComboBox = ui.nonTargetNonMeasComboBox</span>
+        <span class="c1"># clinicalStatusComboBox = ui.clinicalStatusComboBox</span>
+        <span class="c1"># increasedSteroidUseCheckBox = ui.increasedSteroidUseCheckBox</span>
+        <span class="c1"># steroidDoseComboBox = ui.steroidDoseComboBox</span>
+        <span class="c1"># secondLineMedicationCheckBox = ui.secondLineMedicationCheckBox</span>
+
+        <span class="c1"># update the overall response parameters</span>
+        <span class="n">currScanComboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">ui</span><span class="o">.</span><span class="n">responseStatusComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">)</span>
+        <span class="n">newMeasLesCheckBox</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="n">ui</span><span class="o">.</span><span class="n">numNewMeasLesSpinBox</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseClassificationMixin.update_overall_response_status">
+<a class="viewcode-back" href="../../utils.response_classification_utils.html#utils.response_classification_utils.ResponseClassificationMixin.update_overall_response_status">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_overall_response_status</span><span class="p">(</span><span class="n">ui</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the overall response status based on the UI parameters.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ui: UI for the RANO module</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># resulting response status combo box</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Updating overall response status&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;current parameters are as follows:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reference scan: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">referenceScanComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;current scan: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">currScanComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;new measurable lesions: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">newMeasLesCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;non-target or non-measurable lesions: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">nonTargetNonMeasComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;clinical status: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">clinicalStatusComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increased steroid use: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">increasedSteroidUseCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;steroid dose: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">steroidDoseComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tumor components for evaluation: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">ceOrNonCeComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;confirmation required for PD: </span><span class="si">{</span><span class="n">ui</span><span class="o">.</span><span class="n">confirmationRequiredForPdCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">overallResponseStatusComboBox</span> <span class="o">=</span> <span class="n">ui</span><span class="o">.</span><span class="n">overallResponseStatusComboBox</span>
+
+        <span class="n">overall_response</span> <span class="o">=</span> <span class="n">ResponseClassificationMixin</span><span class="o">.</span><span class="n">response_assessment_overall</span><span class="p">(</span>
+            <span class="n">ref_scan</span><span class="o">=</span><span class="n">RefScanRole</span><span class="p">(</span><span class="n">ui</span><span class="o">.</span><span class="n">referenceScanComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">),</span>
+            <span class="n">curr_scan</span><span class="o">=</span><span class="n">CurrScanRole</span><span class="p">(</span><span class="n">ui</span><span class="o">.</span><span class="n">currScanComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">),</span>
+            <span class="n">newMeasLes</span><span class="o">=</span><span class="n">ui</span><span class="o">.</span><span class="n">newMeasLesCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">(),</span>
+            <span class="n">nonTargetOrNonMeasLes</span><span class="o">=</span><span class="n">NonTargetOrNonMeasLes</span><span class="p">(</span>
+                <span class="n">ui</span><span class="o">.</span><span class="n">nonTargetNonMeasComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">),</span>
+            <span class="n">clinicalStatus</span><span class="o">=</span><span class="n">ClinicalStatus</span><span class="p">(</span>
+                <span class="n">ui</span><span class="o">.</span><span class="n">clinicalStatusComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">),</span>
+            <span class="n">increasedSteroids</span><span class="o">=</span><span class="n">ui</span><span class="o">.</span><span class="n">increasedSteroidUseCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">(),</span>
+            <span class="n">steroidDose</span><span class="o">=</span><span class="n">SteroidDose</span><span class="p">(</span><span class="n">ui</span><span class="o">.</span><span class="n">steroidDoseComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">),</span>
+            <span class="n">tumorComponentsForEval</span><span class="o">=</span><span class="n">TumorComponentsForEval</span><span class="p">(</span>
+                <span class="n">ui</span><span class="o">.</span><span class="n">ceOrNonCeComboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">),</span>
+            <span class="n">confirmPD</span><span class="o">=</span><span class="n">ui</span><span class="o">.</span><span class="n">confirmationRequiredForPdCheckBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">())</span>
+
+        <span class="c1"># set the overall response status</span>
+        <span class="n">overallResponseStatusComboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">overall_response</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

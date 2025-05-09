@@ -1,0 +1,167 @@
+RANO
+====
+
+.. py:module:: RANO
+
+.. autoapi-nested-parse::
+
+   RANO Module
+
+   This module is part of a 3D Slicer extension and  provides tools for Response Assessment in Neuro-Oncology (RANO)
+   based on the RANO 2.0 guidelines. It includes functionality for segmentation, 2D measurements,
+   response classification, and report generation.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   RANO.RANO
+   RANO.RANOWidget
+
+
+Module Contents
+---------------
+
+.. py:class:: RANO(parent)
+
+   Bases: :py:obj:`slicer.ScriptedLoadableModule.ScriptedLoadableModule`
+
+
+   Required class for 3D Slicer module.
+   Uses ScriptedLoadableModule base class, available at:
+   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+
+
+.. py:class:: RANOWidget(parent=None)
+
+   Bases: :py:obj:`utils.segmentation_utils.SegmentationMixin`, :py:obj:`utils.ui_helper_utils.UIHelperMixin`, :py:obj:`utils.measurements2D_utils.Measurements2DMixin`, :py:obj:`utils.response_classification_utils.ResponseClassificationMixin`, :py:obj:`utils.report_creation_utils.ReportCreationMixin`, :py:obj:`utils.results_table_utils.ResultsTableMixin`, :py:obj:`slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget`, :py:obj:`slicer.util.VTKObservationMixin`
+
+
+   Required class for 3D Slicer module.
+   UI elements can be accessed as follows from the Slicer python console:
+
+     `slicer.modules.RANOWidget.ui`
+
+   For example, to access the text of the line edit widget:
+
+     `slicer.modules.RANOWidget.ui.lineEdit.text`
+
+
+   .. py:attribute:: ui
+      :value: None
+
+
+      The UI elements of the module. This is a dictionary containing all the widgets in the module.
+
+
+   .. py:attribute:: logic
+      :value: None
+
+
+      The logic class of the module. This class implements all computations that should be possible to run
+      in batch mode, without a graphical user interface.
+
+
+   .. py:attribute:: _parameterNode
+      :value: None
+
+
+      The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
+      so that when the scene is saved and reloaded, these settings are restored.
+
+
+   .. py:attribute:: _updatingGUIFromParameterNode
+      :value: False
+
+
+      Flag to indicate if the GUI is being updated from the parameter node. This is used to prevent infinite loops
+      when the parameter node is changed by a script or any other module.
+
+
+   .. py:attribute:: lineNodePairs
+
+      List of line node pairs used for 2D measurements.
+
+
+   .. py:method:: setup()
+
+      Called when the user opens the module the first time and the widget is initialized.
+
+
+
+   .. py:method:: cleanup()
+
+      Called when the application closes and the module widget is destroyed.
+
+
+
+   .. py:method:: enter()
+
+      Called each time the user opens this module.
+
+
+
+   .. py:method:: exit()
+
+      Called each time the user opens a different module.
+
+
+
+   .. py:method:: onSceneStartClose(caller, event)
+
+      Called just before the scene is closed.
+
+      :param caller: The object that triggered the event.
+      :param event: The event that occurred.
+
+
+
+   .. py:method:: onSceneEndClose(caller, event)
+
+      Called just after the scene is closed.
+
+      :param caller: The object that triggered the event.
+      :param event: The event that occurred.
+
+
+
+   .. py:method:: initializeParameterNode()
+
+      Ensure parameter node exists and observed.
+
+
+
+   .. py:method:: setParameterNode(inputParameterNode)
+
+      Set and observe parameter node.
+      Observation is needed because when the parameter node is changed then the GUI must be updated immediately.
+
+      :param inputParameterNode: The parameter node to set.
+
+
+
+   .. py:method:: updateGUIFromParameterNode(caller=None, event=None)
+
+      This method is called whenever parameter node is changed.
+      The module GUI is updated to show the current state of the parameter node.
+      From slicer python interface, you can access the variables like this:
+      slicer.modules.RANOWidget.ui.radius_spinbox
+
+      :param caller: The object that triggered the event.
+      :param event: The event that occurred.
+
+
+
+   .. py:method:: updateParameterNodeFromGUI(caller=None, event=None)
+
+      This method is called when the user makes any change in the GUI.
+      The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).
+
+      :param caller: The object that triggered the event.
+      :param event: The event that occurred.
+
+
+

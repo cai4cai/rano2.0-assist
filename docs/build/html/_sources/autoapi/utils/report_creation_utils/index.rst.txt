@@ -1,0 +1,83 @@
+utils.report_creation_utils
+===========================
+
+.. py:module:: utils.report_creation_utils
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.report_creation_utils.ReportCreationMixin
+
+
+Module Contents
+---------------
+
+.. py:class:: ReportCreationMixin(parameterNode, ui, lineNodePairs)
+
+   Mixin class for creating a report for the RANO module.
+
+
+   .. py:attribute:: _parameterNode
+
+      Parameter node for the RANO module
+
+
+   .. py:attribute:: ui
+
+      UI for the RANO module
+
+
+   .. py:attribute:: lineNodePairs
+
+      List of line node pairs for the RANO module
+
+
+   .. py:method:: onCreateReportButton()
+
+      Triggered when the user clicks the "Create Report" button.
+
+
+
+   .. py:method:: create_report()
+
+      Create a report for the RANO module.
+
+
+
+   .. py:method:: get_report_dir_from_node(default_report_dir, node)
+      :staticmethod:
+
+
+
+   .. py:method:: create_images(report_dir)
+
+      Create images for the report.
+
+      :param report_dir: Directory to save the images.
+      :type report_dir: str
+
+
+
+   .. py:method:: table_to_csv(report_dir)
+      :staticmethod:
+
+
+      Save the results table to a CSV file.
+
+      :param report_dir: Directory to save the CSV file.
+      :type report_dir: str
+
+
+
+   .. py:method:: create_json_file(report_dir)
+
+      Create a JSON file with the report information.
+
+      :param report_dir: Directory to save the JSON file.
+      :type report_dir: str
+
+
+

@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.report_creation_utils &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.report_creation_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.report_creation_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ScreenCapture</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">module_path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils.measurements2D_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">measurements2D_utils</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils.segmentation_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">segmentation_utils</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.rano_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_closest_plane</span>
+
+
+<div class="viewcode-block" id="ReportCreationMixin">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReportCreationMixin</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for creating a report for the RANO module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">,</span> <span class="n">lineNodePairs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter node for the RANO module&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;UI for the RANO module&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">lineNodePairs</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of line node pairs for the RANO module&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ReportCreationMixin.onCreateReportButton">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.onCreateReportButton">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCreateReportButton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Triggered when the user clicks the &quot;Create Report&quot; button.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create a report</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_report</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ReportCreationMixin.create_report">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.create_report">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a report for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="n">suggested_report_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_report_dir_from_node</span><span class="p">(</span><span class="n">default_report_dir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="s2">&quot;Resources&quot;</span><span class="p">,</span> <span class="s2">&quot;Reports&quot;</span><span class="p">),</span>
+                                                   <span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t1&quot;</span><span class="p">))</span>
+
+        <span class="c1"># ask the user if they want to use the suggested_report_dir or create a new report directory via QFileDialog</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QMessageBox</span><span class="p">()</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Suggested report directory: </span><span class="si">{</span><span class="n">suggested_report_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">suggested_report_dir</span><span class="p">):</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">setInformativeText</span><span class="p">(</span><span class="s2">&quot;Do you want to overwrite the files in the directory?&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span><span class="o">.</span><span class="n">setInformativeText</span><span class="p">(</span><span class="s2">&quot;Do you want to create a new report directory?&quot;</span><span class="p">)</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">setStandardButtons</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">qt</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">)</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">setDefaultButton</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="n">qt</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="n">report_dir</span> <span class="o">=</span> <span class="n">suggested_report_dir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qfiledialog</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QFileDialog</span><span class="p">()</span>
+            <span class="n">qfiledialog</span><span class="o">.</span><span class="n">setFileMode</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">Directory</span><span class="p">)</span>
+            <span class="n">qfiledialog</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Select or create a folder&quot;</span><span class="p">)</span>
+            <span class="n">qfiledialog</span><span class="o">.</span><span class="n">setDirectory</span><span class="p">(</span><span class="n">suggested_report_dir</span><span class="p">)</span>
+            <span class="n">report_dir</span> <span class="o">=</span> <span class="n">qfiledialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">report_dir</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No directory selected - report creation cancelled&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Selected directory: </span><span class="si">{</span><span class="n">report_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_json_file</span><span class="p">(</span><span class="n">report_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_to_csv</span><span class="p">(</span><span class="n">report_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_images</span><span class="p">(</span><span class="n">report_dir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportCreationMixin.get_report_dir_from_node">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.get_report_dir_from_node">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_report_dir_from_node</span><span class="p">(</span><span class="n">default_report_dir</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Node is None - use default report directory&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">default_report_dir</span>
+
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">GetStorageNode</span><span class="p">(),</span> <span class="s2">&quot;GetFileName&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">GetStorageNode</span><span class="p">()</span><span class="o">.</span><span class="n">GetFileName</span><span class="p">():</span>
+            <span class="n">input_file_path</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">GetStorageNode</span><span class="p">()</span><span class="o">.</span><span class="n">GetFileName</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;BraTS&quot;</span> <span class="ow">in</span> <span class="n">input_file_path</span><span class="p">:</span>
+                <span class="n">subfolder_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file_path</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nii.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s2">&quot;TimePoint&quot;</span> <span class="ow">in</span> <span class="n">input_file_path</span><span class="p">:</span>  <span class="c1"># KCH data</span>
+                <span class="n">subfolder_name</span> <span class="o">=</span> <span class="s2">&quot;KCH_&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file_path</span><span class="p">))[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No report directory specified for </span><span class="si">{</span><span class="n">input_file_path</span><span class="si">}</span><span class="s2"> - use default report directory&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">default_report_dir</span>
+
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># probably dicom data</span>
+            <span class="c1"># assemble the subfolder name from the dicom tags</span>
+            <span class="n">shNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetSubjectHierarchyNode</span><span class="p">()</span>
+            <span class="n">dataNodeItemID</span> <span class="o">=</span> <span class="n">shNode</span><span class="o">.</span><span class="n">GetItemByDataNode</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="n">rootID</span> <span class="o">=</span> <span class="n">shNode</span><span class="o">.</span><span class="n">GetItemParent</span><span class="p">(</span><span class="n">shNode</span><span class="o">.</span><span class="n">GetItemParent</span><span class="p">(</span><span class="n">dataNodeItemID</span><span class="p">))</span>
+            <span class="n">patientID</span> <span class="o">=</span> <span class="n">shNode</span><span class="o">.</span><span class="n">GetItemAttribute</span><span class="p">(</span><span class="n">rootID</span><span class="p">,</span> <span class="s2">&quot;DICOM.PatientID&quot;</span><span class="p">)</span>
+            <span class="n">subfolder_name</span> <span class="o">=</span> <span class="n">patientID</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">subfolder_name</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not determine subfolder name from input node </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span><span class="si">}</span><span class="s2"> - use default report directory&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">default_report_dir</span>
+
+        <span class="n">report_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">default_report_dir</span><span class="p">,</span> <span class="n">subfolder_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">report_dir</span></div>
+
+
+
+<div class="viewcode-block" id="ReportCreationMixin.create_images">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.create_images">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_dir</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create images for the report.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            report_dir (str): Directory to save the images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create one image for each line pair</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">:</span>
+            <span class="n">timepoint</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span>
+            <span class="c1"># focus the view on the line pair</span>
+            <span class="n">measurements2D_utils</span><span class="o">.</span><span class="n">Measurements2DMixin</span><span class="o">.</span><span class="n">centerTimepointViewsOnCenterPoint</span><span class="p">(</span><span class="n">pair</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">)</span>
+
+            <span class="c1"># decide which orientation to save</span>
+
+            <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">:</span>
+                <span class="n">viewnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Red&quot;</span><span class="p">,</span> <span class="s2">&quot;Yellow&quot;</span><span class="p">,</span> <span class="s2">&quot;Green&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">:</span>
+                <span class="n">viewnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Red_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Yellow_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Green_2&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;timepoint must be &#39;timepoint1&#39; or &#39;timepoint2&#39; but is </span><span class="si">{</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">get_coords</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">coords</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">12</span><span class="p">:</span>
+                <span class="n">axis</span> <span class="o">=</span> <span class="n">find_closest_plane</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">viewname</span> <span class="o">=</span> <span class="n">viewnames</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">viewname</span> <span class="o">=</span> <span class="n">viewnames</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">viewname</span> <span class="o">=</span> <span class="n">viewnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Axis </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> not recognized&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;not all 12 coordinates are present for lesion </span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span><span class="si">}</span><span class="s2"> at timepoint </span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">, but </span><span class="si">{</span><span class="n">coords</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># save the view as an image</span>
+            <span class="n">viewNodeID</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">layoutManager</span><span class="p">()</span><span class="o">.</span><span class="n">sliceWidget</span><span class="p">(</span><span class="n">viewname</span><span class="p">)</span><span class="o">.</span><span class="n">sliceLogic</span><span class="p">()</span><span class="o">.</span><span class="n">GetSliceNode</span><span class="p">()</span><span class="o">.</span><span class="n">GetID</span><span class="p">()</span>
+            <span class="n">cap</span> <span class="o">=</span> <span class="n">ScreenCapture</span><span class="o">.</span><span class="n">ScreenCaptureLogic</span><span class="p">()</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">viewFromNode</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodeByID</span><span class="p">(</span><span class="n">viewNodeID</span><span class="p">))</span>
+            <span class="n">save_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;LinePair_</span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
+            <span class="n">cap</span><span class="o">.</span><span class="n">captureImageFromView</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ReportCreationMixin.table_to_csv">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.table_to_csv">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">table_to_csv</span><span class="p">(</span><span class="n">report_dir</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the results table to a CSV file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            report_dir (str): Directory to save the CSV file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">csv_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="s2">&quot;ResultsTable.csv&quot;</span><span class="p">)</span>
+        <span class="n">tableName</span> <span class="o">=</span> <span class="s2">&quot;Results&quot;</span>
+        <span class="n">resultTableNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetFirstNodeByName</span><span class="p">(</span><span class="n">tableName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resultTableNode</span><span class="p">:</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">saveNode</span><span class="p">(</span><span class="n">resultTableNode</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No table found or table does not have GetID method&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ReportCreationMixin.create_json_file">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.create_json_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_json_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_dir</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a JSON file with the report information.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            report_dir (str): Directory to save the JSON file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">report_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="s2">&quot;report.json&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating report at </span><span class="si">{</span><span class="n">report_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">report_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;ReportTime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+
+        <span class="c1"># segmentation models</span>
+        <span class="n">model_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">currentText</span>
+        <span class="n">task_dir_t1</span> <span class="o">=</span> <span class="n">segmentation_utils</span><span class="o">.</span><span class="n">SegmentationMixin</span><span class="o">.</span><span class="n">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">)</span>
+        <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;SegmentationTaskDir_t1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_dir_t1</span>
+
+        <span class="n">model_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">currentText</span>
+        <span class="n">task_dir_t2</span> <span class="o">=</span> <span class="n">segmentation_utils</span><span class="o">.</span><span class="n">SegmentationMixin</span><span class="o">.</span><span class="n">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">)</span>
+        <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;SegmentationTaskDir_t2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_dir_t2</span>
+
+        <span class="c1"># 2D measurement options</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">currentNode</span><span class="p">():</span>
+            <span class="n">currentSegmentID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">currentSegmentID</span><span class="p">()</span>
+            <span class="n">currentSegment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">currentNode</span><span class="p">()</span><span class="o">.</span><span class="n">GetSegmentation</span><span class="p">()</span><span class="o">.</span><span class="n">GetSegment</span><span class="p">(</span><span class="n">currentSegmentID</span><span class="p">)</span>
+            <span class="n">currentSegmentName</span> <span class="o">=</span> <span class="n">currentSegment</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">if</span> <span class="n">currentSegment</span> <span class="k">else</span> <span class="s2">&quot;None&quot;</span>
+            <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;Segment2DMeasurement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">currentSegmentName</span>
+            <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;Method2DMeasurement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">method2DmeasComboBox</span><span class="o">.</span><span class="n">currentText</span>
+
+        <span class="c1"># save all parameter node parameters</span>
+        <span class="n">parameter_node_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameterNames</span><span class="p">():</span>
+            <span class="n">parameter_node_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parameter_node_dict</span>
+
+        <span class="c1"># write the report to a json file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">report_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">report_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

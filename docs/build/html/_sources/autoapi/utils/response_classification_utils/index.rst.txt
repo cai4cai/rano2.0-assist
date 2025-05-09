@@ -1,0 +1,112 @@
+utils.response_classification_utils
+===================================
+
+.. py:module:: utils.response_classification_utils
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.response_classification_utils.ResponseClassificationMixin
+
+
+Module Contents
+---------------
+
+.. py:class:: ResponseClassificationMixin(parameterNode, ui, lineNodePairs)
+
+   Mixin class for response classification in the RANO module.
+
+
+   .. py:attribute:: _parameterNode
+
+      Parameter node for the RANO module
+
+
+   .. py:attribute:: ui
+
+      UI for the RANO module
+
+
+   .. py:attribute:: lineNodePairs
+
+      List of line node pairs for the RANO module
+
+
+   .. py:method:: response_assessment_from_rel_area_or_vol(rel_area=None, rel_vol=None)
+      :staticmethod:
+
+
+      Given the relative size of the sum of bidimensional products or sum of volumes of the second timepoint,
+      this function returns the response assessment according to the RANO 2.0 criteria.
+
+      :param rel_area: the relative size of bidimensional product. Defined as the sum of the bidimensional products of the
+      :param orthogonal lines of all lesions at timepoint 2 divided by the sum of the bidimensional products of the orthogonal:
+      :param lines of all lesions at timepoint 1.:
+      :param rel_vol: the relative size of volume. Defined as the sum of the volumes of all lesions at timepoint 2 divided
+      :param by the sum of the volumes of all lesions at timepoint 1.:
+
+      :returns: the response assessment according to the RANO 2.0 criteria
+      :rtype: Response
+
+
+
+   .. py:method:: response_assessment_overall(ref_scan=RefScanRole.Baseline, curr_scan=CurrScanRole.CR, newMeasLes=False, nonTargetOrNonMeasLes=NonTargetOrNonMeasLes.NoneOrStableOrCR, clinicalStatus=ClinicalStatus.StableOrImproved, increasedSteroids=False, steroidDose=SteroidDose.No, tumorComponentsForEval=TumorComponentsForEval.CE, confirmPD=True)
+      :staticmethod:
+
+
+      Overall response assessment according to the RANO 2.0 criteria.
+      :param ref_scan: Reference scan role
+      :type ref_scan: RefScanRole
+      :param curr_scan: Current scan role
+      :type curr_scan: CurrScanRole
+      :param newMeasLes: True if new measurable lesions are present
+      :type newMeasLes: bool
+      :param nonTargetOrNonMeasLes: Non-target or non-measurable lesions status
+      :type nonTargetOrNonMeasLes: NonTargetOrNonMeasLes
+      :param clinicalStatus: Clinical status
+      :type clinicalStatus: ClinicalStatus
+      :param increasedSteroids: True if steroid dose is increased
+      :type increasedSteroids: bool
+      :param steroidDose: True if steroids are used
+      :type steroidDose: SteroidDose
+      :param tumorComponentsForEval: Tumor components for evaluation
+      :type tumorComponentsForEval: TumorComponentsForEval
+      :param confirmPD: Confirmation required for PD
+      :type confirmPD: bool
+
+      :returns: Overall response according to the RANO 2.0 criteria
+      :rtype: OverallResponse
+
+
+
+   .. py:method:: update_response_assessment(ui, lineNodePairs)
+      :staticmethod:
+
+
+      Update the response assessment based on the line node pairs and the UI parameters.
+      :param ui: UI for the RANO module
+      :param lineNodePairs: List of line node pairs for the RANO module
+
+
+
+   .. py:method:: update_overall_response_params(ui)
+      :staticmethod:
+
+
+      Update the overall response parameters based on the UI.
+      :param ui: UI for the RANO module
+
+
+
+   .. py:method:: update_overall_response_status(ui)
+      :staticmethod:
+
+
+      Update the overall response status based on the UI parameters.
+      :param ui: UI for the RANO module
+
+
+

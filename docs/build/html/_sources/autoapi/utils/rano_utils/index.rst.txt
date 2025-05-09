@@ -1,0 +1,242 @@
+utils.rano_utils
+================
+
+.. py:module:: utils.rano_utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   utils.rano_utils.run_segmentation
+   utils.rano_utils.keep_contained_lines
+   utils.rano_utils.get_all_contained_lines
+   utils.rano_utils.get_max_orthogonal_line_product_coords_plane
+   utils.rano_utils.get_instance_segmentation_by_connected_component_analysis
+   utils.rano_utils.match_instance_segmentations_by_IoU
+   utils.rano_utils.get_max_orthogonal_line_product_coords
+   utils.rano_utils.circle_opening
+   utils.rano_utils.sphere_opening
+   utils.rano_utils.find_plane_of_coords
+   utils.rano_utils.find_closest_plane
+   utils.rano_utils.point_closest_to_two_lines
+   utils.rano_utils.circle_opening_on_slices_perpendicular_to_axis
+   utils.rano_utils.get_ijk_to_world_matrix
+   utils.rano_utils.transform_ijk_to_world_coord
+   utils.rano_utils.transform_world_to_ijk_coord
+
+
+Module Contents
+---------------
+
+.. py:function:: run_segmentation(inputVolume_list, do_affinereg, input_is_bet, task_dir, tmp_path_in, tmp_path_out, python_executable)
+
+   Run the segmentation model using the provided input volumes and parameters.
+
+   :param inputVolume_list: list of volumes passed as input to the model
+   :param do_affinereg: whether to register input volumes to template image
+   :param input_is_bet: whether to register input volumes to template image
+   :param task_dir: path to the task directory that contains the segmentation model
+   :param tmp_path_in: path to the temporary input directory
+   :param tmp_path_out: path to the temporary output directory
+   :param python_executable: path to python executable (for example a virtual environment)
+
+
+.. py:function:: keep_contained_lines(boundary_coords, mask, sample_distance=0.2)
+
+   Given a set of boundary coordinates, this method returns the lines that are fully contained within the mask.
+
+   :param boundary_coords: numpy array of shape (nb_boundary_pixels, 2)
+   :param mask: binary numpy array of shape (width, height)
+   :param sample_distance: the distance between samples on the line to check if the line is contained
+
+   :returns: a list of lines, where each line is a list of two points.
+   :rtype: contained_lines
+
+
+.. py:function:: get_all_contained_lines(plane)
+
+   Given a plane, this function returns all the lines from one boundary pixel to another that are fully contained
+   within the foreground.
+
+   :param plane: a 2D numpy array where background is 0 and foreground is > 0
+
+   :returns: a list of lines, where each line is a list of two points
+   :rtype: contained_lines
+
+
+.. py:function:: get_max_orthogonal_line_product_coords_plane(all_line_coords_np, degree_tol=0)
+
+   Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest
+   product of their lengths.
+
+   :param all_line_coords_np: numpy array of shape (nb_lines, 2, 2) (lines x 2 points x 2 coordinates)
+   :param degree_tol: the tolerance in degrees for the orthogonality of the lines
+
+   :returns: a list of two lines, where each line is a list of two points and the product
+             of their lengths is maximal
+   :rtype: ortho_line_products_max_idx_coords
+
+
+.. py:function:: get_instance_segmentation_by_connected_component_analysis(bin_seg)
+
+   Convert a binary segmentation into a segmentation where each connected component gets a different label > 0.
+
+   :param bin_seg: Binary segmentation with shape W, H, D and labels 0 and 1
+
+   :returns: Segmentation with shape W, H, D and labels 0, ..., num_ccs (number of connected components)
+   :rtype: instance_seg
+
+
+.. py:function:: match_instance_segmentations_by_IoU(instance_segs)
+
+   Given a list of instance segmentations, this function relabels the segmentations so that the labels match
+   between timepoints. It does so by finding the optimal matching of labels based on the IoU (Intersection over
+   Union) of the instances.
+
+   :param instance_segs: list of instance segmentations, where each segmentation is a 3D numpy array with shape (W, H, D) and
+   :param labels 0:
+   :type labels 0: number of instances
+   :param ...:
+   :type ...: number of instances
+   :param num_instances:
+   :type num_instances: number of instances
+
+   :returns: list of instance segmentations with matching labels between timepoints
+   :rtype: matched_instance_segs
+
+
+.. py:function:: get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=None, center_tol=5, opening_radius=None)
+
+   Given a segmentation, this function returns the two lines that are orthogonal to each other and have the largest
+   product of their lengths. It does so by looping over views (axial, coronal, sagittal) and planes and finding the
+   two lines with the largest product of their lengths that are orthogonal to each other.
+
+   :param seg: a 3D numpy array where background is 0 and foreground is > 0
+   :param valid_axes: the views to consider for finding the orthogonal lines
+   :param center: coordinates of a point that the plane must be close to
+   :param center_tol: tolerance for the distance between the plane and the center point
+   :param opening_radius: the radius of the circle opening operation to apply to the slice segmentation before finding
+   :param the orthogonal lines:
+
+   :returns: a list of two lines, where each line is a list of two points and the product of their
+             lengths is maximal
+   :rtype: max_ortho_line_coords
+
+
+.. py:function:: circle_opening(seg, labels, radius)
+
+   Given a segmentation, this function performs a circle opening operation on the specified labels.
+   The opening operation is performed in 3 steps:
+   1. A mask is created as the union of the specified labels
+   2. The distance map of the mask is calculated and used to threshold the mask such that only the pixels that are
+   at least radius away from the boundary of the mask are kept. This mask corresponds to the valid centers of the
+   structuring element (the circle).
+   3. The mask is dilated by the structuring element (the circle) to get the final segmentation (the circle opened mask).
+
+   :param seg: a 2D numpy array where background is 0 and foreground is > 0
+   :param labels: list of labels to combine for the circle opening operation
+   :param radius: the distance from the boundary of the combined labels (corresponds to the radius of the circle)
+
+   :returns: a 2D numpy array where background is 0 and foreground is 1
+   :rtype: seg_circle_open
+
+
+.. py:function:: sphere_opening(seg, labels, radius)
+
+   Given a segmentation, this function performs a sphere opening operation on the specified labels.
+   The opening operation is performed in 3 steps:
+   1. A mask is created as the union of the specified labels
+   2. The distance map of the mask is calculated and used to threshold the mask such that only the pixels that are
+   at least radius away from the boundary of the mask are kept. This mask corresponds to the valid centers of the
+   structuring element (the sphere).
+   3. The mask is dilated by the structuring element (the sphere) to get the final segmentation (the sphere opened mask).
+
+   :param seg: a 3D numpy array where background is 0 and foreground is > 0
+   :param labels: list of labels to combine for the sphere opening operation
+   :param radius: the distance from the boundary of the combined labels (corresponds to the radius of the sphere)
+
+   :returns: a 3D numpy array where background is 0 and foreground is 1
+   :rtype: seg_open
+
+
+.. py:function:: find_plane_of_coords(coords)
+
+   Given two lines, this function returns the axis of the plane in which the lines are placed.
+
+   :param coords: a list of two lines, where each line is a list of two points with shape (2 lines x 2 points x 3 coordinates)
+
+   :returns: the axis that is perpendicular to the plane in which the lines are placeddinate
+   :rtype: axis_of_const_coordinate_values
+
+
+.. py:function:: find_closest_plane(coords)
+
+   Given two lines, this function returns the axis of the plane in which the lines are placed.
+
+   :param coords: a list of two lines, where each line is a list of two points (2 lines x 2 points x 3 coordinates)
+
+   :returns: the index of the axis that is perpendicular to the plane in which the lines are placed
+   :rtype: axis_idx
+
+
+.. py:function:: point_closest_to_two_lines(coords)
+
+   Given two lines, this function returns the point that is closest to both lines. This can be used to find a point
+   that can be annotated that describes a line pair.
+
+   :param coords: a list of two lines, where each line is a list of two points (2 lines x 2 points x 3 coordinates)
+
+   :returns: the point that is closest to both lines
+   :rtype: closest_point
+
+
+.. py:function:: circle_opening_on_slices_perpendicular_to_axis(segmentationArray, axes, labels, radius, slice_idx=None)
+
+   Given a 3D segmentation, this function performs a circle opening operation on the specified labels in the slices
+   perpendicular to each of the specified axes, then returns the union of segmentations from all axes.
+
+   :param segmentationArray: a 3D numpy array with the segmentation
+   :param axes: the axis perpendicular to the slices where the circle opening operation is performed
+   :param labels: list of labels to combine for the circle opening operation
+   :param radius: radius of the circle for the circle opening operation
+   :param slice_idx: if the slice index is specified, the circle opening operation is only performed on that slice. If
+   :param None:
+   :param the operation is performed on all slices along the axis. If multiple axes are specified:
+   :param slice_idx must be:
+   :param a list of the same length as axes.:
+
+   :returns: the circle-opened segmentation along the specified axis
+
+
+.. py:function:: get_ijk_to_world_matrix(node)
+
+   Given a node, this function returns the IJK to world matrix of the binary labelmap
+
+   :param node: the segmentation node or volume node
+
+   :returns: the IJK to world matrix of the binary labelmap
+   :rtype: ijkToWorld
+
+
+.. py:function:: transform_ijk_to_world_coord(ijk, ijkToWorld_matrix)
+
+   Given an IJK coordinate and the IJK to world matrix, this function returns the world coordinate
+
+   :param ijk: the IJK coordinates (x, y, z)
+   :param ijkToWorld_matrix: the IJK to world matrix
+
+   :returns: the world coordinate (x, y, z)
+
+
+.. py:function:: transform_world_to_ijk_coord(world, worldToIJK_matrix)
+
+   Given a world coordinate and the world to IJK matrix, this function returns the IJK coordinate
+
+   :param world: the world coordinates (x, y, z)
+   :param worldToIJK_matrix: the world to IJK matrix
+
+   :returns: the IJK coordinate (x, y, z)
+
+

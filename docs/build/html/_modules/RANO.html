@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RANO &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">RANO</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for RANO</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">RANO Module</span>
+
+<span class="sd">This module is part of a 3D Slicer extension and  provides tools for Response Assessment in Neuro-Oncology (RANO)</span>
+<span class="sd">based on the RANO 2.0 guidelines. It includes functionality for segmentation, 2D measurements,</span>
+<span class="sd">response classification, and report generation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">reload</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span><span class="o">,</span><span class="w"> </span><span class="nn">vtk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">slicer.ScriptedLoadableModule</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">slicer.util</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span>
+
+<span class="c1"># reload the submodules to ensure that the latest version of the code is used upon pressing the &quot;Reload&quot; button in the</span>
+<span class="c1"># module GUI (development mode)</span>
+<span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;utils.enums&#39;</span><span class="p">,</span>  <span class="c1"># must be first to ensure that the subsequent modules are reloaded with the new enums</span>
+            <span class="s1">&#39;utils.config&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.rano_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.RANO_Logic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.ui_helper_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.segmentation_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.measurements2D_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.response_classification_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.report_creation_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.results_table_utils&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;utils.test_rano&#39;</span><span class="p">,</span>
+            <span class="p">]:</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reloading </span><span class="si">{</span><span class="n">mod</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+        <span class="n">reload</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">mod</span><span class="p">])</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.ui_helper_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">UIHelperMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.RANOLogic</span><span class="w"> </span><span class="kn">import</span> <span class="n">RANOLogic</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.segmentation_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">SegmentationMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.measurements2D_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Measurements2DMixin</span><span class="p">,</span> <span class="n">LineNodePairList</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.response_classification_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResponseClassificationMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.report_creation_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReportCreationMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.results_table_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResultsTableMixin</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.test_rano</span><span class="w"> </span><span class="kn">import</span> <span class="n">RANOTest</span>  <span class="c1"># tests run in developer mode</span>
+
+
+<div class="viewcode-block" id="RANO">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANO">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RANO</span><span class="p">(</span><span class="n">ScriptedLoadableModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Required class for 3D Slicer module.</span>
+<span class="sd">    Uses ScriptedLoadableModule base class, available at:</span>
+<span class="sd">    https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">ScriptedLoadableModule</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;RANO&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Tools&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">dependencies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">contributors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Aaron Kujawa (King&#39;s College London)&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">helpText</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">acknowledgementText</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This file is based on a file developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,</span>
+<span class="s2">and Steve Pieper, Isomics, Inc. which was partially funded by NIH grant 3P41RR013218-12S1.</span>
+<span class="s2">&quot;&quot;&quot;</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># RANOWidget</span>
+<span class="c1">#</span>
+<div class="viewcode-block" id="RANOWidget">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RANOWidget</span><span class="p">(</span><span class="n">SegmentationMixin</span><span class="p">,</span> <span class="n">UIHelperMixin</span><span class="p">,</span> <span class="n">Measurements2DMixin</span><span class="p">,</span> <span class="n">ResponseClassificationMixin</span><span class="p">,</span>
+                 <span class="n">ReportCreationMixin</span><span class="p">,</span> <span class="n">ResultsTableMixin</span><span class="p">,</span>
+                 <span class="n">ScriptedLoadableModuleWidget</span><span class="p">,</span> <span class="n">VTKObservationMixin</span><span class="p">):</span>  <span class="c1"># these two classes have to be last because of the super() calls in their __init__ methods (MRO), otherwise the __init__ parameters are incompatible</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Required class for 3D Slicer module.</span>
+<span class="sd">    UI elements can be accessed as follows from the Slicer python console:</span>
+
+<span class="sd">      `slicer.modules.RANOWidget.ui`</span>
+
+<span class="sd">    For example, to access the text of the line edit widget:</span>
+
+<span class="sd">      `slicer.modules.RANOWidget.ui.lineEdit.text`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the user opens the module the first time and the widget is initialized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ScriptedLoadableModuleWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">VTKObservationMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># needed for parameter node observation</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The UI elements of the module. This is a dictionary containing all the widgets in the module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logic</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The logic class of the module. This class implements all computations that should be possible to run</span>
+<span class="sd">        in batch mode, without a graphical user interface.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.</span>
+<span class="sd">        so that when the scene is saved and reloaded, these settings are restored.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updatingGUIFromParameterNode</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Flag to indicate if the GUI is being updated from the parameter node. This is used to prevent infinite loops</span>
+<span class="sd">        when the parameter node is changed by a script or any other module. &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">LineNodePairList</span><span class="p">()</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of line node pairs used for 2D measurements.&quot;&quot;&quot;</span>
+
+        <span class="n">SegmentationMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">)</span>
+        <span class="n">UIHelperMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">)</span>
+        <span class="n">Measurements2DMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
+        <span class="n">ResponseClassificationMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
+        <span class="n">ReportCreationMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
+        <span class="n">ResultsTableMixin</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="RANOWidget.setup">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.setup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the user opens the module the first time and the widget is initialized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ScriptedLoadableModuleWidget</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Load widget from .ui file (created by Qt Designer).</span>
+        <span class="c1"># Additional widgets can be instantiated manually and added to self.layout.</span>
+        <span class="n">uiWidget</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">loadUI</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resourcePath</span><span class="p">(</span><span class="s1">&#39;UI/RANO.ui&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">uiWidget</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">childWidgetVariables</span><span class="p">(</span><span class="n">uiWidget</span><span class="p">)</span>
+
+        <span class="c1"># Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget&#39;s</span>
+        <span class="c1"># &quot;mrmlSceneChanged(vtkMRMLScene*)&quot; signal in is connected to each MRML widget&#39;s.</span>
+        <span class="c1"># &quot;setMRMLScene(vtkMRMLScene*)&quot; slot.</span>
+        <span class="n">uiWidget</span><span class="o">.</span><span class="n">setMRMLScene</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="p">)</span>
+
+        <span class="c1"># Create logic class. Logic implements all computations that should be possible to run</span>
+        <span class="c1"># in batch mode, without a graphical user interface.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logic</span> <span class="o">=</span> <span class="n">RANOLogic</span><span class="p">()</span>
+
+        <span class="c1"># Make sure parameter node is initialized (needed for module reload)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initializeParameterNode</span><span class="p">()</span>
+
+        <span class="c1"># Connections</span>
+
+        <span class="c1"># These connections ensure that we update parameter node when scene is closed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addObserver</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="p">,</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">StartCloseEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onSceneStartClose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addObserver</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="p">,</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">EndCloseEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onSceneEndClose</span><span class="p">)</span>
+
+        <span class="c1"># set up the 3D slicer layout for the module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_layout</span><span class="p">()</span>
+
+        <span class="c1"># set up the test cases box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_test_cases</span><span class="p">()</span>
+
+        <span class="c1"># set up the directory load box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_add_data_box</span><span class="p">()</span>
+
+        <span class="c1"># set up the box for the input files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_input_box</span><span class="p">()</span>
+
+        <span class="c1"># set up the box for the auto segmentation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_autosegmentation_box</span><span class="p">()</span>
+
+        <span class="c1"># set up automatic 2D measurements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_auto_2D_measurements</span><span class="p">()</span>
+
+        <span class="c1"># set up manual 2D measurements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_manual_2D_measurements</span><span class="p">()</span>
+
+        <span class="c1"># set up response status box (lesion based)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_lesion_based_response_status_box</span><span class="p">()</span>
+
+        <span class="c1"># set up overall response status box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_overall_response_status_box</span><span class="p">()</span>
+
+        <span class="c1"># create report button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">createReportPushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onCreateReportButton</span><span class="p">)</span>
+
+        <span class="c1"># external python path line edit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_python_path</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;textChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">()</span>
+
+        <span class="c1"># center views on first volume</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="n">inputSelector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="n">inputSelector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.cleanup">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.cleanup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the application closes and the module widget is destroyed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removeObservers</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.enter">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.enter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called each time the user opens this module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make sure parameter node exists and observed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initializeParameterNode</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.exit">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.exit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called each time the user opens a different module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Do not react to parameter node changes (GUI will be updated when the user enters into the module)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removeObserver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateGUIFromParameterNode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.onSceneStartClose">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.onSceneStartClose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onSceneStartClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called just before the scene is closed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            caller: The object that triggered the event.</span>
+<span class="sd">            event: The event that occurred.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Parameter node will be reset, do not use it anymore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setParameterNode</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.onSceneEndClose">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.onSceneEndClose">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onSceneEndClose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called just after the scene is closed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            caller: The object that triggered the event.</span>
+<span class="sd">            event: The event that occurred.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If this module is shown while the scene is closed then recreate a new parameter node immediately</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">isEntered</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initializeParameterNode</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.initializeParameterNode">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.initializeParameterNode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initializeParameterNode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure parameter node exists and observed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Parameter node stores all user choices in parameter values, node selections, etc.</span>
+        <span class="c1"># so that when the scene is saved and reloaded, these settings are restored.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setParameterNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">getParameterNode</span><span class="p">())</span></div>
+
+        <span class="c1">#self.setOtherParameterNodeParameters(self._parameterNode)  # set parameters even if default parameters already set  # TODO: remove this line if not needed</span>
+
+
+<div class="viewcode-block" id="RANOWidget.setParameterNode">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.setParameterNode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setParameterNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputParameterNode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set and observe parameter node.</span>
+<span class="sd">        Observation is needed because when the parameter node is changed then the GUI must be updated immediately.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inputParameterNode: The parameter node to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">inputParameterNode</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inputParameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;DefaultParamsSet&quot;</span><span class="p">):</span>  <span class="c1"># set default parameters only if they are not set yet</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logic</span><span class="o">.</span><span class="n">setDefaultParameters</span><span class="p">(</span><span class="n">inputParameterNode</span><span class="p">)</span>
+
+        <span class="c1"># Unobserve previously selected parameter node and add an observer to the newly selected.</span>
+        <span class="c1"># Changes of parameter node are observed so that whenever parameters are changed by a script or any other module</span>
+        <span class="c1"># those are reflected immediately in the GUI.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasObserver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateGUIFromParameterNode</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">removeObserver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateGUIFromParameterNode</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">inputParameterNode</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addObserver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">,</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCommand</span><span class="o">.</span><span class="n">ModifiedEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateGUIFromParameterNode</span><span class="p">)</span>
+
+        <span class="c1"># Initial GUI update</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateGUIFromParameterNode</span><span class="p">()</span></div>
+
+
+    <span class="c1"># @staticmethod</span>
+    <span class="c1"># def setOtherParameterNodeParameters(parameterNode):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     This method is run each time the parameter node is set, even if default parameters are already set.</span>
+    <span class="c1">#</span>
+    <span class="c1">#     Args:</span>
+    <span class="c1">#         parameterNode: The parameter node to set.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#     # Select channel 1 as input node if nothing is selected yet to save a few user clicks</span>
+    <span class="c1">#     if not parameterNode.GetNodeReference(&quot;InputVolume_channel1&quot;):</span>
+    <span class="c1">#         firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass(&quot;vtkMRMLScalarVolumeNode&quot;)</span>
+    <span class="c1">#         if firstVolumeNode:</span>
+    <span class="c1">#             parameterNode.SetNodeReferenceID(&quot;InputVolume_channel1&quot;, firstVolumeNode.GetID())</span>
+    <span class="c1">#</span>
+    <span class="c1">#     # No segment should be selected at the beginning</span>
+    <span class="c1">#     if parameterNode.GetParameter(&quot;segmentID&quot;):</span>
+    <span class="c1">#         parameterNode.SetParameter(&quot;segmentID&quot;, &quot;&quot;)</span>
+
+<div class="viewcode-block" id="RANOWidget.updateGUIFromParameterNode">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.updateGUIFromParameterNode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">updateGUIFromParameterNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called whenever parameter node is changed.</span>
+<span class="sd">        The module GUI is updated to show the current state of the parameter node.</span>
+<span class="sd">        From slicer python interface, you can access the variables like this:</span>
+<span class="sd">        slicer.modules.RANOWidget.ui.radius_spinbox</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            caller: The object that triggered the event.</span>
+<span class="sd">            event: The event that occurred.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;updateGUIFromParameterNode&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updatingGUIFromParameterNode</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updatingGUIFromParameterNode</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># timepoint 1</span>
+        <span class="c1"># get the model info</span>
+        <span class="n">model_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">currentText</span>
+        <span class="n">task_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">)</span>
+        <span class="c1"># load the modality info</span>
+        <span class="n">modalities_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_dir</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;modalities.json&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ui_input_channel_selectors</span><span class="p">(</span><span class="n">modalities_path</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># timepoint 2</span>
+        <span class="n">model_key_t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">currentText</span>
+        <span class="n">task_dir_t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_dir</span><span class="p">(</span><span class="n">model_key_t2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">)</span>
+        <span class="c1"># load the modality info</span>
+        <span class="n">modalities_path_t2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_dir_t2</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;modalities.json&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ui_input_channel_selectors</span><span class="p">(</span><span class="n">modalities_path_t2</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Update node selectors and sliders</span>
+        <span class="c1"># timepoint 1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t1&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel2_t1&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel3_t1&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel4_t1&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;outputSegmentation&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;AffineReg&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;InputIsBET&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+
+        <span class="c1"># timepoint 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t2&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel2_t2&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel3_t2&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel4_t2&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;outputSegmentation_t2&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox_t2</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;AffineReg_t2&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox_t2</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;InputIsBET_t2&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+
+        <span class="c1"># update the 2D measurements widgets</span>
+        <span class="c1"># update the segment selector widget current node with the segmentation node stored in the parameter node</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;meas2D_segmentation&quot;</span><span class="p">))</span>
+
+        <span class="c1"># update the same widget with the segmentID stored in the parameter node</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">setCurrentSegmentID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;segmentID&quot;</span><span class="p">))</span>
+
+        <span class="c1"># toggle visibility of the opening radius label and spinbox depending on the selected method</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">method2DmeasComboBox</span><span class="o">.</span><span class="n">currentText</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RANO_open2D&quot;</span><span class="p">,</span> <span class="s2">&quot;RANO_open3D&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">radius_spinbox</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">radius_label</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">radius_spinbox</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">radius_label</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+
+        <span class="c1"># orientation checkboxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_axial</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;axial&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_coronal</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;coronal&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_sagittal</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;sagittal&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_orient_cons_tp</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;orient_cons_tp&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_same_slc_tp</span><span class="o">.</span><span class="n">checked</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;same_slc_tp&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Update buttons states and tooltips</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t1&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span>
+                <span class="s2">&quot;outputSegmentation&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">toolTip</span> <span class="o">=</span> <span class="s2">&quot;Compute output volume&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">toolTip</span> <span class="o">=</span> <span class="s2">&quot;Select input and output volume nodes&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;meas2D_segmentation&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span>
+                <span class="s2">&quot;segmentID&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">calc2DButton</span><span class="o">.</span><span class="n">toolTip</span> <span class="o">=</span> <span class="s2">&quot;Compute 2D lines&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">calc2DButton</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">calc2DButton</span><span class="o">.</span><span class="n">toolTip</span> <span class="o">=</span> <span class="s2">&quot;Select segment&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">calc2DButton</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># All the GUI updates are done</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updatingGUIFromParameterNode</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RANOWidget.updateParameterNodeFromGUI">
+<a class="viewcode-back" href="../autoapi/RANO/index.html#RANO.RANOWidget.updateParameterNodeFromGUI">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">updateParameterNodeFromGUI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caller</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when the user makes any change in the GUI.</span>
+<span class="sd">        The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            caller: The object that triggered the event.</span>
+<span class="sd">            event: The event that occurred.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;updateParameterNodeFromGUI&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updatingGUIFromParameterNode</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">wasModified</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">StartModify</span><span class="p">()</span>  <span class="c1"># Modify all properties in a single batch</span>
+
+        <span class="c1"># timepoint 1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;model_key&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">currentText</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t1&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel2_t1&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t1</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel3_t1&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t1</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel4_t1&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t1</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;outputSegmentation&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;AffineReg&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;InputIsBET&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+
+        <span class="c1"># timepoint 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;model_key_t2&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">currentText</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t2&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel2_t2&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t2</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel3_t2&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t2</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel4_t2&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t2</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;outputSegmentation_t2&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector_t2</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;AffineReg_t2&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox_t2</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;InputIsBET_t2&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox_t2</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+
+
+        <span class="c1"># 2D measurements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetNodeReferenceID</span><span class="p">(</span><span class="s2">&quot;meas2D_segmentation&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;segmentID&quot;</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">currentSegmentID</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">currentNodeID</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;method2Dmeas&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">method2DmeasComboBox</span><span class="o">.</span><span class="n">currentText</span><span class="p">)</span>
+
+        <span class="c1"># orientation checkboxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;axial&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_axial</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;coronal&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_coronal</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;sagittal&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_sagittal</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;orient_cons_tp&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_orient_cons_tp</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;same_slc_tp&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_same_slc_tp</span><span class="o">.</span><span class="n">checked</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">EndModify</span><span class="p">(</span><span class="n">wasModified</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

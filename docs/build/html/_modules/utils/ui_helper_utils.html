@@ -1,0 +1,718 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.ui_helper_utils &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.ui_helper_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.ui_helper_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">qt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">DICOMLib</span><span class="w"> </span><span class="kn">import</span> <span class="n">DICOMUtils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">measurements2D_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.enums</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="n">TumorComponentsForEval</span><span class="p">,</span> <span class="n">RefScanRole</span><span class="p">,</span> <span class="n">CurrScanRole</span><span class="p">,</span> <span class="n">NonTargetOrNonMeasLes</span><span class="p">,</span>
+                         <span class="n">ClinicalStatus</span><span class="p">,</span> <span class="n">SteroidDose</span><span class="p">,</span> <span class="n">OverallResponse</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils.segmentation_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">segmentation_utils</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils.response_classification_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">response_classification_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span><span class="p">,</span> <span class="n">module_path</span>
+
+
+<div class="viewcode-block" id="UIHelperMixin">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UIHelperMixin</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for setting up the UI for the RANO module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter node for the RANO module&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;UI for the RANO module&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="UIHelperMixin.setup_test_cases">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_test_cases">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_test_cases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the test cases for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># test cases</span>
+        <span class="n">base_path</span> <span class="o">=</span> <span class="s2">&quot;/home/aaron/KCL_data/RANO/Input_Data&quot;</span>
+
+        <span class="n">patients</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;Patient_*&quot;</span><span class="p">))</span>
+
+        <span class="n">timepoints</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">patients</span><span class="p">):</span>
+            <span class="n">timepoints_this_patient</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;TimePoint*&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timepoints_this_patient</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">timepoints</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">timepoints_this_patient</span>
+
+
+        <span class="c1"># make sure the timepoint comboboxes show only the available timepoints</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">onUpdateTestCaseComboBox</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Triggered onUpdateTestCaseComboBox with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">tps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;TimePoint*&quot;</span><span class="p">))])</span>
+
+            <span class="c1"># remove previous items and add found timepoints</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp1ComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp2ComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="n">tps</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp1ComboBox</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp2ComboBox</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+
+            <span class="c1"># select first and second instance respectively</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp1ComboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp2ComboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateTestCaseComboBox</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">timepoints</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseComboBox</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+
+        <span class="c1"># test cases push button</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">onTestCaseLoadButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pushed onTestCaseLoadButton, with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> ,  and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># clear the scene</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">Clear</span><span class="p">()</span>
+
+            <span class="n">patient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseComboBox</span><span class="o">.</span><span class="n">currentText</span>
+            <span class="n">timepoint_t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp1ComboBox</span><span class="o">.</span><span class="n">currentText</span>
+            <span class="n">timepoint_t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCaseTp2ComboBox</span><span class="o">.</span><span class="n">currentText</span>
+
+            <span class="n">p_t1c_tp1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t1</span><span class="p">,</span> <span class="s2">&quot;t1c&quot;</span><span class="p">)</span>
+            <span class="n">p_t1n_tp1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t1</span><span class="p">,</span> <span class="s2">&quot;t1n&quot;</span><span class="p">)</span>
+            <span class="n">p_t2f_tp1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t1</span><span class="p">,</span> <span class="s2">&quot;t2f&quot;</span><span class="p">)</span>
+            <span class="n">p_t2w_tp1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t1</span><span class="p">,</span> <span class="s2">&quot;t2w&quot;</span><span class="p">)</span>
+
+            <span class="n">p_t1c_tp2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t2</span><span class="p">,</span> <span class="s2">&quot;t1c&quot;</span><span class="p">)</span>
+            <span class="n">p_t1n_tp2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t2</span><span class="p">,</span> <span class="s2">&quot;t1n&quot;</span><span class="p">)</span>
+            <span class="n">p_t2f_tp2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t2</span><span class="p">,</span> <span class="s2">&quot;t2f&quot;</span><span class="p">)</span>
+            <span class="n">p_t2w_tp2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="n">patient</span><span class="p">,</span> <span class="n">timepoint_t2</span><span class="p">,</span> <span class="s2">&quot;t2w&quot;</span><span class="p">)</span>
+
+            <span class="n">paths_t1</span> <span class="o">=</span> <span class="p">[</span><span class="n">p_t1c_tp1</span><span class="p">,</span> <span class="n">p_t1n_tp1</span><span class="p">,</span> <span class="n">p_t2f_tp1</span><span class="p">,</span> <span class="n">p_t2w_tp1</span><span class="p">]</span>
+            <span class="n">paths_t2</span> <span class="o">=</span> <span class="p">[</span><span class="n">p_t1c_tp2</span><span class="p">,</span> <span class="n">p_t1n_tp2</span><span class="p">,</span> <span class="n">p_t2f_tp2</span><span class="p">,</span> <span class="n">p_t2w_tp2</span><span class="p">]</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">dcm_dir_to_node</span><span class="p">(</span><span class="n">dcm_dir</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">DICOMUtils</span><span class="o">.</span><span class="n">TemporaryDICOMDatabase</span><span class="p">()</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
+                    <span class="n">DICOMUtils</span><span class="o">.</span><span class="n">importDicom</span><span class="p">(</span><span class="n">dcm_dir</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+                    <span class="n">patientUIDs</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">patients</span><span class="p">()</span>
+                    <span class="n">loadedNodeIDs</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">patientUID</span> <span class="ow">in</span> <span class="n">patientUIDs</span><span class="p">:</span>
+                        <span class="n">loadedNodeIDs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">DICOMUtils</span><span class="o">.</span><span class="n">loadPatientByUID</span><span class="p">(</span><span class="n">patientUID</span><span class="p">))</span>
+
+                    <span class="n">loadedVolumeNodeIDs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">id</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">loadedNodeIDs</span> <span class="k">if</span>
+                                           <span class="s2">&quot;VolumeNode&quot;</span> <span class="ow">in</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodeByID</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">GetClassName</span><span class="p">()]</span>
+
+                    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">loadedVolumeNodeIDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Expected 1 loaded volume node from importing DICOM files in </span><span class="si">{</span><span class="n">dcm_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot; but got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">loadedVolumeNodeIDs</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">loadedVolumeNodeIDs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="n">loadedNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodeByID</span><span class="p">(</span><span class="n">loadedVolumeNodeIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">loadedNode</span>
+
+            <span class="n">inputVolumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">dcm_dir_to_node</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths_t1</span><span class="p">]</span>
+            <span class="n">inputVolumes_t2</span> <span class="o">=</span> <span class="p">[</span><span class="n">dcm_dir_to_node</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths_t2</span><span class="p">]</span>
+
+            <span class="c1"># set the input volumes</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t1</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes_t2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes_t2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes_t2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t2</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">inputVolumes_t2</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+            <span class="c1"># show the first channel in the views</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">(</span><span class="n">checked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="n">inputSelector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">(</span><span class="n">checked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="n">inputSelector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="p">)</span>
+
+            <span class="c1"># center all views</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">resetSliceViews</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">testCasePushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">onTestCaseLoadButton</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_add_data_box">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_add_data_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_add_data_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the add data box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">onAddDataButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">openAddDataDialog</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onAddDicomDataButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c1"># switch to DICOM module</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">selectModule</span><span class="p">(</span><span class="s2">&quot;DICOM&quot;</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">addDataPushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">onAddDataButton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">addDicomDataPushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">onAddDicomDataButton</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_input_box">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_input_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_input_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the input box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># timepoint 1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t1</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t1</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t1</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="c1"># timepoint 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="c1"># show channel buttons</span>
+        <span class="k">for</span> <span class="n">pushbutton</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">inputSelector</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel1PushButton_t1</span><span class="p">,</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t1</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel2PushButton_t1</span><span class="p">,</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t1</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel3PushButton_t1</span><span class="p">,</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t1</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel4PushButton_t1</span><span class="p">,</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t1</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel1PushButton_t2</span><span class="p">,</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel1_t2</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel2PushButton_t2</span><span class="p">,</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel2_t2</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel3PushButton_t2</span><span class="p">,</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel3_t2</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">showChannel4PushButton_t2</span><span class="p">,</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputSelector_channel4_t2</span><span class="p">)]:</span>
+            <span class="n">pushbutton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onShowChannelButton</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="n">timepoint</span><span class="p">,</span>
+                                                                  <span class="n">inputSelector</span><span class="o">=</span><span class="n">inputSelector</span><span class="p">))</span>
+            <span class="c1"># add icons to the show channel buttons</span>
+            <span class="n">pushbutton</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QIcon</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resourcePath</span><span class="p">(</span><span class="s1">&#39;Icons/eye.png&#39;</span><span class="p">)))</span>
+            <span class="c1"># make the icon size smaller</span>
+            <span class="n">pushbutton</span><span class="o">.</span><span class="n">setIconSize</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QSize</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="UIHelperMixin.update_ui_input_channel_selectors">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.update_ui_input_channel_selectors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_ui_input_channel_selectors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modalities_path</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the input channel selectors based on the modalities.json file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">postfix</span> <span class="o">=</span> <span class="s2">&quot;_t1&quot;</span>
+        <span class="k">elif</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">postfix</span> <span class="o">=</span> <span class="s2">&quot;_t2&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;timepoint must be 1 or 2&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">modalities_path</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">modalities_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">jsonfile</span><span class="p">:</span>
+                <span class="n">modalities</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">)</span>
+
+            <span class="c1"># make channel input selectors visible/invisible</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="n">vis</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">modalities</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inputSelector_channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="n">vis</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">_label&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="n">vis</span><span class="p">)</span>
+                <span class="c1"># also make the push button visible/invisible</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;showChannel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">PushButton&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="n">vis</span><span class="p">)</span>
+
+            <span class="c1"># set the channel labels</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">modalities</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">_label&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">modalities</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">_label&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find modalities.json at </span><span class="si">{</span><span class="n">modalities_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inputSelector_channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">_label&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;channel</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">_label&quot;</span> <span class="o">+</span> <span class="n">postfix</span><span class="p">)</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_autosegmentation_box">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_autosegmentation_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_autosegmentation_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the auto-segmentation box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">models_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;ModelInfo&quot;</span><span class="p">))</span>
+        <span class="n">defaultModelIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;DefaultModelIndex&quot;</span><span class="p">)</span>
+
+        <span class="c1"># timepoint 1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="c1"># add models to the combobox</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">models_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">defaultModelIndex</span><span class="p">))</span>
+
+        <span class="c1"># timepoint 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector_t2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="c1"># add models to the combobox</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">models_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox_t2</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">defaultModelIndex</span><span class="p">))</span>
+
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onCalcSegmentationsButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pushed onCalcSegmentationsButton, with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> ,  and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">segmentation_utils</span><span class="o">.</span><span class="n">SegmentationMixin</span><span class="o">.</span><span class="n">onCalcSegmentationsButton</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="p">)</span>
+        <span class="c1"># calculate segmentations button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">applyButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">onCalcSegmentationsButton</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_auto_2D_measurements">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_auto_2D_measurements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_auto_2D_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the auto 2D measurements box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentNodeChanged(vtkMRMLNode*)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentSegmentChanged(QString)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;segmentSelectionChanged(QStringList)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="c1"># method selection (RANO, RANOopen, etc)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">method2DmeasComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_axial</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_coronal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_sagittal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_orient_cons_tp</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>  <span class="c1"># orientation consistency between timepoints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_same_slc_tp</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span>  <span class="c1"># same slice between timepoints</span>
+
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onCalc2DButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pushed onCalc2DButton, with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> ,  and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">measurements2D_utils</span><span class="o">.</span><span class="n">Measurements2DMixin</span><span class="o">.</span><span class="n">onCalc2DButton</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="p">)</span>
+        <span class="c1"># calculate 2D lines button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">calc2DButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">onCalc2DButton</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_manual_2D_measurements">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_manual_2D_measurements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_manual_2D_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the manual 2D measurements box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onToggleShowInstanceSegButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pushed onToggleShowInstanceSegButton, with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> ,  and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">measurements2D_utils</span><span class="o">.</span><span class="n">Measurements2DMixin</span><span class="o">.</span><span class="n">onToggleShowInstanceSegButton</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">toggleShowInstanceSegPushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">onToggleShowInstanceSegButton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">toggleShowInstanceSegPushButton</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">toggleShowInstanceSegPushButton</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onAddLinePairButton</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pushed onAddLinePairButton, with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> ,  and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">timepoint</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;timepoint&#39;</span><span class="p">]</span>
+            <span class="n">measurements2D_utils</span><span class="o">.</span><span class="n">Measurements2DMixin</span><span class="o">.</span><span class="n">onAddLinePairButton</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="n">timepoint</span><span class="p">)</span>
+
+        <span class="c1"># add linePair buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">addLinePairTp1_pushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">onAddLinePairButton</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">addLinePairTp2_pushButton</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;clicked(bool)&#39;</span><span class="p">,</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">onAddLinePairButton</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">cellChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateParameterNodeFromGUI</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_layout">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_layout">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the layout for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">customLayout</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                &lt;layout type=&quot;vertical&quot; split=&quot;true&quot;&gt;</span>
+<span class="s2">                 &lt;item splitSize=&quot;1000&quot;&gt;</span>
+<span class="s2">                  &lt;layout type=&quot;horizontal&quot;&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                    &lt;view class=&quot;vtkMRMLSliceNode&quot; singletontag=&quot;Red&quot;&gt;</span>
+<span class="s2">                     &lt;property name=&quot;orientation&quot; action=&quot;default&quot;&gt;Axial&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;R&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewcolor&quot; action=&quot;default&quot;&gt;#F34A33&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;0&lt;/property&gt;</span>
+<span class="s2">                    &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                    &lt;view class=&quot;vtkMRMLSliceNode&quot; singletontag=&quot;Yellow&quot;&gt;</span>
+<span class="s2">                     &lt;property name=&quot;orientation&quot; action=&quot;default&quot;&gt;Sagittal&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;Y&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewcolor&quot; action=&quot;default&quot;&gt;#EDD54C&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;0&lt;/property&gt;</span>
+<span class="s2">                    &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                    &lt;view class=&quot;vtkMRMLSliceNode&quot; singletontag=&quot;Green&quot;&gt;</span>
+<span class="s2">                     &lt;property name=&quot;orientation&quot; action=&quot;default&quot;&gt;Coronal&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;G&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewcolor&quot; action=&quot;default&quot;&gt;#6EB04B&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;0&lt;/property&gt;</span>
+<span class="s2">                    &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                   &lt;view class=&quot;vtkMRMLViewNode&quot; singletontag=&quot;view3d_1&quot;&gt;</span>
+<span class="s2">                    &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;1&lt;/property&gt;</span>
+<span class="s2">                    &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;0&lt;/property&gt;</span>
+<span class="s2">                   &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                  &lt;/layout&gt;</span>
+<span class="s2">                 &lt;/item&gt;</span>
+<span class="s2">                 &lt;item splitSize=&quot;1000&quot;&gt;</span>
+<span class="s2">                  &lt;layout type=&quot;horizontal&quot;&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                    &lt;view class=&quot;vtkMRMLSliceNode&quot; singletontag=&quot;Red_2&quot;&gt;</span>
+<span class="s2">                     &lt;property name=&quot;orientation&quot; action=&quot;default&quot;&gt;Axial&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;R&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewcolor&quot; action=&quot;default&quot;&gt;#F34A33&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;1&lt;/property&gt;</span>
+<span class="s2">                    &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                    &lt;view class=&quot;vtkMRMLSliceNode&quot; singletontag=&quot;Yellow_2&quot;&gt;</span>
+<span class="s2">                     &lt;property name=&quot;orientation&quot; action=&quot;default&quot;&gt;Sagittal&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;Y&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewcolor&quot; action=&quot;default&quot;&gt;#EDD54C&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;1&lt;/property&gt;</span>
+<span class="s2">                    &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                    &lt;view class=&quot;vtkMRMLSliceNode&quot; singletontag=&quot;Green_2&quot;&gt;</span>
+<span class="s2">                     &lt;property name=&quot;orientation&quot; action=&quot;default&quot;&gt;Coronal&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;G&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewcolor&quot; action=&quot;default&quot;&gt;#6EB04B&lt;/property&gt;</span>
+<span class="s2">                     &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;1&lt;/property&gt;</span>
+<span class="s2">                    &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                   &lt;item&gt;</span>
+<span class="s2">                   &lt;view class=&quot;vtkMRMLViewNode&quot; singletontag=&quot;view3d_2&quot;&gt;</span>
+<span class="s2">                    &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;1&lt;/property&gt;</span>
+<span class="s2">                    &lt;property name=&quot;viewgroup&quot; action=&quot;default&quot;&gt;1&lt;/property&gt;</span>
+<span class="s2">                   &lt;/view&gt;</span>
+<span class="s2">                   &lt;/item&gt;</span>
+<span class="s2">                  &lt;/layout&gt;</span>
+<span class="s2">                 &lt;/item&gt;</span>
+<span class="s2">                 &lt;item splitSize=&quot;50&quot;&gt;</span>
+<span class="s2">                  &lt;view class=&quot;vtkMRMLTableViewNode&quot; singletontag=&quot;TableView1&quot;&gt;</span>
+<span class="s2">                   &lt;property name=&quot;viewlabel&quot; action=&quot;default&quot;&gt;T&lt;/property&gt;</span>
+<span class="s2">                  &lt;/view&gt;</span>
+<span class="s2">                 &lt;/item&gt;</span>
+<span class="s2">                &lt;/layout&gt;</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+
+        <span class="c1"># Built-in layout IDs are all below 100, so you can choose any large random number</span>
+        <span class="c1"># for your custom layout ID.</span>
+        <span class="n">customLayoutId</span> <span class="o">=</span> <span class="mi">501</span>
+
+        <span class="n">layoutManager</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">layoutManager</span><span class="p">()</span>
+        <span class="n">layoutManager</span><span class="o">.</span><span class="n">layoutLogic</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayoutNode</span><span class="p">()</span><span class="o">.</span><span class="n">AddLayoutDescription</span><span class="p">(</span><span class="n">customLayoutId</span><span class="p">,</span>
+                                                                         <span class="n">customLayout</span><span class="p">)</span>  <span class="c1"># Add a new layout, does nothing if already exists</span>
+        <span class="n">layoutManager</span><span class="o">.</span><span class="n">layoutLogic</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayoutNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetLayoutDescription</span><span class="p">(</span><span class="n">customLayoutId</span><span class="p">,</span>
+                                                                         <span class="n">customLayout</span><span class="p">)</span>  <span class="c1"># Update existing layout, does nothing if it does not exist</span>
+
+        <span class="c1"># Switch to the new custom layout</span>
+        <span class="n">layoutManager</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">customLayoutId</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_lesion_based_response_status_box">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_lesion_based_response_status_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_lesion_based_response_status_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the lesion based response status box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onUpdateOverallResponseParams</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Triggered onUpdateOverallResponseParams with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span>
+            <span class="n">response_classification_utils</span><span class="o">.</span><span class="n">ResponseClassificationMixin</span><span class="o">.</span><span class="n">update_overall_response_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">)</span>
+
+        <span class="c1"># clear any previous items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">responseStatusComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">response_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">response</span><span class="o">.</span><span class="n">description_detailed</span><span class="p">()</span> <span class="k">for</span> <span class="n">response</span> <span class="ow">in</span> <span class="n">Response</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">responseStatusComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">response_enum_values</span><span class="p">)</span>
+        <span class="c1"># connect the response status combo box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">responseStatusComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseParams</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setup_overall_response_status_box">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setup_overall_response_status_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_overall_response_status_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set up the overall response status box for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">onUpdateOverallResponseStatus</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Triggered onUpdateOverallResponseStatus with args </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2"> and kwargs </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span>
+            <span class="n">response_classification_utils</span><span class="o">.</span><span class="n">ResponseClassificationMixin</span><span class="o">.</span><span class="n">update_overall_response_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">)</span>
+
+        <span class="c1"># connect the check boxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">confirmationRequiredForPdCheckBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">newMeasLesCheckBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">increasedSteroidUseCheckBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">secondLineMedicationCheckBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;toggled(bool)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+        <span class="c1"># fill and connect the combo boxes</span>
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">ceOrNonCeComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">tumor_components_for_eval_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">tumor_component</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span> <span class="n">tumor_component</span> <span class="ow">in</span>
+                                                 <span class="n">TumorComponentsForEval</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">ceOrNonCeComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">tumor_components_for_eval_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">ceOrNonCeComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">referenceScanComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">ref_scan_role_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">ref_scan_role</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span> <span class="n">ref_scan_role</span> <span class="ow">in</span> <span class="n">RefScanRole</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">referenceScanComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">ref_scan_role_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">referenceScanComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">currScanComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">curr_scan_role_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">curr_scan_role</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span> <span class="n">curr_scan_role</span> <span class="ow">in</span> <span class="n">CurrScanRole</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">currScanComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">curr_scan_role_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">currScanComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">nonTargetNonMeasComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">non_target_or_non_meas_les_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">non_target_or_non_meas_les</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span>
+                                                  <span class="n">non_target_or_non_meas_les</span> <span class="ow">in</span> <span class="n">NonTargetOrNonMeasLes</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">nonTargetNonMeasComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">non_target_or_non_meas_les_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">nonTargetNonMeasComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span>
+                                                 <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">clinicalStatusComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">clinical_status_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">clinical_status</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span> <span class="n">clinical_status</span> <span class="ow">in</span> <span class="n">ClinicalStatus</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">clinicalStatusComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">clinical_status_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">clinicalStatusComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">steroidDoseComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">steroid_dose_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">steroidDose</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span> <span class="n">steroidDose</span> <span class="ow">in</span> <span class="n">SteroidDose</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">steroidDoseComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">steroid_dose_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">steroidDoseComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span> <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span>
+
+
+        <span class="c1">###</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">overallResponseStatusComboBox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">response_assessment_overall_enum_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">overall_response</span><span class="o">.</span><span class="n">description</span><span class="p">()</span> <span class="k">for</span> <span class="n">overall_response</span> <span class="ow">in</span>
+                                                   <span class="n">OverallResponse</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">overallResponseStatusComboBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">response_assessment_overall_enum_values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">overallResponseStatusComboBox</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;currentIndexChanged(const QString &amp;)&quot;</span><span class="p">,</span>
+                                                      <span class="n">onUpdateOverallResponseStatus</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UIHelperMixin.setBackgroundVolumes">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setBackgroundVolumes">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setBackgroundVolumes</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">rotateSliceToLowestVolumeAxes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the background volumes for the slice views.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            node (vtkMRMLNode): The selected node.</span>
+<span class="sd">            timepoint (str): The timepoint for which to set the background volume.</span>
+<span class="sd">            rotateSliceToLowestVolumeAxes (bool): Whether to rotate the slice views to align with the image acquisition</span>
+<span class="sd">            planes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">:</span>
+            <span class="n">viewnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Red&quot;</span><span class="p">,</span> <span class="s2">&quot;Yellow&quot;</span><span class="p">,</span> <span class="s2">&quot;Green&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">:</span>
+            <span class="n">viewnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Red_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Yellow_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Green_2&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;timepoint must be &#39;timepoint1&#39; or &#39;timepoint2&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">viewname</span> <span class="ow">in</span> <span class="n">viewnames</span><span class="p">:</span>
+            <span class="n">compositeNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">layoutManager</span><span class="p">()</span><span class="o">.</span><span class="n">sliceWidget</span><span class="p">(</span><span class="n">viewname</span><span class="p">)</span><span class="o">.</span><span class="n">sliceLogic</span><span class="p">()</span><span class="o">.</span><span class="n">GetSliceCompositeNode</span><span class="p">()</span>
+            <span class="n">compositeNode</span><span class="o">.</span><span class="n">SetBackgroundVolumeID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">GetID</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="n">rotateSliceToLowestVolumeAxes</span><span class="p">:</span>
+                <span class="c1"># print(f&quot;Align view {viewname} with closest IJK plane&quot;)</span>
+                <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">layoutManager</span><span class="p">()</span><span class="o">.</span><span class="n">sliceWidget</span><span class="p">(</span><span class="n">viewname</span><span class="p">)</span><span class="o">.</span><span class="n">sliceLogic</span><span class="p">()</span><span class="o">.</span><span class="n">RotateSliceToLowestVolumeAxes</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="UIHelperMixin.setLabelVolumes">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.setLabelVolumes">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setLabelVolumes</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the label volumes for the slice views.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            node (vtkMRMLNode): The selected node.</span>
+<span class="sd">            timepoint (str): The timepoint for which to set the label volume.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">:</span>
+            <span class="n">viewnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Red&quot;</span><span class="p">,</span> <span class="s2">&quot;Yellow&quot;</span><span class="p">,</span> <span class="s2">&quot;Green&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">:</span>
+            <span class="n">viewnames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Red_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Yellow_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Green_2&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;timepoint must be &#39;timepoint1&#39; or &#39;timepoint2&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">viewname</span> <span class="ow">in</span> <span class="n">viewnames</span><span class="p">:</span>
+            <span class="n">compositeNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">layoutManager</span><span class="p">()</span><span class="o">.</span><span class="n">sliceWidget</span><span class="p">(</span><span class="n">viewname</span><span class="p">)</span><span class="o">.</span><span class="n">sliceLogic</span><span class="p">()</span><span class="o">.</span><span class="n">GetSliceCompositeNode</span><span class="p">()</span>
+            <span class="n">compositeNode</span><span class="o">.</span><span class="n">SetLabelVolumeID</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">GetID</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="UIHelperMixin.onNodeSelected">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.onNodeSelected">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onNodeSelected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when a node is selected in the input selector.</span>
+<span class="sd">        Sets the node as the background volume for the slice views.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            node (vtkMRMLNode): The selected node.</span>
+<span class="sd">            timepoint (str): The timepoint for which to set the background volume.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">node</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setBackgroundVolumes</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="UIHelperMixin.onShowChannelButton">
+<a class="viewcode-back" href="../../utils.ui_helper_utils.html#utils.ui_helper_utils.UIHelperMixin.onShowChannelButton">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onShowChannelButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checked</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">inputSelector</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the show channel button is clicked.</span>
+<span class="sd">        Sets the selected node as the background volume for the slice views and makes sure that the views are aligned</span>
+<span class="sd">        with the acquisition plane of the volume.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            checked (bool): Whether the button is checked or not.</span>
+<span class="sd">            timepoint (str): The timepoint for which to show the channel.</span>
+<span class="sd">            inputSelector (qt.QComboBox): The input selector for the channel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Triggered onShowChannelButton with checked </span><span class="si">{</span><span class="n">checked</span><span class="si">}</span><span class="s2">, timepoint </span><span class="si">{</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">, inputSelector </span><span class="si">{</span><span class="n">inputSelector</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># show that node</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">inputSelector</span><span class="o">.</span><span class="n">currentNode</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">node</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setBackgroundVolumes</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">rotateSliceToLowestVolumeAxes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># rotate to volume plane</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No node selected&quot;</span><span class="p">)</span></div>
+</div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+utils.segmentation_utils
+========================
+
+.. py:module:: utils.segmentation_utils
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.segmentation_utils.SegmentationMixin
+
+
+Module Contents
+---------------
+
+.. py:class:: SegmentationMixin(parameterNode, ui)
+
+   Mixin class for the segmentation functionality of the RANO module.
+   This class handles the segmentation of the input volumes and the loading of the results into Slicer.
+   It also handles the progress bar and the cancellation of the segmentation process.
+
+
+   .. py:attribute:: start_time_t1
+      :value: None
+
+
+      Start time for the first segmentation process
+
+
+   .. py:attribute:: start_time_t2
+      :value: None
+
+
+      Start time for the second segmentation process
+
+
+   .. py:attribute:: _parameterNode
+
+      Parameter node for the RANO module
+
+
+   .. py:attribute:: ui
+
+      UI for the RANO module
+
+
+   .. py:method:: onCalcSegmentationsButton()
+
+      Run processing when user clicks the "Calculate Segmentations" button.
+
+
+
+   .. py:method:: onCliNodeStatusUpdate(cliNode, event, progressBar, task_dir, tmp_path_out, output_segmentation, input_volume_list, timepoint, original_log_level=32)
+
+      Callback function to handle the status update of the CLI node.
+
+      :param cliNode: The CLI node that is being observed.
+      :param event: The event that triggered the callback.
+      :param progressBar: The progress bar to update.
+      :param task_dir: The task directory for the segmentation.
+      :param tmp_path_out: The temporary output path for the segmentation.
+      :param output_segmentation: The output segmentation node.
+      :param input_volume_list: The list of input volume nodes.
+      :param timepoint: The timepoint for the segmentation ('timepoint1' or 'timepoint2').
+      :param original_log_level: The original log level for the Slicer application.
+
+
+
+   .. py:method:: onSegmentationCliNodeSuccess(input_volume_list, output_segmentation, task_dir, timepoint, tmp_path_out)
+
+      Callback function to handle the success of the CLI node.
+      This function loads the output segmentation into Slicer and applies the transformation if required.
+
+      :param input_volume_list: The list of input volume nodes.
+      :param output_segmentation: The output segmentation node.
+      :param task_dir: The task directory for the segmentation.
+      :param timepoint: The timepoint for the segmentation ('timepoint1' or 'timepoint2').
+      :param tmp_path_out: The temporary output path for the segmentation.
+
+
+
+   .. py:method:: onCancel(cliNode, progressBar)
+
+
+   .. py:method:: ImportLabelmapToSegmentationNodeWithBackgroundSegment(loadedLabelVolumeNode, output_segmentation)
+      :staticmethod:
+
+
+      Import the labelVolumeNode into the segmentation node. The labels in the labelVolumeNode are increased by 1
+      temporarily to include the background label (0) and then decreased by 1 again to have the original labels.
+      (This is because slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode ignores the background label)
+      Finally, the segmentIDs are reduced by 1 to have the correct segmentIDs in the segmentation node.
+
+      Args:
+      loadedLabelVolumeNode: The label volume node to import.
+      output_segmentation: The output segmentation node to import the label volume into.
+
+
+
+   .. py:method:: setDefaultSegmentFor2DMeasurements(defaultSegmentName='ETC')
+
+      Set the default segment for 2D measurements in the segment selector widget.
+      This function checks if the default segment exists in either of the segmentations
+      and sets it as the current segment in the segment selector widget.
+
+      :param defaultSegmentName: The name of the default segment to set.
+
+
+
+   .. py:method:: get_task_dir(model_key, parameterNode)
+      :staticmethod:
+
+
+      Get the task directory for the given model key.
+
+      :param model_key: The key of the model to get the task directory for.
+      :param parameterNode: The parameter node for the RANO module.
+
+      :returns: The task directory for the given model key.
+
+
+

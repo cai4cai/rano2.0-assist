@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.results_table_utils &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.results_table_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.results_table_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">vtk</span>
+
+
+<div class="viewcode-block" id="ResultsTableMixin">
+<a class="viewcode-back" href="../../utils.results_table_utils.html#utils.results_table_utils.ResultsTableMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResultsTableMixin</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for creating a results table for the RANO module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">,</span> <span class="n">lineNodePairs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">lineNodePairs</span>
+
+<div class="viewcode-block" id="ResultsTableMixin.calculate_results_table">
+<a class="viewcode-back" href="../../utils.results_table_utils.html#utils.results_table_utils.ResultsTableMixin.calculate_results_table">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_results_table</span><span class="p">(</span><span class="n">lineNodePairs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the results table for the RANO module.</span>
+<span class="sd">        This function calculates the perpendicular product and volume for each line pair</span>
+<span class="sd">        and adds the results to a table.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            lineNodePairs: List of line node pairs for the RANO module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">instance_segmentations_matched</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RANOWidget</span><span class="o">.</span><span class="n">instance_segmentations_matched</span>
+
+        <span class="c1"># calculate the perpendicular product for each line pair</span>
+        <span class="n">default_row</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;⊥ Prod t1&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;⊥ Prod t2&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;δ (⊥ Prod) [%]&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;Vol t1&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;Vol t2&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;δ (Vol) [%]&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}</span>
+        <span class="n">lesion_info</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">default_row</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">lineNodePairs</span><span class="p">:</span>
+            <span class="n">l1</span><span class="p">,</span> <span class="n">l2</span> <span class="o">=</span> <span class="n">pair</span>
+            <span class="n">prod</span> <span class="o">=</span> <span class="n">l1</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">()</span> <span class="o">*</span> <span class="n">l2</span><span class="o">.</span><span class="n">GetLineLengthWorld</span><span class="p">()</span>
+            <span class="n">les_idx</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span>
+            <span class="n">tp</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span>
+            <span class="n">tp_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;timepoint&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">tp</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span><span class="p">:</span>
+                <span class="n">lesion_info</span><span class="p">[</span><span class="n">les_idx</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;⊥ Prod t1&quot;</span><span class="p">:</span> <span class="n">prod</span><span class="p">})</span>
+                <span class="k">if</span> <span class="n">instance_segmentations_matched</span><span class="p">:</span>
+                    <span class="n">lesion_info</span><span class="p">[</span><span class="n">les_idx</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;Vol t1&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">instance_segmentations_matched</span><span class="p">[</span><span class="n">tp_idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">les_idx</span><span class="p">)})</span>
+            <span class="k">elif</span> <span class="n">tp</span> <span class="o">==</span> <span class="s1">&#39;timepoint2&#39;</span><span class="p">:</span>
+                <span class="n">lesion_info</span><span class="p">[</span><span class="n">les_idx</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;⊥ Prod t2&quot;</span><span class="p">:</span> <span class="n">prod</span><span class="p">})</span>
+                <span class="k">if</span> <span class="n">instance_segmentations_matched</span><span class="p">:</span>
+                    <span class="n">lesion_info</span><span class="p">[</span><span class="n">les_idx</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;Vol t2&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">instance_segmentations_matched</span><span class="p">[</span><span class="n">tp_idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">les_idx</span><span class="p">)})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;timepoint must be &#39;timepoint1&#39; or &#39;timepoint2&#39; but is </span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add another key for the relative change in perpendicular product and relative change in volume</span>
+        <span class="k">for</span> <span class="n">les_idx</span><span class="p">,</span> <span class="n">les_dict</span> <span class="ow">in</span> <span class="n">lesion_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;⊥ Prod t1&quot;</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;⊥ Prod t2&quot;</span><span class="p">]):</span>
+                <span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;δ (⊥ Prod) [%]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;⊥ Prod t2&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;⊥ Prod t1&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;⊥ Prod t1&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;Vol t1&quot;</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;Vol t2&quot;</span><span class="p">]):</span>
+                <span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;δ (Vol) [%]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;Vol t2&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;Vol t1&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">les_dict</span><span class="p">[</span><span class="s2">&quot;Vol t1&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>
+
+
+        <span class="c1"># convert to table_dict</span>
+        <span class="n">table_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Lesion Index&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">lesion_info</span><span class="o">.</span><span class="n">keys</span><span class="p">()]}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">default_row</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">table_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">les_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">les_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">les_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">les_dict</span> <span class="ow">in</span> <span class="n">lesion_info</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+        <span class="c1"># show the table in the table view</span>
+        <span class="n">ResultsTableMixin</span><span class="o">.</span><span class="n">present_table</span><span class="p">(</span><span class="n">table_dict</span><span class="p">,</span> <span class="n">delete_existing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ResultsTableMixin.present_table">
+<a class="viewcode-back" href="../../utils.results_table_utils.html#utils.results_table_utils.ResultsTableMixin.present_table">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">present_table</span><span class="p">(</span><span class="n">table_dict</span><span class="p">,</span> <span class="n">delete_existing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Present a table in the table view.</span>
+<span class="sd">        This function creates a table node in the scene and adds the columns and values</span>
+<span class="sd">        to the table. It also shows the table in the view layout.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            table_dict (dict): Dictionary containing the table data.</span>
+<span class="sd">            delete_existing (bool): If True, delete existing table node with the same name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># show table based on table_dict</span>
+        <span class="c1"># Create a table from result arrays</span>
+        <span class="c1"># add new node if it doesn&#39;t exist</span>
+        <span class="n">tableName</span> <span class="o">=</span> <span class="s2">&quot;Results&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tableName</span> <span class="ow">in</span> <span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodesByClass</span><span class="p">(</span><span class="s2">&quot;vtkMRMLTableNode&quot;</span><span class="p">)]:</span>
+            <span class="n">resultTableNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">AddNewNodeByClass</span><span class="p">(</span><span class="s2">&quot;vtkMRMLTableNode&quot;</span><span class="p">,</span> <span class="n">tableName</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">delete_existing</span><span class="p">:</span>
+                <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">RemoveNode</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetFirstNodeByName</span><span class="p">(</span><span class="n">tableName</span><span class="p">))</span>
+                <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">AddNewNodeByClass</span><span class="p">(</span><span class="s2">&quot;vtkMRMLTableNode&quot;</span><span class="p">,</span> <span class="n">tableName</span><span class="p">)</span>
+            <span class="n">resultTableNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetFirstNodeByName</span><span class="p">(</span><span class="n">tableName</span><span class="p">)</span>
+        <span class="c1"># add columns to the table</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">table_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkStringArray</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDoubleArray</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Table values must be of type str, int or float&quot;</span><span class="p">)</span>
+            <span class="n">col</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="c1"># add values to the columns</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">col</span><span class="o">.</span><span class="n">InsertNextValue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+            <span class="c1"># add column to the table</span>
+            <span class="n">resultTableNode</span><span class="o">.</span><span class="n">AddColumn</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+        <span class="c1"># Show table in view layout</span>
+        <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">applicationLogic</span><span class="p">()</span><span class="o">.</span><span class="n">GetSelectionNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetReferenceActiveTableID</span><span class="p">(</span><span class="n">resultTableNode</span><span class="o">.</span><span class="n">GetID</span><span class="p">())</span>
+        <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">applicationLogic</span><span class="p">()</span><span class="o">.</span><span class="n">PropagateTableSelection</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+utils.results_table_utils
+=========================
+
+.. py:module:: utils.results_table_utils
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.results_table_utils.ResultsTableMixin
+
+
+Module Contents
+---------------
+
+.. py:class:: ResultsTableMixin(parameterNode, ui, lineNodePairs)
+
+   Mixin class for creating a results table for the RANO module.
+
+
+   .. py:attribute:: _parameterNode
+
+
+   .. py:attribute:: ui
+
+
+   .. py:attribute:: lineNodePairs
+
+
+   .. py:method:: calculate_results_table(lineNodePairs)
+      :staticmethod:
+
+
+      Calculate the results table for the RANO module.
+      This function calculates the perpendicular product and volume for each line pair
+      and adds the results to a table.
+
+      :param lineNodePairs: List of line node pairs for the RANO module.
+
+
+
+   .. py:method:: present_table(table_dict, delete_existing=False)
+      :staticmethod:
+
+
+      Present a table in the table view.
+      This function creates a table node in the scene and adds the columns and values
+      to the table. It also shows the table in the view layout.
+
+      :param table_dict: Dictionary containing the table data.
+      :type table_dict: dict
+      :param delete_existing: If True, delete existing table node with the same name.
+      :type delete_existing: bool
+
+
+

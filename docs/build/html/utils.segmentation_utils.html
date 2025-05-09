@@ -1,0 +1,225 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.segmentation_utils module &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">utils.segmentation_utils module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utils.segmentation_utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-utils.segmentation_utils">
+<span id="utils-segmentation-utils-module"></span><h1>utils.segmentation_utils module<a class="headerlink" href="#module-utils.segmentation_utils" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.segmentation_utils.</span></span><span class="sig-name descname"><span class="pre">SegmentationMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameterNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ui</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Mixin class for the segmentation functionality of the RANO module.
+This class handles the segmentation of the input volumes and the loading of the results into Slicer.
+It also handles the progress bar and the cancellation of the segmentation process.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loadedLabelVolumeNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_segmentation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment" title="Link to this definition"></a></dt>
+<dd><p>Import the labelVolumeNode into the segmentation node. The labels in the labelVolumeNode are increased by 1
+temporarily to include the background label (0) and then decreased by 1 again to have the original labels.
+(This is because slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode ignores the background label)
+Finally, the segmentIDs are reduced by 1 to have the correct segmentIDs in the segmentation node.</p>
+<p>Args:
+loadedLabelVolumeNode: The label volume node to import.
+output_segmentation: The output segmentation node to import the label volume into.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.get_task_dir">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_task_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterNode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.get_task_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.get_task_dir" title="Link to this definition"></a></dt>
+<dd><p>Get the task directory for the given model key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_key</strong> – The key of the model to get the task directory for.</p></li>
+<li><p><strong>parameterNode</strong> – The parameter node for the RANO module.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The task directory for the given model key.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.onCalcSegmentationsButton">
+<span class="sig-name descname"><span class="pre">onCalcSegmentationsButton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.onCalcSegmentationsButton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.onCalcSegmentationsButton" title="Link to this definition"></a></dt>
+<dd><p>Run processing when user clicks the “Calculate Segmentations” button.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.onCancel">
+<span class="sig-name descname"><span class="pre">onCancel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cliNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progressBar</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.onCancel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.onCancel" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.onCliNodeStatusUpdate">
+<span class="sig-name descname"><span class="pre">onCliNodeStatusUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cliNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progressBar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_segmentation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_volume_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timepoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.onCliNodeStatusUpdate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.onCliNodeStatusUpdate" title="Link to this definition"></a></dt>
+<dd><p>Callback function to handle the status update of the CLI node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cliNode</strong> – The CLI node that is being observed.</p></li>
+<li><p><strong>event</strong> – The event that triggered the callback.</p></li>
+<li><p><strong>progressBar</strong> – The progress bar to update.</p></li>
+<li><p><strong>task_dir</strong> – The task directory for the segmentation.</p></li>
+<li><p><strong>tmp_path_out</strong> – The temporary output path for the segmentation.</p></li>
+<li><p><strong>output_segmentation</strong> – The output segmentation node.</p></li>
+<li><p><strong>input_volume_list</strong> – The list of input volume nodes.</p></li>
+<li><p><strong>timepoint</strong> – The timepoint for the segmentation (‘timepoint1’ or ‘timepoint2’).</p></li>
+<li><p><strong>original_log_level</strong> – The original log level for the Slicer application.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.onSegmentationCliNodeSuccess">
+<span class="sig-name descname"><span class="pre">onSegmentationCliNodeSuccess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_volume_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_segmentation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timepoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path_out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.onSegmentationCliNodeSuccess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.onSegmentationCliNodeSuccess" title="Link to this definition"></a></dt>
+<dd><p>Callback function to handle the success of the CLI node.
+This function loads the output segmentation into Slicer and applies the transformation if required.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_volume_list</strong> – The list of input volume nodes.</p></li>
+<li><p><strong>output_segmentation</strong> – The output segmentation node.</p></li>
+<li><p><strong>task_dir</strong> – The task directory for the segmentation.</p></li>
+<li><p><strong>timepoint</strong> – The timepoint for the segmentation (‘timepoint1’ or ‘timepoint2’).</p></li>
+<li><p><strong>tmp_path_out</strong> – The temporary output path for the segmentation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.setDefaultSegmentFor2DMeasurements">
+<span class="sig-name descname"><span class="pre">setDefaultSegmentFor2DMeasurements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultSegmentName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ETC'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/segmentation_utils.html#SegmentationMixin.setDefaultSegmentFor2DMeasurements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.setDefaultSegmentFor2DMeasurements" title="Link to this definition"></a></dt>
+<dd><p>Set the default segment for 2D measurements in the segment selector widget.
+This function checks if the default segment exists in either of the segmentations
+and sets it as the current segment in the segment selector widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>defaultSegmentName</strong> – The name of the default segment to set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.start_time_t1">
+<span class="sig-name descname"><span class="pre">start_time_t1</span></span><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.start_time_t1" title="Link to this definition"></a></dt>
+<dd><p>Start time for the first segmentation process</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.start_time_t2">
+<span class="sig-name descname"><span class="pre">start_time_t2</span></span><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.start_time_t2" title="Link to this definition"></a></dt>
+<dd><p>Start time for the second segmentation process</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.ui">
+<span class="sig-name descname"><span class="pre">ui</span></span><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.ui" title="Link to this definition"></a></dt>
+<dd><p>UI for the RANO module</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

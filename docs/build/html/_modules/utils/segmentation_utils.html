@@ -1,0 +1,549 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.segmentation_utils &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.segmentation_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.segmentation_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ctk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ui_helper_utils</span><span class="p">,</span> <span class="n">measurements2D_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">module_path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.rano_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_segmentation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span><span class="p">,</span> <span class="n">dynunet_pipeline_path</span>
+
+
+<div class="viewcode-block" id="SegmentationMixin">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SegmentationMixin</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for the segmentation functionality of the RANO module.</span>
+<span class="sd">    This class handles the segmentation of the input volumes and the loading of the results into Slicer.</span>
+<span class="sd">    It also handles the progress bar and the cancellation of the segmentation process.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t1</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start time for the first segmentation process&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t2</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start time for the second segmentation process&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter node for the RANO module&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;UI for the RANO module&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SegmentationMixin.onCalcSegmentationsButton">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onCalcSegmentationsButton">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCalcSegmentationsButton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run processing when user clicks the &quot;Calculate Segmentations&quot; button.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># unset start times for the next segmentation run</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t2</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">original_log_level</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">pythonConsoleLogLevel</span><span class="p">()</span>
+
+        <span class="c1"># timepoint 1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># assemble input channel nodes</span>
+            <span class="n">input_node_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t1&quot;</span><span class="p">),</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel2_t1&quot;</span><span class="p">),</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel3_t1&quot;</span><span class="p">),</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel4_t1&quot;</span><span class="p">)]</span> <span class="k">if</span> <span class="n">n</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Passing &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">input_node_list</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; input channels&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Compute output</span>
+            <span class="n">model_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">currentText</span>
+            <span class="n">task_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">)</span>
+            <span class="n">tmp_path_in</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="s2">&quot;timepoint1&quot;</span><span class="p">,</span> <span class="s2">&quot;tmp_in&quot;</span><span class="p">)</span>
+            <span class="n">tmp_path_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="s2">&quot;timepoint1&quot;</span><span class="p">,</span> <span class="s2">&quot;tmp_out&quot;</span><span class="p">)</span>
+
+            <span class="c1"># set the parameter node to indicate that the segmentation has not yet been loaded</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;segmentation_loaded_timepoint1&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+
+            <span class="n">progressBar</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">createProgressDialog</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">mainWindow</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span>
+                                                           <span class="n">windowTitle</span><span class="o">=</span><span class="s2">&quot;Segmentation timepoint 1&quot;</span><span class="p">)</span>
+            <span class="c1"># set progress to 0</span>
+            <span class="n">progressBar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># make the progress bar wider</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>  <span class="c1"># to create the progress bar before the resizing</span>
+            <span class="n">progressBar</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">progressBar</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">progressBar</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+
+            <span class="c1"># a process is started in a separate thread, so the GUI remains responsive</span>
+            <span class="n">cliNode</span> <span class="o">=</span> <span class="n">run_segmentation</span><span class="p">(</span><span class="n">input_node_list</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">,</span>
+                                       <span class="n">task_dir</span><span class="p">,</span>
+                                       <span class="n">tmp_path_in</span><span class="p">,</span>
+                                       <span class="n">tmp_path_out</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_python_path</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                                       <span class="p">)</span>
+
+            <span class="n">output_segmentation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector</span><span class="o">.</span><span class="n">currentNode</span><span class="p">()</span>
+
+            <span class="c1"># clear the output segmentation node</span>
+            <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetSegmentation</span><span class="p">()</span><span class="o">.</span><span class="n">RemoveAllSegments</span><span class="p">()</span>
+
+            <span class="c1"># remove any transforms from the output segmentation node</span>
+            <span class="n">transformNodeID</span> <span class="o">=</span> <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetTransformNodeID</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">transformNodeID</span><span class="p">:</span>
+                <span class="n">transformNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodeByID</span><span class="p">(</span><span class="n">transformNodeID</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">transformNode</span><span class="p">:</span>
+                    <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">RemoveNode</span><span class="p">(</span><span class="n">transformNode</span><span class="p">)</span>
+
+
+            <span class="c1"># observe the cliNode to get notified when the cli module makes progress (to update progress bar) and</span>
+            <span class="c1"># finishes execution to load the results from drive into Slicer</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ModifiedEvent&#39;</span><span class="p">]:</span>
+                <span class="n">cliNode</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="n">event</span><span class="p">,</span>
+                                    <span class="k">lambda</span> <span class="n">c</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onCliNodeStatusUpdate</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">,</span>
+                                                                            <span class="n">output_segmentation</span><span class="p">,</span> <span class="n">input_node_list</span><span class="p">,</span>
+                                                                            <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">,</span>
+                                                                            <span class="n">original_log_level</span><span class="o">=</span><span class="n">original_log_level</span><span class="p">))</span>
+            <span class="n">progressBar</span><span class="o">.</span><span class="n">canceled</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onCancel</span><span class="p">(</span><span class="n">cliNode</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">errorDisplay</span><span class="p">(</span><span class="s2">&quot;Failed to compute segmentation: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+
+        <span class="c1"># timepoint 2</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># assemble input channel nodes</span>
+            <span class="n">input_node_list_t2</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel1_t2&quot;</span><span class="p">),</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel2_t2&quot;</span><span class="p">),</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel3_t2&quot;</span><span class="p">),</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;InputVolume_channel4_t2&quot;</span><span class="p">)]</span> <span class="k">if</span> <span class="n">n</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Passing &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">input_node_list_t2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; input channels&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Compute output</span>
+            <span class="n">model_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">modelComboBox</span><span class="o">.</span><span class="n">currentText</span>
+            <span class="n">task_dir_t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="p">)</span>
+            <span class="n">tmp_path_in_t2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="s2">&quot;timepoint2&quot;</span><span class="p">,</span> <span class="s2">&quot;tmp_in&quot;</span><span class="p">)</span>
+            <span class="n">tmp_path_out_t2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="s2">&quot;timepoint2&quot;</span><span class="p">,</span> <span class="s2">&quot;tmp_out&quot;</span><span class="p">)</span>
+
+            <span class="c1"># set the parameter node to indicate that the segmentation has not yet been loaded</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="s2">&quot;segmentation_loaded_timepoint2&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+
+            <span class="n">progressBar_t2</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">createProgressDialog</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">mainWindow</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span>
+                                                              <span class="n">windowTitle</span><span class="o">=</span><span class="s2">&quot;Segmentation timepoint 2&quot;</span><span class="p">)</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>  <span class="c1"># to render the progress bar before the resizing</span>
+            <span class="c1"># move the progress bar below the other one, so it doesn&#39;t overlap</span>
+            <span class="n">progressBar_t2</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">progressBar</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">progressBar</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">progressBar</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># make the progress bar wider</span>
+            <span class="n">progressBar_t2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">progressBar_t2</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">progressBar_t2</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>  <span class="c1"># to create the progress bar before the resizing</span>
+
+            <span class="n">cliNode_t2</span> <span class="o">=</span> <span class="n">run_segmentation</span><span class="p">(</span><span class="n">input_node_list_t2</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox_t2</span><span class="o">.</span><span class="n">checked</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">inputisbetCheckBox_t2</span><span class="o">.</span><span class="n">checked</span><span class="p">,</span>
+                                          <span class="n">task_dir_t2</span><span class="p">,</span>
+                                          <span class="n">tmp_path_in_t2</span><span class="p">,</span>
+                                          <span class="n">tmp_path_out_t2</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_python_path</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                                          <span class="p">)</span>
+
+            <span class="n">output_segmentation_t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">outputSelector_t2</span><span class="o">.</span><span class="n">currentNode</span><span class="p">()</span>
+
+            <span class="c1"># clear the output segmentation node</span>
+            <span class="n">output_segmentation_t2</span><span class="o">.</span><span class="n">GetSegmentation</span><span class="p">()</span><span class="o">.</span><span class="n">RemoveAllSegments</span><span class="p">()</span>
+
+            <span class="c1"># remove any transforms from the output segmentation node</span>
+            <span class="n">transformNodeID</span> <span class="o">=</span> <span class="n">output_segmentation_t2</span><span class="o">.</span><span class="n">GetTransformNodeID</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">transformNodeID</span><span class="p">:</span>
+                <span class="n">transformNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodeByID</span><span class="p">(</span><span class="n">transformNodeID</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">transformNode</span><span class="p">:</span>
+                    <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">RemoveNode</span><span class="p">(</span><span class="n">transformNode</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ModifiedEvent&#39;</span><span class="p">]:</span>
+                <span class="n">cliNode_t2</span><span class="o">.</span><span class="n">AddObserver</span><span class="p">(</span><span class="n">event</span><span class="p">,</span>
+                                       <span class="k">lambda</span> <span class="n">c</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onCliNodeStatusUpdate</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">progressBar_t2</span><span class="p">,</span> <span class="n">task_dir_t2</span><span class="p">,</span>
+                                                                               <span class="n">tmp_path_out_t2</span><span class="p">,</span> <span class="n">output_segmentation_t2</span><span class="p">,</span>
+                                                                               <span class="n">input_node_list_t2</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">,</span>
+                                                                               <span class="n">original_log_level</span><span class="o">=</span><span class="n">original_log_level</span><span class="p">))</span>
+
+            <span class="n">progressBar_t2</span><span class="o">.</span><span class="n">canceled</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">onCancel</span><span class="p">(</span><span class="n">cliNode_t2</span><span class="p">,</span> <span class="n">progressBar_t2</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">errorDisplay</span><span class="p">(</span><span class="s2">&quot;Failed to compute segmentation: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">cliNode_t2</span></div>
+
+
+
+<div class="viewcode-block" id="SegmentationMixin.onCliNodeStatusUpdate">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onCliNodeStatusUpdate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCliNodeStatusUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span>
+                              <span class="n">input_volume_list</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">original_log_level</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback function to handle the status update of the CLI node.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cliNode: The CLI node that is being observed.</span>
+<span class="sd">            event: The event that triggered the callback.</span>
+<span class="sd">            progressBar: The progress bar to update.</span>
+<span class="sd">            task_dir: The task directory for the segmentation.</span>
+<span class="sd">            tmp_path_out: The temporary output path for the segmentation.</span>
+<span class="sd">            output_segmentation: The output segmentation node.</span>
+<span class="sd">            input_volume_list: The list of input volume nodes.</span>
+<span class="sd">            timepoint: The timepoint for the segmentation (&#39;timepoint1&#39; or &#39;timepoint2&#39;).</span>
+<span class="sd">            original_log_level: The original log level for the Slicer application.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Received an event &#39;</span><span class="si">%s</span><span class="s2">&#39; from class &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">GetClassName</span><span class="p">()))</span>
+        <span class="c1"># print(f&quot;Status of CLI for {timepoint} is {cliNode.GetStatusString()}&quot;)</span>
+        <span class="k">if</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">IsA</span><span class="p">(</span><span class="s1">&#39;vtkMRMLCommandLineModuleNode&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">GetStatus</span><span class="p">()</span> <span class="o">==</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">Completed</span><span class="p">:</span>  <span class="c1"># do this when the cli module sends a progress update (not when it is done)</span>
+            <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint2&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">progressBar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">cliNode</span><span class="o">.</span><span class="n">GetProgress</span><span class="p">())</span>
+            <span class="c1"># print(&quot;Status is %s&quot; % cliNode.GetStatusString())</span>
+            <span class="c1"># print(&quot;cli update: progressBar value is %s&quot; % cliNode.GetProgress(), flush=True)</span>
+            <span class="k">if</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">GetProgress</span><span class="p">()</span> <span class="o">==</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="c1"># disable stderr output from VTK etc that come from the segmentation CLI</span>
+                <span class="n">logLevelNone</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ctk</span><span class="o">.</span><span class="n">ctkErrorLogLevel</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">debug</span><span class="p">:</span> <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">setPythonConsoleLogLevel</span><span class="p">(</span><span class="n">logLevelNone</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">GetStatus</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">Completed</span><span class="p">:</span>  <span class="c1"># do this when the cli module is done</span>
+            <span class="c1"># print(&quot;Status is %s&quot; % cliNode.GetStatusString())</span>
+
+            <span class="c1"># if cliNode.GetStatus() &amp; cliNode.ErrorsMask:  # upon error</span>
+            <span class="c1">#     outputText = cliNode.GetOutputText()</span>
+            <span class="c1">#     errorText = cliNode.GetErrorText()</span>
+            <span class="c1">#     print(&quot;CLI output text: \n&quot; + outputText, flush=True)</span>
+            <span class="c1">#     print(&quot;CLI execution failed: \n&quot; + errorText, flush=True)</span>
+            <span class="c1"># else:  # upon success</span>
+            <span class="n">progressBar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t1</span> <span class="k">if</span> <span class="n">timepoint</span> <span class="o">==</span> <span class="s1">&#39;timepoint1&#39;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t2</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Segmentation for </span><span class="si">{</span><span class="n">timepoint</span><span class="si">}</span><span class="s2"> &#39;</span><span class="si">{</span><span class="n">cliNode</span><span class="o">.</span><span class="n">GetStatusString</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39; after </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLI output text: </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">cliNode</span><span class="o">.</span><span class="n">GetOutputText</span><span class="p">(),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># print(&quot;CLI error text: \n&quot; + cliNode.GetErrorText(), flush=True)  # commented out here, because stderr is printed by VTK to the console already</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onSegmentationCliNodeSuccess</span><span class="p">(</span><span class="n">input_volume_list</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span>
+                                              <span class="n">task_dir</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">)</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">setPythonConsoleLogLevel</span><span class="p">(</span><span class="n">original_log_level</span><span class="p">)</span>  <span class="c1"># restore original log level</span></div>
+
+
+
+<div class="viewcode-block" id="SegmentationMixin.onSegmentationCliNodeSuccess">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onSegmentationCliNodeSuccess">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onSegmentationCliNodeSuccess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_volume_list</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span>
+                                     <span class="n">timepoint</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback function to handle the success of the CLI node.</span>
+<span class="sd">        This function loads the output segmentation into Slicer and applies the transformation if required.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            input_volume_list: The list of input volume nodes.</span>
+<span class="sd">            output_segmentation: The output segmentation node.</span>
+<span class="sd">            task_dir: The task directory for the segmentation.</span>
+<span class="sd">            timepoint: The timepoint for the segmentation (&#39;timepoint1&#39; or &#39;timepoint2&#39;).</span>
+<span class="sd">            tmp_path_out: The temporary output path for the segmentation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get output files created by external inference process</span>
+        <span class="c1"># if no registration is required</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
+            <span class="n">tmp_file_path_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;output.nii.gz&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># want to load the segmentation in the segmentation input template space</span>
+            <span class="n">tmp_file_path_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;preprocessed&quot;</span><span class="p">,</span> <span class="s2">&quot;registered&quot;</span><span class="p">,</span> <span class="s2">&quot;output.nii.gz&quot;</span><span class="p">)</span>
+            <span class="n">tmp_transform_file_img0</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path_out</span><span class="p">,</span> <span class="s2">&quot;preprocessed&quot;</span><span class="p">,</span> <span class="s2">&quot;registered&quot;</span><span class="p">,</span> <span class="s2">&quot;image_0000&quot;</span><span class="p">,</span>
+                                                   <span class="s2">&quot;img_tmp_0000_ANTsregistered_0GenericAffine.mat&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check if the output file exists</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmp_file_path_out</span><span class="p">):</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">errorDisplay</span><span class="p">(</span><span class="s2">&quot;Output segmentation file not found: &quot;</span> <span class="o">+</span> <span class="n">tmp_file_path_out</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># load the transformation file</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmp_transform_file_img0</span><span class="p">):</span>
+                <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">errorDisplay</span><span class="p">(</span><span class="s2">&quot;Transformation file not found: &quot;</span> <span class="o">+</span> <span class="n">tmp_transform_file_img0</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="c1"># load the transform</span>
+            <span class="n">transformNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">loadTransform</span><span class="p">(</span><span class="n">tmp_transform_file_img0</span><span class="p">)</span>
+            <span class="c1"># set the transform name</span>
+            <span class="n">transformNode</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="s2">&quot;Transform_&quot;</span> <span class="o">+</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="s2">&quot;_channel1&quot;</span><span class="p">)</span>
+            <span class="c1"># invert the transform</span>
+            <span class="n">transformNode</span><span class="o">.</span><span class="n">Inverse</span><span class="p">()</span>
+            <span class="n">transformNode</span><span class="o">.</span><span class="n">InverseName</span><span class="p">()</span>
+
+        <span class="c1"># get previous reference image for the output segmentation</span>
+        <span class="n">referenceImageVolumeNode</span> <span class="o">=</span> <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s1">&#39;referenceImageGeometryRef&#39;</span><span class="p">)</span>
+        <span class="c1"># delete the previous reference image</span>
+        <span class="k">if</span> <span class="n">referenceImageVolumeNode</span><span class="p">:</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">RemoveNode</span><span class="p">(</span><span class="n">referenceImageVolumeNode</span><span class="p">)</span>
+        <span class="c1"># load the file as a labelVolumeNode</span>
+        <span class="n">loadedLabelVolumeNode</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">loadLabelVolume</span><span class="p">(</span><span class="n">tmp_file_path_out</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;show&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+        <span class="n">loadedLabelVolumeNode</span><span class="o">.</span><span class="n">SetHideFromEditors</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># hide the volume from the subject hierarchy</span>
+
+        <span class="n">segmentation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">,</span>
+                                                                                  <span class="n">output_segmentation</span><span class="p">)</span>
+
+        <span class="c1"># set labelVolumeNode as the reference image for the output segmentation</span>
+        <span class="n">output_segmentation</span><span class="o">.</span><span class="n">SetReferenceImageGeometryParameterFromVolumeNode</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">)</span>
+
+        <span class="c1"># rename the segments</span>
+        <span class="c1"># which structures were predicted by the neural network (including background (0))</span>
+        <span class="n">predictedStructureVals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">arrayFromVolume</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">))))</span>
+        <span class="c1"># load the label dictionary</span>
+        <span class="n">label_names_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_dir</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;label_names.json&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_names_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">jsonfile</span><span class="p">:</span>
+            <span class="n">label_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">seg_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">segmentation</span><span class="o">.</span><span class="n">GetNumberOfSegments</span><span class="p">()):</span>
+            <span class="n">slicer</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>  <span class="c1"># to keep the GUI responsive</span>
+            <span class="n">segment</span> <span class="o">=</span> <span class="n">segmentation</span><span class="o">.</span><span class="n">GetNthSegment</span><span class="p">(</span><span class="n">seg_idx</span><span class="p">)</span>
+            <span class="n">orig_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">predictedStructureVals</span><span class="p">[</span><span class="n">seg_idx</span><span class="p">])</span>
+            <span class="n">segment</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">label_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">orig_idx</span><span class="p">)])</span>
+
+        <span class="c1"># render in 3D</span>
+        <span class="n">output_segmentation</span><span class="o">.</span><span class="n">CreateClosedSurfaceRepresentation</span><span class="p">()</span>
+
+        <span class="c1"># make some segments invisible</span>
+        <span class="c1"># make sure there is a displayNode</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">():</span>
+            <span class="n">output_segmentation</span><span class="o">.</span><span class="n">CreateDefaultDisplayNodes</span><span class="p">()</span>
+        <span class="n">displayNode</span> <span class="o">=</span> <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span>
+        <span class="n">ids_to_make_invisible</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">]</span>  <span class="c1"># [&#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;]</span>
+        <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids_to_make_invisible</span><span class="p">:</span>
+            <span class="n">displayNode</span><span class="o">.</span><span class="n">SetSegmentVisibility</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># set opacity</span>
+        <span class="n">displayNode</span><span class="o">.</span><span class="n">SetOpacity3D</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="c1"># show the first volume in the 2D views of the &quot;timepoint&quot; row</span>
+        <span class="n">first_input_volume</span> <span class="o">=</span> <span class="n">input_volume_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ui_helper_utils</span><span class="o">.</span><span class="n">UIHelperMixin</span><span class="o">.</span><span class="n">setBackgroundVolumes</span><span class="p">(</span><span class="n">first_input_volume</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">)</span>
+        <span class="n">measurements2D_utils</span><span class="o">.</span><span class="n">Measurements2DMixin</span><span class="o">.</span><span class="n">setViews</span><span class="p">(</span><span class="n">output_segmentation</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">)</span>
+        <span class="c1"># don&#39;t show the output volume in the 2D views, since the segmentation will be shown. The output volume</span>
+        <span class="c1"># is just kept as a reference image for the segmentation</span>
+        <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">setSliceViewerLayers</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># set flag to indicate that the segmentation was successfully computed and loaded</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">SetParameter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;segmentation_loaded_</span><span class="si">{</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
+
+        <span class="c1"># apply the transform to the output segmentation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">affineregCheckBox</span><span class="o">.</span><span class="n">checked</span><span class="p">:</span>
+            <span class="n">output_segmentation</span><span class="o">.</span><span class="n">SetAndObserveTransformNodeID</span><span class="p">(</span><span class="n">transformNode</span><span class="o">.</span><span class="n">GetID</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setDefaultSegmentFor2DMeasurements</span><span class="p">(</span><span class="s2">&quot;ETC&quot;</span><span class="p">)</span></div>
+
+
+
+    <span class="c1"># add an observer to the progress bar cancel button</span>
+<div class="viewcode-block" id="SegmentationMixin.onCancel">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onCancel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCancel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">):</span>
+        <span class="n">cliNode</span><span class="o">.</span><span class="n">Cancel</span><span class="p">()</span>
+        <span class="n">progressBar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import the labelVolumeNode into the segmentation node. The labels in the labelVolumeNode are increased by 1</span>
+<span class="sd">        temporarily to include the background label (0) and then decreased by 1 again to have the original labels.</span>
+<span class="sd">        (This is because slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode ignores the background label)</span>
+<span class="sd">        Finally, the segmentIDs are reduced by 1 to have the correct segmentIDs in the segmentation node.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        loadedLabelVolumeNode: The label volume node to import.</span>
+<span class="sd">        output_segmentation: The output segmentation node to import the label volume into.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># increase values by 1</span>
+        <span class="n">labelArray</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">arrayFromVolume</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">)</span>
+        <span class="n">labelArray</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">arrayFromVolumeModified</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">)</span>
+        <span class="c1"># convert the labels in the labelVolumeNode into segments of the output segmentation node</span>
+        <span class="n">segmentation</span> <span class="o">=</span> <span class="n">output_segmentation</span><span class="o">.</span><span class="n">GetSegmentation</span><span class="p">()</span>
+        <span class="n">segmentation</span><span class="o">.</span><span class="n">RemoveAllSegments</span><span class="p">()</span>
+        <span class="n">slicer</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">segmentations</span><span class="o">.</span><span class="n">logic</span><span class="p">()</span><span class="o">.</span><span class="n">ImportLabelmapToSegmentationNode</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">,</span>
+                                                                              <span class="n">output_segmentation</span><span class="p">)</span>
+        <span class="c1"># decrease values by 1 again</span>
+        <span class="n">labelArray</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">arrayFromVolumeModified</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">)</span>
+
+        <span class="c1"># reduce the segmentIDs by 1</span>
+        <span class="k">for</span> <span class="n">segID</span> <span class="ow">in</span> <span class="n">segmentation</span><span class="o">.</span><span class="n">GetSegmentIDs</span><span class="p">():</span>
+            <span class="n">old_segment</span> <span class="o">=</span> <span class="n">segmentation</span><span class="o">.</span><span class="n">GetSegment</span><span class="p">(</span><span class="n">segID</span><span class="p">)</span>
+            <span class="n">old_segName</span> <span class="o">=</span> <span class="n">old_segment</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+            <span class="n">new_segID</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">old_segName</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># first change the name of the segment to the new ID</span>
+            <span class="n">old_segment</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">new_segID</span><span class="p">)</span>
+
+            <span class="c1"># add segment with new ID (and new name)</span>
+            <span class="n">segmentation</span><span class="o">.</span><span class="n">AddSegment</span><span class="p">(</span><span class="n">old_segment</span><span class="p">,</span> <span class="n">new_segID</span><span class="p">)</span>
+            <span class="c1"># remove segment with old ID</span>
+            <span class="n">segmentation</span><span class="o">.</span><span class="n">RemoveSegment</span><span class="p">(</span><span class="n">segID</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">segmentation</span></div>
+
+
+
+<div class="viewcode-block" id="SegmentationMixin.setDefaultSegmentFor2DMeasurements">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.setDefaultSegmentFor2DMeasurements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setDefaultSegmentFor2DMeasurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaultSegmentName</span><span class="o">=</span><span class="s2">&quot;ETC&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the default segment for 2D measurements in the segment selector widget.</span>
+<span class="sd">        This function checks if the default segment exists in either of the segmentations</span>
+<span class="sd">        and sets it as the current segment in the segment selector widget.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            defaultSegmentName: The name of the default segment to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check if the default segment exists in either of the segmentations</span>
+        <span class="n">segNode1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;outputSegmentation&quot;</span><span class="p">)</span>
+        <span class="n">segNode2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span><span class="o">.</span><span class="n">GetNodeReference</span><span class="p">(</span><span class="s2">&quot;outputSegmentation_t2&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">segNode</span> <span class="ow">in</span> <span class="p">[</span><span class="n">segNode1</span><span class="p">,</span> <span class="n">segNode2</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">segNode</span><span class="p">:</span>
+                <span class="n">segmentId</span> <span class="o">=</span> <span class="n">segNode</span><span class="o">.</span><span class="n">GetSegmentation</span><span class="p">()</span><span class="o">.</span><span class="n">GetSegmentIdBySegmentName</span><span class="p">(</span><span class="n">defaultSegmentName</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">segmentId</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">setCurrentNode</span><span class="p">(</span><span class="n">segNode</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">SegmentSelectorWidget</span><span class="o">.</span><span class="n">setCurrentSegmentID</span><span class="p">(</span><span class="n">segmentId</span><span class="p">)</span>
+                    <span class="k">break</span></div>
+
+
+<div class="viewcode-block" id="SegmentationMixin.get_task_dir">
+<a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.get_task_dir">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the task directory for the given model key.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_key: The key of the model to get the task directory for.</span>
+<span class="sd">            parameterNode: The parameter node for the RANO module.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            The task directory for the given model key.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model_info_path</span> <span class="o">=</span> <span class="n">parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;model_info_path&quot;</span><span class="p">)</span>
+        <span class="n">task_dir_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dynunet_pipeline_path</span><span class="p">,</span> <span class="s2">&quot;data/tasks&quot;</span><span class="p">))</span>
+        <span class="n">model_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">parameterNode</span><span class="o">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s2">&quot;ModelInfo&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">model_key</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">elif</span> <span class="n">model_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_info</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model key </span><span class="si">{</span><span class="n">model_key</span><span class="si">}</span><span class="s2"> not found in model info&quot;</span><span class="p">)</span>
+
+        <span class="n">task_dir_basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">model_info</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model_key</span><span class="p">)])</span>
+        <span class="n">task_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">model_info_path</span><span class="p">),</span> <span class="n">task_dir_root</span><span class="p">,</span> <span class="n">task_dir_basename</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">task_dir</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

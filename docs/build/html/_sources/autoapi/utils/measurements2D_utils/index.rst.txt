@@ -1,0 +1,414 @@
+utils.measurements2D_utils
+==========================
+
+.. py:module:: utils.measurements2D_utils
+
+.. autoapi-nested-parse::
+
+   This module contains the Measurements2DMixin class, which is used to perform 2D measurements on
+   lesions in medical images. The class provides methods for calculating, displaying, and managing
+   lesion measurements, as well as handling user interactions with the GUI.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.measurements2D_utils.Measurements2DMixin
+   utils.measurements2D_utils.LineNodePair
+   utils.measurements2D_utils.LineNodePairList
+
+
+Module Contents
+---------------
+
+.. py:class:: Measurements2DMixin(parameterNode, ui, lineNodePairs)
+
+   This mixin class provides methods for performing 2D measurements on lesions in medical images.
+   It includes methods for calculating, displaying, and managing lesion measurements, as well as
+   handling user interactions with the GUI.
+
+
+   .. py:attribute:: _parameterNode
+
+      The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
+      so that when the scene is saved and reloaded, these settings are restored.
+
+
+   .. py:attribute:: ui
+
+      The UI elements of the module. This is a dictionary containing all the widgets in the module.
+
+
+   .. py:attribute:: lineNodePairs
+
+      List of line node pairs used for 2D measurements.
+
+
+   .. py:attribute:: instance_segmentations_matched
+      :value: None
+
+
+      List of instance segmentations (numpy arrays) with matching labels across time points.
+
+
+   .. py:attribute:: resampledSegNodes
+      :value: None
+
+
+      List of segmentation nodes (vtkMRMLSegmentationNode) containing the matched instance segmentations.
+
+
+   .. py:attribute:: resampledVolumeNodes
+      :value: None
+
+
+      List of instance segmentations (vtkMRMLLabelMapVolumeNode) transformed and resampled to the reference input volume space.
+
+
+   .. py:attribute:: previous_timepoint_orientation
+
+      Dictionary to store the orientation of the lesions in the previous timepoint to enable consistent 2D measurement orientation across timepoints.
+
+
+   .. py:attribute:: previous_timepoint_center
+
+      Dictionary to store the center of the lesions in the previous timepoint to enable consistent 2D measurement slices across timepoints.
+
+
+   .. py:attribute:: observations
+      :value: []
+
+
+      Store observers for the line nodes to handle user interactions.
+
+
+   .. py:attribute:: observations2
+      :value: []
+
+
+      Store observers for the line nodes to handle user interactions.
+
+
+   .. py:method:: onCalc2DButton()
+
+      This method is called when the "Calculate 2D" button is pressed.
+
+      It performs the following steps:
+      1. Get the selected segmentations and instance segmentations.
+      2. Match the instance segmentations across timepoints.
+      3. Transform and resample the instance segmentations in the original reference image space.
+      4. For each timepoint and lesion, place the RANO lines.
+      5. Evaluate the 2D measurements and store the results in a dictionary.
+      6. Display the results in the UI.
+      7. Update the line pair UI list.
+      8. Calculate the results table.
+
+
+
+   .. py:method:: onToggleShowInstanceSegButton()
+
+      This method is called when the "Show/Hide Lesions" button is pressed. It shows or hides the lesions in the
+      slice views based on the resampled labelmap volumes. In the 3D views they are shown based on the resampled
+      segmentation nodes (because the resampled labelmap volumes are not displayed smoothly in 3D, but voxelized).
+
+
+
+   .. py:method:: onAddLinePairButton(timepoint)
+
+      This method is called when the "Add Lines t1" or "Add Lines t2" button is pressed.
+      It allows the user to add a new line pair for the selected timepoint by placing two lines in the slice views of
+      the corresponding timepoint. The lines are added to the lineNodePairs list and displayed in the UI.
+      :param timepoint: the timepoint for which the line pair is added (e.g., "timepoint1" or "timepoint2")
+
+
+
+   .. py:method:: update_linepair_ui_list()
+
+      This method updates the UI list of line pairs by populating the table with the lesion index, timepoint, and
+      whether the lesion is enhancing, measurable, and target. It also sets the background color of the rows such that
+      rows of the same lesion index are grouped together for better readability.
+
+
+
+   .. py:method:: coords_ijk_to_world(coords_ijk, node)
+
+      Convert the coordinates from IJK to world coordinates.
+
+
+
+   .. py:method:: setViews(node, timepoint)
+      :staticmethod:
+
+
+      Set the views for the line node pair such that the lines are only shown in the views corresponding to the
+      timepoint and the line orientation (sagittal, coronal, axial) of the line pair.
+
+
+
+   .. py:method:: centerTimepointViewsOnFirstMarkupPoint(lineNode, tp)
+      :staticmethod:
+
+
+      Center the slice views and cameras on the first markup point of the line node.
+      :param lineNode: the line node to center on
+      :param tp: the timepoint to center on (e.g., "timepoint1" or "timepoint2")
+
+
+
+   .. py:method:: centerTimepointViewsOnCenterPoint(lineNodePair, tp)
+      :staticmethod:
+
+
+      Center the slice views and cameras on the center point of the line node pair.
+      :param lineNodePair: the line node pair to center on
+      :param tp: the timepoint to center on (e.g., "timepoint1" or "timepoint2")
+
+
+
+.. py:class:: LineNodePair(lesion_idx, timepoint, enhancing=True, measurable=True, target=False)
+
+   Bases: :py:obj:`list`
+
+
+   A class that represents a pair of line nodes for a lesion in a timepoint. The class inherits from list to allow
+   easy access to the line nodes. The class also contains methods to create the line nodes, set and get their
+   coordinates, and set the views for the line nodes. The class also contains methods to create a fiducial node for
+   the text label of the line nodes and to handle events when the line nodes are modified.
+   The class also contains methods to set the enhancing, measurable, and target properties of the line nodes.
+
+   :param lesion_idx: the index of the lesion
+   :param timepoint: the timepoint for which the line nodes are created (e.g., "timepoint1" or "timepoint2")
+   :param enhancing: whether the lesion is enhancing or not (default: True)
+   :param measurable: whether the lesion is measurable or not (default: True)
+   :param target: whether the lesion is a target lesion or not (default: False)
+
+
+   .. py:attribute:: lesion_idx
+
+      Lesion index
+
+
+   .. py:attribute:: timepoint
+
+      Timepoint for which the line node pair is created
+
+
+   .. py:attribute:: enhancing
+      :value: True
+
+
+      Whether the lesion is enhancing or not
+
+
+   .. py:attribute:: measurable
+      :value: True
+
+
+      Whether the lesion is measurable or not
+
+
+   .. py:attribute:: target
+      :value: False
+
+
+      Whether the lesion is a target lesion or not
+
+
+   .. py:attribute:: fiducialNodeForText
+
+      Fiducial node for the text label of the line nodes
+
+
+   .. py:attribute:: observations
+      :value: []
+
+
+      List of observers for the line nodes
+
+
+   .. py:method:: set_coords(coords)
+
+      Set the coordinates of the line nodes to the given world coordinates.
+
+
+
+   .. py:method:: get_coords()
+
+      Get the coordinates of the line nodes in world coordinates.
+
+
+
+   .. py:method:: get_line_lengths()
+
+      Get the lengths of the lines in world coordinates.
+
+
+
+   .. py:method:: get_line_length_product()
+
+      Get the product of the lengths of the lines in world coordinates.
+
+
+
+   .. py:method:: create_twoLineNodes(les_idx, timepoint)
+      :staticmethod:
+
+
+      Create two line nodes for the line pair and set their properties.
+      :param les_idx: the index of the lesion
+      :param timepoint: the timepoint for which the line nodes are created (e.g., "timepoint1" or "timepoint2")
+
+
+
+   .. py:method:: create_fiducialNodeFor_text()
+
+      Create a fiducial node for the text label of the line nodes.
+
+
+
+   .. py:method:: set_color_depending_on_orthogonality(n, e, lineNode1, lineNode2, fiducialNodeForText=None)
+      :staticmethod:
+
+
+      Set the color of the lines depending on whether they are orthogonal or not.
+      :param n: the event name
+      :param e: the event object
+      :param lineNode1: the first line node
+      :param lineNode2: the second line node
+      :param fiducialNodeForText: the fiducial node for the text label of the line nodes
+
+
+
+   .. py:method:: annotate_with_text()
+
+      Annotate the line nodes with the length of the lines in world coordinates.
+
+
+
+   .. py:method:: uponLineNodeModifiedEvent(n, e, lineNode1, lineNode2, fiducialNodeForText)
+
+      This method is called when the line nodes are modified.
+      It sets the color of the lines depending on whether they are orthogonal or not and updates the text label
+      of the line nodes with the length of the lines in world coordinates.
+      :param n: the event name
+      :param e: the event object
+      :param lineNode1: the first line node
+      :param lineNode2: the second line node
+      :param fiducialNodeForText: the fiducial node for the text label of the line nodes
+
+
+
+   .. py:method:: cleanup()
+
+      Cleanup the line node pair by removing the observers and the fiducial node.
+
+
+
+   .. py:method:: __repr__()
+
+      Return repr(self).
+
+
+
+.. py:class:: LineNodePairList
+
+   Bases: :py:obj:`list`
+
+
+   A list of LineNodePair objects. This class inherits from list to allow easy access to the line node pairs.
+   The class also contains methods to add, remove, and modify the line node pairs. The class also contains methods
+   to update the UI and the response assessment based on the line node pairs.
+
+
+   .. py:method:: __delitem__(index)
+
+      Makes sure that line nodes contained in the LineNodePairList are removed from the scene when removed from the list
+
+
+
+   .. py:method:: pop(index)
+
+      Makes sure that line nodes contained in the LineNodePairList are removed from the scene when popped from the list
+
+
+
+   .. py:method:: uponModified()
+
+      This method is called when the line node pairs are modified. It updates the UI and the response assessment
+      based on the line node pairs.
+
+
+
+   .. py:method:: custom_sort(*args, **kwargs)
+
+      Sort the list of LineNodePair objects and return a new LineNodePairList object.
+
+
+
+   .. py:method:: decide_enhancing()
+
+      Logic to decide whether the lesion is enhancing or not. For now, all lesions are considered enhancing initially.
+
+
+
+   .. py:method:: decide_measurable()
+
+      Decide whether the lesion is measurable or not based on the orthogonal lines.
+
+
+
+   .. py:method:: decide_target(strategy='two_largest_enhancing')
+
+      Logic to decide whether the lesion is a target lesion or not. The strategy can be one of the following:
+      - "two_largest_enhancing": select the two largest enhancing lesions
+      - "three_largest_enhancing": select the three largest enhancing lesions
+      - "two_largest_enhancing_and_two_largest_non_enhancing": select the two largest enhancing lesions and the two
+          largest non-enhancing lesions
+
+      :param strategy: the strategy to use for selecting the target lesions
+
+
+
+   .. py:method:: get_number_of_targets()
+
+      Get the number of target lesions, but don't count the same lesion twice it is in the list twice (for both timepoints)
+
+
+
+   .. py:method:: get_number_of_new_target_lesions()
+
+      Get the number of new target lesions that were not target lesions at the first timepoint but appeared at the second
+
+
+
+   .. py:method:: get_number_of_disappeared_target_lesions()
+
+      Get the number of target lesions that were target lesions at the previous timepoints but are not target lesions
+      because they disappeared
+
+
+
+   .. py:method:: get_number_of_new_measurable_lesions()
+
+      Get the number of new measurable lesions that were not measurable at the first timepoint but appeared at the second
+
+
+
+   .. py:method:: get_sum_of_bidimensional_products(timepoint)
+
+      Given a list of line node pairs, this function returns the sum of bidimensional products of the orthogonal lines
+      of all lesions at the given timepoint.
+
+
+
+   .. py:method:: get_rel_area_change()
+
+      Given a list of line node pairs, this function returns the relative change of the sum of bidimensional products of the
+      orthogonal lines of all lesions at timepoint 2 relative to the sum of the bidimensional products of the orthogonal
+      lines of all lesions at timepoint 1.
+
+
+

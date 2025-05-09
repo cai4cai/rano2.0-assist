@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.enums &mdash; RANO2.0-assist  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            RANO2.0-assist
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">RANO2.0-assist</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.enums</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.enums</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains enumerations and descriptions for various response types and clinical statuses used in the RANO module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+
+
+<div class="viewcode-block" id="Response">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.Response">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Response</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for different response types based only on the target lesions&#39; 2D measurements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CR</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">PR</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SD</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PD</span> <span class="o">=</span> <span class="mi">3</span>
+
+<div class="viewcode-block" id="Response.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.Response.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CR</span><span class="p">:</span> <span class="s2">&quot;Complete Response&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PR</span><span class="p">:</span> <span class="s2">&quot;Partial Response&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SD</span><span class="p">:</span> <span class="s2">&quot;Stable Disease&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PD</span><span class="p">:</span> <span class="s2">&quot;Progressive Disease&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Response.description_detailed">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.Response.description_detailed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description_detailed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CR</span><span class="p">:</span> <span class="s2">&quot;Complete Response (CR):   100% Decrease&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PR</span><span class="p">:</span> <span class="s2">&quot;Partial Response (PR):    &gt;= 50% Decrease&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SD</span><span class="p">:</span> <span class="s2">&quot;Stable Disease (SD):      &lt; 50% Decrease to &lt; 25% Increase&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PD</span><span class="p">:</span> <span class="s2">&quot;Progressive Disease (PD): &gt;= 25% Increase&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TumorComponentsForEval">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.TumorComponentsForEval">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TumorComponentsForEval</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for different tumor components used for evaluation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CE</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NonCE</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Mixed</span> <span class="o">=</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="TumorComponentsForEval.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.TumorComponentsForEval.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CE</span><span class="p">:</span> <span class="s2">&quot;CE&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">NonCE</span><span class="p">:</span> <span class="s2">&quot;Non-CE&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Mixed</span><span class="p">:</span> <span class="s2">&quot;Mixed&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RefScanRole">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.RefScanRole">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RefScanRole</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for different reference scan roles.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CR</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">PR</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SD</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PD</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">PPD</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># preliminary progressive disease</span>
+    <span class="n">Baseline</span> <span class="o">=</span> <span class="mi">5</span>
+
+<div class="viewcode-block" id="RefScanRole.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.RefScanRole.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CR</span><span class="p">:</span> <span class="s2">&quot;Complete Response (CR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PR</span><span class="p">:</span> <span class="s2">&quot;Partial Response (PR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SD</span><span class="p">:</span> <span class="s2">&quot;Stable Disease (SD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PD</span><span class="p">:</span> <span class="s2">&quot;Progressive Disease (PD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PPD</span><span class="p">:</span> <span class="s2">&quot;Preliminary Progressive Disease (PPD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Baseline</span><span class="p">:</span> <span class="s2">&quot;Baseline&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CurrScanRole">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.CurrScanRole">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CurrScanRole</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for different current scan roles.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CR</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">PR</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SD</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PD</span> <span class="o">=</span> <span class="mi">3</span>
+
+<div class="viewcode-block" id="CurrScanRole.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.CurrScanRole.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CR</span><span class="p">:</span> <span class="s2">&quot;Complete Response (CR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PR</span><span class="p">:</span> <span class="s2">&quot;Partial Response (PR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SD</span><span class="p">:</span> <span class="s2">&quot;Stable Disease (SD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PD</span><span class="p">:</span> <span class="s2">&quot;Progressive Disease (PD)&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NonTargetOrNonMeasLes">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.NonTargetOrNonMeasLes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NonTargetOrNonMeasLes</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for assessment of non-target lesions or non-measurable lesions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">NoneOrStableOrCR</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Worse</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="NonTargetOrNonMeasLes.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.NonTargetOrNonMeasLes.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">NoneOrStableOrCR</span><span class="p">:</span> <span class="s2">&quot;None or Stable or CR&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Worse</span><span class="p">:</span> <span class="s2">&quot;Worse&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ClinicalStatus">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.ClinicalStatus">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClinicalStatus</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for clinical status of the patient.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">StableOrImproved</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Worse</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="ClinicalStatus.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.ClinicalStatus.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">StableOrImproved</span><span class="p">:</span> <span class="s2">&quot;Stable or Improved&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Worse</span><span class="p">:</span> <span class="s2">&quot;Worse&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SteroidDose">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.SteroidDose">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SteroidDose</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for steroid dose administered to the patient.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">No</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Yes</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="SteroidDose.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.SteroidDose.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">No</span><span class="p">:</span> <span class="s2">&quot;No&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span> <span class="s2">&quot;Yes&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="OverallResponse">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.OverallResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OverallResponse</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumeration for overall response assessment based on all RANO criteria.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CR</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">PR</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SD</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PD</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">PCR</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># preliminary complete response</span>
+    <span class="n">PPR</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># preliminary partial response</span>
+    <span class="n">PSD</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># preliminary stable disease</span>
+    <span class="n">PPD</span> <span class="o">=</span> <span class="mi">7</span>  <span class="c1"># preliminary progressive disease</span>
+    <span class="n">CCR</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1"># confirmed complete response</span>
+    <span class="n">CPR</span> <span class="o">=</span> <span class="mi">9</span>  <span class="c1"># confirmed partial response</span>
+    <span class="n">CSD</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># confirmed stable disease</span>
+    <span class="n">CPD</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1"># confirmed progressive disease</span>
+
+<div class="viewcode-block" id="OverallResponse.description">
+<a class="viewcode-back" href="../../utils.enums.html#utils.enums.OverallResponse.description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CR</span><span class="p">:</span> <span class="s2">&quot;Complete Response (CR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PR</span><span class="p">:</span> <span class="s2">&quot;Partial Response (PR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SD</span><span class="p">:</span> <span class="s2">&quot;Stable Disease (SD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PD</span><span class="p">:</span> <span class="s2">&quot;Progressive Disease (PD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PCR</span><span class="p">:</span> <span class="s2">&quot;Preliminary Complete Response (PCR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PPR</span><span class="p">:</span> <span class="s2">&quot;Preliminary Partial Response (PPR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PSD</span><span class="p">:</span> <span class="s2">&quot;Preliminary Stable Disease (PSD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">PPD</span><span class="p">:</span> <span class="s2">&quot;Preliminary Progressive Disease (PPD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CCR</span><span class="p">:</span> <span class="s2">&quot;Confirmed Complete Response (CCR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPR</span><span class="p">:</span> <span class="s2">&quot;Confirmed Partial Response (CPR)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CSD</span><span class="p">:</span> <span class="s2">&quot;Confirmed Stable Disease (CSD)&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CPD</span><span class="p">:</span> <span class="s2">&quot;Confirmed Progressive Disease (CPD)&quot;</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aaron Kujawa.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

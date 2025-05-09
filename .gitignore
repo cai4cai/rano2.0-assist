@@ -15,5 +15,5 @@ dynunet_pipeline/tools/
 
 input_data/
 
-docs/build
+docs/build/doctrees/
 docs/html

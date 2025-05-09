@@ -1,0 +1,295 @@
+utils.enums
+===========
+
+.. py:module:: utils.enums
+
+.. autoapi-nested-parse::
+
+   This module contains enumerations and descriptions for various response types and clinical statuses used in the RANO module.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   utils.enums.Response
+   utils.enums.TumorComponentsForEval
+   utils.enums.RefScanRole
+   utils.enums.CurrScanRole
+   utils.enums.NonTargetOrNonMeasLes
+   utils.enums.ClinicalStatus
+   utils.enums.SteroidDose
+   utils.enums.OverallResponse
+
+
+Module Contents
+---------------
+
+.. py:class:: Response
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for different response types based only on the target lesions' 2D measurements.
+
+
+   .. py:attribute:: CR
+      :value: 0
+
+
+
+   .. py:attribute:: PR
+      :value: 1
+
+
+
+   .. py:attribute:: SD
+      :value: 2
+
+
+
+   .. py:attribute:: PD
+      :value: 3
+
+
+
+   .. py:method:: description()
+
+
+   .. py:method:: description_detailed()
+
+
+.. py:class:: TumorComponentsForEval
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for different tumor components used for evaluation.
+
+
+   .. py:attribute:: CE
+      :value: 0
+
+
+
+   .. py:attribute:: NonCE
+      :value: 1
+
+
+
+   .. py:attribute:: Mixed
+      :value: 2
+
+
+
+   .. py:method:: description()
+
+
+.. py:class:: RefScanRole
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for different reference scan roles.
+
+
+   .. py:attribute:: CR
+      :value: 0
+
+
+
+   .. py:attribute:: PR
+      :value: 1
+
+
+
+   .. py:attribute:: SD
+      :value: 2
+
+
+
+   .. py:attribute:: PD
+      :value: 3
+
+
+
+   .. py:attribute:: PPD
+      :value: 4
+
+
+
+   .. py:attribute:: Baseline
+      :value: 5
+
+
+
+   .. py:method:: description()
+
+
+.. py:class:: CurrScanRole
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for different current scan roles.
+
+
+   .. py:attribute:: CR
+      :value: 0
+
+
+
+   .. py:attribute:: PR
+      :value: 1
+
+
+
+   .. py:attribute:: SD
+      :value: 2
+
+
+
+   .. py:attribute:: PD
+      :value: 3
+
+
+
+   .. py:method:: description()
+
+
+.. py:class:: NonTargetOrNonMeasLes
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for assessment of non-target lesions or non-measurable lesions.
+
+
+   .. py:attribute:: NoneOrStableOrCR
+      :value: 0
+
+
+
+   .. py:attribute:: Worse
+      :value: 1
+
+
+
+   .. py:method:: description()
+
+
+.. py:class:: ClinicalStatus
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for clinical status of the patient.
+
+
+   .. py:attribute:: StableOrImproved
+      :value: 0
+
+
+
+   .. py:attribute:: Worse
+      :value: 1
+
+
+
+   .. py:method:: description()
+
+
+.. py:class:: SteroidDose
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for steroid dose administered to the patient.
+
+
+   .. py:attribute:: No
+      :value: 0
+
+
+
+   .. py:attribute:: Yes
+      :value: 1
+
+
+
+   .. py:method:: description()
+
+
+.. py:class:: OverallResponse
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Enumeration for overall response assessment based on all RANO criteria.
+
+
+   .. py:attribute:: CR
+      :value: 0
+
+
+
+   .. py:attribute:: PR
+      :value: 1
+
+
+
+   .. py:attribute:: SD
+      :value: 2
+
+
+
+   .. py:attribute:: PD
+      :value: 3
+
+
+
+   .. py:attribute:: PCR
+      :value: 4
+
+
+
+   .. py:attribute:: PPR
+      :value: 5
+
+
+
+   .. py:attribute:: PSD
+      :value: 6
+
+
+
+   .. py:attribute:: PPD
+      :value: 7
+
+
+
+   .. py:attribute:: CCR
+      :value: 8
+
+
+
+   .. py:attribute:: CPR
+      :value: 9
+
+
+
+   .. py:attribute:: CSD
+      :value: 10
+
+
+
+   .. py:attribute:: CPD
+      :value: 11
+
+
+
+   .. py:method:: description()
+
+

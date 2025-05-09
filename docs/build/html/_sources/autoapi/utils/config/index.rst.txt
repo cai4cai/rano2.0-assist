@@ -1,0 +1,38 @@
+utils.config
+============
+
+.. py:module:: utils.config
+
+.. autoapi-nested-parse::
+
+   This module contains configuration settings for the RANO module.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   utils.config.debug
+   utils.config.module_path
+   utils.config.dynunet_pipeline_path
+
+
+Module Contents
+---------------
+
+.. py:data:: debug
+   :value: False
+
+
+   Set to True to enable debug mode.
+
+.. py:data:: module_path
+
+   Path to the module directory. Resolves to the directory that contains RANO.py.
+
+.. py:data:: dynunet_pipeline_path
+
+   Path to the dynunet_pipeline directory used for running the segmentation pipeline.
+
