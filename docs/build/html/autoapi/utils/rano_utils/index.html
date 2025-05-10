@@ -101,55 +101,55 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.run_segmentation" title="utils.rano_utils.run_segmentation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_segmentation</span></code></a>(inputVolume_list, do_affinereg, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.run_segmentation" title="utils.rano_utils.run_segmentation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_segmentation</span></code></a>(inputVolume_list, do_affinereg, ...)</p></td>
 <td><p>Run the segmentation model using the provided input volumes and parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.keep_contained_lines" title="utils.rano_utils.keep_contained_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keep_contained_lines</span></code></a>(boundary_coords, mask[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.keep_contained_lines" title="utils.rano_utils.keep_contained_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keep_contained_lines</span></code></a>(boundary_coords, mask[, ...])</p></td>
 <td><p>Given a set of boundary coordinates, this method returns the lines that are fully contained within the mask.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.get_all_contained_lines" title="utils.rano_utils.get_all_contained_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_contained_lines</span></code></a>(plane)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.get_all_contained_lines" title="utils.rano_utils.get_all_contained_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_contained_lines</span></code></a>(plane)</p></td>
 <td><p>Given a plane, this function returns all the lines from one boundary pixel to another that are fully contained</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.get_max_orthogonal_line_product_coords_plane" title="utils.rano_utils.get_max_orthogonal_line_product_coords_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_orthogonal_line_product_coords_plane</span></code></a>(line_coords)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.get_max_orthogonal_line_product_coords_plane" title="utils.rano_utils.get_max_orthogonal_line_product_coords_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_orthogonal_line_product_coords_plane</span></code></a>(line_coords)</p></td>
 <td><p>Given a set of lines, this function returns the two lines that are orthogonal to each other and have the largest</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.get_instance_segmentation_by_connected_component_analysis" title="utils.rano_utils.get_instance_segmentation_by_connected_component_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_instance_segmentation_by_connected_component_analysis</span></code></a>(bin_seg)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.get_instance_segmentation_by_connected_component_analysis" title="utils.rano_utils.get_instance_segmentation_by_connected_component_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_instance_segmentation_by_connected_component_analysis</span></code></a>(bin_seg)</p></td>
 <td><p>Convert a binary segmentation into a segmentation where each connected component gets a different label &gt; 0.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.match_instance_segmentations_by_IoU" title="utils.rano_utils.match_instance_segmentations_by_IoU"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_instance_segmentations_by_IoU</span></code></a>(instance_segs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.match_instance_segmentations_by_IoU" title="utils.rano_utils.match_instance_segmentations_by_IoU"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_instance_segmentations_by_IoU</span></code></a>(instance_segs)</p></td>
 <td><p>Given a list of instance segmentations, this function relabels the segmentations so that the labels match</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.get_max_orthogonal_line_product_coords" title="utils.rano_utils.get_max_orthogonal_line_product_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_orthogonal_line_product_coords</span></code></a>(seg[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.get_max_orthogonal_line_product_coords" title="utils.rano_utils.get_max_orthogonal_line_product_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_orthogonal_line_product_coords</span></code></a>(seg[, ...])</p></td>
 <td><p>Given a segmentation, this function returns the two lines that are orthogonal to each other and have the largest</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.circle_opening" title="utils.rano_utils.circle_opening"><code class="xref py py-obj docutils literal notranslate"><span class="pre">circle_opening</span></code></a>(seg, labels, radius)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.circle_opening" title="utils.rano_utils.circle_opening"><code class="xref py py-obj docutils literal notranslate"><span class="pre">circle_opening</span></code></a>(seg, labels, radius)</p></td>
 <td><p>Given a segmentation, this function performs a circle opening operation on the specified labels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.sphere_opening" title="utils.rano_utils.sphere_opening"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sphere_opening</span></code></a>(seg, labels, radius)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.sphere_opening" title="utils.rano_utils.sphere_opening"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sphere_opening</span></code></a>(seg, labels, radius)</p></td>
 <td><p>Given a segmentation, this function performs a sphere opening operation on the specified labels.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.find_plane_of_coords" title="utils.rano_utils.find_plane_of_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_plane_of_coords</span></code></a>(coords)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.find_plane_of_coords" title="utils.rano_utils.find_plane_of_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_plane_of_coords</span></code></a>(coords)</p></td>
 <td><p>Given two lines, this function returns the axis of the plane in which the lines are placed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.find_closest_plane" title="utils.rano_utils.find_closest_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_closest_plane</span></code></a>(coords)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.find_closest_plane" title="utils.rano_utils.find_closest_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_closest_plane</span></code></a>(coords)</p></td>
 <td><p>Given two lines, this function returns the axis of the plane in which the lines are placed.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.point_closest_to_two_lines" title="utils.rano_utils.point_closest_to_two_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_closest_to_two_lines</span></code></a>(coords)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.point_closest_to_two_lines" title="utils.rano_utils.point_closest_to_two_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_closest_to_two_lines</span></code></a>(coords)</p></td>
 <td><p>Given two lines, this function returns the point that is closest to both lines. This can be used to find a point</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.circle_opening_on_slices_perpendicular_to_axis" title="utils.rano_utils.circle_opening_on_slices_perpendicular_to_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">circle_opening_on_slices_perpendicular_to_axis</span></code></a>(...[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.circle_opening_on_slices_perpendicular_to_axis" title="utils.rano_utils.circle_opening_on_slices_perpendicular_to_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">circle_opening_on_slices_perpendicular_to_axis</span></code></a>(...[, ...])</p></td>
 <td><p>Given a 3D segmentation, this function performs a circle opening operation on the specified labels in the slices</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.get_ijk_to_world_matrix" title="utils.rano_utils.get_ijk_to_world_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ijk_to_world_matrix</span></code></a>(node)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.get_ijk_to_world_matrix" title="utils.rano_utils.get_ijk_to_world_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ijk_to_world_matrix</span></code></a>(node)</p></td>
 <td><p>Given a node, this function returns the IJK to world matrix of the binary labelmap</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.transform_ijk_to_world_coord" title="utils.rano_utils.transform_ijk_to_world_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_ijk_to_world_coord</span></code></a>(ijk, ijkToWorld_matrix)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.transform_ijk_to_world_coord" title="utils.rano_utils.transform_ijk_to_world_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_ijk_to_world_coord</span></code></a>(ijk, ijkToWorld_matrix)</p></td>
 <td><p>Given an IJK coordinate and the IJK to world matrix, this function returns the world coordinate</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.transform_ijk_to_world_coord_np" title="utils.rano_utils.transform_ijk_to_world_coord_np"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_ijk_to_world_coord_np</span></code></a>(coord, ijkToWorld_np)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.rano_utils.transform_ijk_to_world_coord_np" title="utils.rano_utils.transform_ijk_to_world_coord_np"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_ijk_to_world_coord_np</span></code></a>(coord, ijkToWorld_np)</p></td>
 <td><p>Transform a coordinate from IJK to world space using the ijkToWorld matrix given as a numpy array.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../../utils.rano_utils.html#utils.rano_utils.transform_world_to_ijk_coord" title="utils.rano_utils.transform_world_to_ijk_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_world_to_ijk_coord</span></code></a>(world, worldToIJK_matrix)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.rano_utils.transform_world_to_ijk_coord" title="utils.rano_utils.transform_world_to_ijk_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_world_to_ijk_coord</span></code></a>(world, worldToIJK_matrix)</p></td>
 <td><p>Given a world coordinate and the world to IJK matrix, this function returns the IJK coordinate</p></td>
 </tr>
 </tbody>

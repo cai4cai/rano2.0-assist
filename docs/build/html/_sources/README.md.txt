@@ -16,10 +16,37 @@ the following steps:
 5. **Report creation:** The tool generates a report summarizing the measurements and response assessment, which can be 
    saved in PDF format.
 
+
 ## Installation
+
+## Segmentation models
+The segmentation model weights need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:
+```
+dynunet_pipeline/data/tasks
+```
+such that the directory structure looks like this:
+```
+└──rano2.0-assist
+   └──dynunet_pipeline/data/tasks`
+      ├── task4000_brats24
+      ├── task4001_brats24allmod
+      └── task...
+```
+
+### Test data
+The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
+following directory:
+```
+data/input_data
+```
+
+## 3D Slicer extension
 RANO2.0-assist can be installed as a local 3D Slicer extension, or it can be run in a Docker container. The Docker
 container includes all the necessary dependencies and can be run on any machine with Docker installed that supports
 GPU acceleration. The local installation requires 3D Slicer and the necessary Python packages to be installed.
+
+### Installation with Docker
+For Docker installation, follow instructions here: [docker/README.md](../../docker/README.md).
 
 ### Local installation
 
@@ -54,26 +81,6 @@ commands are for installing the packages in the 3D Slicer python environment.
 Note: if a separate python environment is used, numpy, scikit-image, numba, nibabel, tqdm and pyyaml need to be installed
 in that environment on top of the installation in 3D Slicer.
 
-#### Segmentation models
-The segmentation models need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:
-```
-dynunet_pipeline/data/tasks
-```
-such that the directory structure looks like this:
-```
-└──rano2.0-assist
-   └──dynunet_pipeline/data/tasks`
-      ├── task4000_brats24
-      ├── task4001_brats24allmod
-      └── task...
-```
-
-#### Test data
-The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
-following directory:
-```
-data/input_data
-```
 
 #### Add the extension to 3D Slicer
 
@@ -92,21 +99,18 @@ To add the extension to 3D Slicer, follow these steps:
 4. Start the RANO module by selecting "Tools" --> "RANO" in the Modules drop down menu or search for
    "RANO" using the search tool.
 
-### Installation with Docker
-For Docker installation, follow instructions here: [docker/README.md](../../docker/README.md).
 
+## Usage
 
-### Usage
-
-#### Running the tool
+### Running the tool
 - Start 3D Slicer
 
 - Start the RANO module by selecting "Tools" --> "RANO" in the Modules drop down menu or search for
   "RANO" using the search tool
 
-#### Loading the image data
+### Loading the image data
 
-##### 1. Loading the test data
+#### 1. Loading the test data
 - Loading the test data ist only available in developer mode. To enable developer mode, go to the "Edit" menu and select 
 "Application Settings". 
 
@@ -137,7 +141,7 @@ is as follows:
 
 This will load all required scans in the "Inputs" box
 
-##### 2. Loading your own data
+#### 2. Loading your own data
 - Drag and drop the MRI scans onto the 3D Slicer window. 3D Slicer will open a dialog to load the images.
 
 - Alternatively you can follow the "Add Data" or "Add Dicom Data" buttons in the "Add Data" box. 
@@ -153,7 +157,7 @@ selected in the "Automatic Segmentation" box. The default model "task4001" requi
 The other model "task4000" requires T1c only.
 
 
-#### Automatic segmentation
+### Automatic segmentation
 
 - Automatic segmentation: make sure the "Affine registration" checkbox is checked
 and the "Input is skull-stripped" checkbox is checked if the input images have been skull-stripped already. For
@@ -192,3 +196,33 @@ timepoint and should be used with caution.
 - Click "Place Lines" to automatically place the line pairs. 
 
 <img src="_static/automatic_2D_measurements.png" alt="drawing" width="300"/>
+
+
+### Manual adjustments of the line pairs
+- The line pairs can be adjusted manually by clicking on the line pair control points and dragging them to the desired position.
+- Changing the line pairs will automatically update the response classification further below in the GUI 
+- Current line pairs are shown in the "Current Line Pairs" box. 
+- The segmentation of the selected segment (after postprocessing) can be shown/hidden by clicking on the 
+"Show/Hide Lesions" button
+
+<img src="_static/current_line_pairs.png" alt="drawing" width="300"/>
+
+- Line pairs can be removed by clicking on the "Trash" icon
+- New line pairs can be added by clicking on the "Add Lines t1" or "Add Lines t2" buttons. The lesion index has to be
+  specified in the spin box next to the buttons.
+
+### Response Status and Overall Response Status
+- The initial response status based solely on the line pairs is shown in the "Response Status" box.
+- The overall response status is shown in the "Overall Response Status" box and is additionally based on
+the clinical criteria (steroid use and clinical status) that need to be specified by the user.
+
+<img src="_static/response_status.png" alt="drawing" width="300"/>
+
+
+### Report creation
+- The report can be created by clicking on the "Create Report" button in the "Report" box.
+- A dialog will open to specify the report directory
+
+### Other
+- The "External Python Path" box allows the user to specify the path to a different python environment for the segmentation pipeline.
+- If the specified path is not valid, the Slicer python environment will be used as a fallback.

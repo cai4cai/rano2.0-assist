@@ -93,9 +93,39 @@ saved in PDF format.</p></li>
 </ol>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+</section>
+<section id="segmentation-models">
+<h2>Segmentation models<a class="headerlink" href="#segmentation-models" title="Link to this heading"></a></h2>
+<p>The segmentation model weights need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dynunet_pipeline</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">tasks</span>
+</pre></div>
+</div>
+<p>such that the directory structure looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└──rano2.0-assist
+   └──dynunet_pipeline/data/tasks`
+      ├── task4000_brats24
+      ├── task4001_brats24allmod
+      └── task...
+</pre></div>
+</div>
+<section id="test-data">
+<h3>Test data<a class="headerlink" href="#test-data" title="Link to this heading"></a></h3>
+<p>The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
+following directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">input_data</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="d-slicer-extension">
+<h2>3D Slicer extension<a class="headerlink" href="#d-slicer-extension" title="Link to this heading"></a></h2>
 <p>RANO2.0-assist can be installed as a local 3D Slicer extension, or it can be run in a Docker container. The Docker
 container includes all the necessary dependencies and can be run on any machine with Docker installed that supports
 GPU acceleration. The local installation requires 3D Slicer and the necessary Python packages to be installed.</p>
+<section id="installation-with-docker">
+<h3>Installation with Docker<a class="headerlink" href="#installation-with-docker" title="Link to this heading"></a></h3>
+<p>For Docker installation, follow instructions here: <span class="xref myst">docker/README.md</span>.</p>
+</section>
 <section id="local-installation">
 <h3>Local installation<a class="headerlink" href="#local-installation" title="Link to this heading"></a></h3>
 <section id="requirements">
@@ -135,29 +165,6 @@ commands are for installing the packages in the 3D Slicer python environment.</p
 <p>Note: if a separate python environment is used, numpy, scikit-image, numba, nibabel, tqdm and pyyaml need to be installed
 in that environment on top of the installation in 3D Slicer.</p>
 </section>
-<section id="segmentation-models">
-<h4>Segmentation models<a class="headerlink" href="#segmentation-models" title="Link to this heading"></a></h4>
-<p>The segmentation models need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dynunet_pipeline</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">tasks</span>
-</pre></div>
-</div>
-<p>such that the directory structure looks like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└──rano2.0-assist
-   └──dynunet_pipeline/data/tasks`
-      ├── task4000_brats24
-      ├── task4001_brats24allmod
-      └── task...
-</pre></div>
-</div>
-</section>
-<section id="test-data">
-<h4>Test data<a class="headerlink" href="#test-data" title="Link to this heading"></a></h4>
-<p>The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
-following directory:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">input_data</span>
-</pre></div>
-</div>
-</section>
 <section id="add-the-extension-to-3d-slicer">
 <h4>Add the extension to 3D Slicer<a class="headerlink" href="#add-the-extension-to-3d-slicer" title="Link to this heading"></a></h4>
 <p>To add the extension to 3D Slicer, follow these steps:</p>
@@ -177,14 +184,11 @@ following directory:</p>
 </ol>
 </section>
 </section>
-<section id="installation-with-docker">
-<h3>Installation with Docker<a class="headerlink" href="#installation-with-docker" title="Link to this heading"></a></h3>
-<p>For Docker installation, follow instructions here: <span class="xref myst">docker/README.md</span>.</p>
 </section>
 <section id="usage">
-<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h3>
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <section id="running-the-tool">
-<h4>Running the tool<a class="headerlink" href="#running-the-tool" title="Link to this heading"></a></h4>
+<h3>Running the tool<a class="headerlink" href="#running-the-tool" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Start 3D Slicer</p></li>
 <li><p>Start the RANO module by selecting “Tools” –&gt; “RANO” in the Modules drop down menu or search for
@@ -192,9 +196,9 @@ following directory:</p>
 </ul>
 </section>
 <section id="loading-the-image-data">
-<h4>Loading the image data<a class="headerlink" href="#loading-the-image-data" title="Link to this heading"></a></h4>
+<h3>Loading the image data<a class="headerlink" href="#loading-the-image-data" title="Link to this heading"></a></h3>
 <section id="loading-the-test-data">
-<h5>1. Loading the test data<a class="headerlink" href="#loading-the-test-data" title="Link to this heading"></a></h5>
+<h4>1. Loading the test data<a class="headerlink" href="#loading-the-test-data" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p>Loading the test data ist only available in developer mode. To enable developer mode, go to the “Edit” menu and select
 “Application Settings”.</p></li>
@@ -224,7 +228,7 @@ is as follows:</p></li>
 <p>This will load all required scans in the “Inputs” box</p>
 </section>
 <section id="loading-your-own-data">
-<h5>2. Loading your own data<a class="headerlink" href="#loading-your-own-data" title="Link to this heading"></a></h5>
+<h4>2. Loading your own data<a class="headerlink" href="#loading-your-own-data" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p>Drag and drop the MRI scans onto the 3D Slicer window. 3D Slicer will open a dialog to load the images.</p></li>
 <li><p>Alternatively you can follow the “Add Data” or “Add Dicom Data” buttons in the “Add Data” box.</p></li>
@@ -243,7 +247,7 @@ selected in the “Automatic Segmentation” box. The default model “task4001�
 </section>
 </section>
 <section id="automatic-segmentation">
-<h4>Automatic segmentation<a class="headerlink" href="#automatic-segmentation" title="Link to this heading"></a></h4>
+<h3>Automatic segmentation<a class="headerlink" href="#automatic-segmentation" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Automatic segmentation: make sure the “Affine registration” checkbox is checked
 and the “Input is skull-stripped” checkbox is checked if the input images have been skull-stripped already. For
@@ -279,11 +283,53 @@ timepoint and should be used with caution.</p></li>
 <li><p>Click “Place Lines” to automatically place the line pairs.</p></li>
 </ul>
 <img src="_static/automatic_2D_measurements.png" alt="drawing" width="300"/>
+</section>
+<section id="manual-adjustments-of-the-line-pairs">
+<h3>Manual adjustments of the line pairs<a class="headerlink" href="#manual-adjustments-of-the-line-pairs" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>The line pairs can be adjusted manually by clicking on the line pair control points and dragging them to the desired position.</p></li>
+<li><p>Changing the line pairs will automatically update the response classification further below in the GUI</p></li>
+<li><p>Current line pairs are shown in the “Current Line Pairs” box.</p></li>
+<li><p>The segmentation of the selected segment (after postprocessing) can be shown/hidden by clicking on the
+“Show/Hide Lesions” button</p></li>
+</ul>
+<img src="_static/current_line_pairs.png" alt="drawing" width="300"/>
+<ul class="simple">
+<li><p>Line pairs can be removed by clicking on the “Trash” icon</p></li>
+<li><p>New line pairs can be added by clicking on the “Add Lines t1” or “Add Lines t2” buttons. The lesion index has to be
+specified in the spin box next to the buttons.</p></li>
+</ul>
+</section>
+<section id="response-status-and-overall-response-status">
+<h3>Response Status and Overall Response Status<a class="headerlink" href="#response-status-and-overall-response-status" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>The initial response status based solely on the line pairs is shown in the “Response Status” box.</p></li>
+<li><p>The overall response status is shown in the “Overall Response Status” box and is additionally based on
+the clinical criteria (steroid use and clinical status) that need to be specified by the user.</p></li>
+</ul>
+<img src="_static/response_status.png" alt="drawing" width="300"/>
+</section>
+<section id="report-creation">
+<h3>Report creation<a class="headerlink" href="#report-creation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>The report can be created by clicking on the “Create Report” button in the “Report” box.</p></li>
+<li><p>A dialog will open to specify the report directory</p></li>
+</ul>
+</section>
+<section id="other">
+<h3>Other<a class="headerlink" href="#other" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>The “External Python Path” box allows the user to specify the path to a different python environment for the segmentation pipeline.</p></li>
+<li><p>If the specified path is not valid, the Slicer python environment will be used as a fallback.</p></li>
+</ul>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">RANO2.0-assist</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="README.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#segmentation-models">Segmentation models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#d-slicer-extension">3D Slicer extension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#usage">Usage</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a><ul>
@@ -293,7 +339,6 @@ timepoint and should be used with caution.</p></li>
 </li>
 </ul>
 </div>
-</section>
 </section>
 </section>
 </section>
