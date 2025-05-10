@@ -33,7 +33,7 @@ such that the directory structure looks like this:
       └── task...
 ```
 
-### Test data
+## Test data
 The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
 following directory:
 ```
