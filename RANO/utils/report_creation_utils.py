@@ -79,50 +79,58 @@ class ReportCreationMixin:
     @staticmethod
     def get_report_dir_from_node(default_report_dir, node1, node2, timestamp):
 
-        fallback_report_dir = os.path.join(default_report_dir, "RANO_Report_" + timestamp)
-        if not node1:
-            print(f"Node {node1} is None - use default report directory")
-            return fallback_report_dir
-        if not node2:
-            print(f"Node {node2} is None - use default report directory")
-            return fallback_report_dir
-
-        elif hasattr(node1.GetStorageNode(), "GetFileName") and node1.GetStorageNode().GetFileName() \
-            and hasattr(node2.GetStorageNode(), "GetFileName") and node2.GetStorageNode().GetFileName():
-            input_file_path_1 = node1.GetStorageNode().GetFileName()
-            input_file_path_2 = node2.GetStorageNode().GetFileName()
-            if "BraTS" in input_file_path_1 and "BraTS" in input_file_path_2:  # BraTS data
-                id1 = os.path.basename(os.path.dirname(input_file_path_1)).replace(".nii.gz", "")
-                id2 = os.path.basename(os.path.dirname(input_file_path_2)).replace(".nii.gz", "")
-                subfolder_name = f"BraTS_{id1}_{id2}"
-            elif "TimePoint" in input_file_path_1 and "TimePoint" in input_file_path_2:  # KCH data
-                id1 = os.path.basename(os.path.split(os.path.dirname(input_file_path_1))[-2])
-                id2 = os.path.basename(os.path.split(os.path.dirname(input_file_path_2))[-2])
-                subfolder_name = f"KCH_{id1}_{id2}"
-            else:
-                print(f"No report directory specified for {input_file_path_1} and {input_file_path_2} - use default report directory")
+        try:
+            fallback_report_dir = os.path.join(default_report_dir, "RANO_Report_" + timestamp)
+            if not node1:
+                print(f"Node {node1} is None - use default report directory")
+                return fallback_report_dir
+            if not node2:
+                print(f"Node {node2} is None - use default report directory")
                 return fallback_report_dir
 
-        else:  # probably dicom data
-            # assemble the subfolder name from the dicom tags
-            shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
+            if hasattr(node1.GetStorageNode(), "GetFileName") and node1.GetStorageNode().GetFileName() \
+                and hasattr(node2.GetStorageNode(), "GetFileName") and node2.GetStorageNode().GetFileName():
+                input_file_path_1 = node1.GetStorageNode().GetFileName()
+                input_file_path_2 = node2.GetStorageNode().GetFileName()
+                if "BraTS" in input_file_path_1 and "BraTS" in input_file_path_2:  # BraTS data
+                    id1 = os.path.basename(os.path.dirname(input_file_path_1)).replace(".nii.gz", "")
+                    id2 = os.path.basename(os.path.dirname(input_file_path_2)).replace(".nii.gz", "")
+                    subfolder_name = f"BraTS_{id1}_{id2}"
+                elif "KCH" in input_file_path_1 and "TimePoint" in input_file_path_2:  # KCH data
+                    id1 = os.path.basename(os.path.split(os.path.dirname(input_file_path_1))[-2])
+                    id2 = os.path.basename(os.path.split(os.path.dirname(input_file_path_2))[-2])
+                    subfolder_name = f"KCH_{id1}_{id2}"
+                else:
+                    print(f"No report directory specified for {input_file_path_1} and {input_file_path_2} - use default report directory")
+                    return fallback_report_dir
 
-            dataNodeItemID_1 = shNode.GetItemByDataNode(node1)
-            rootID_1 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_1))
-            patientID_1 = shNode.GetItemAttribute(rootID_1, "DICOM.PatientID")  # is actually ScanID for KCH dataset
+            else:  # probably dicom data
+                # assemble the subfolder name from the dicom tags
+                shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
 
-            dataNodeItemID_2 = shNode.GetItemByDataNode(node2)
-            rootID_2 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_2))
-            patientID_2 = shNode.GetItemAttribute(rootID_2, "DICOM.PatientID")  # is actually ScanID for KCH dataset
+                dataNodeItemID_1 = shNode.GetItemByDataNode(node1)
+                rootID_1 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_1))
+                patientID_1 = shNode.GetItemAttribute(rootID_1, "DICOM.PatientID")  # is actually ScanID for KCH dataset
+                scanID_1 = shNode.GetItemAttribute(rootID_1, "DICOM.StudyInstanceUID")
+                studyDate_1 = shNode.GetItemAttribute(rootID_1, "DICOM.StudyDate")
 
-            subfolder_name = f"KCH_{patientID_1}_{patientID_2}"
+                dataNodeItemID_2 = shNode.GetItemByDataNode(node2)
+                rootID_2 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_2))
+                patientID_2 = shNode.GetItemAttribute(rootID_2, "DICOM.PatientID")  # is actually ScanID for KCH dataset
+                scanID_2 = shNode.GetItemAttribute(rootID_2, "DICOM.StudyInstanceUID")
+                studyDate_2 = shNode.GetItemAttribute(rootID_2, "DICOM.StudyDate")
 
-            if not subfolder_name:
-                print(f"Could not determine subfolder name from input nodes {node1.GetName()} and {node2.GetName()} - use default report directory")
-                return fallback_report_dir
+                subfolder_name = f"Report_{patientID_1}-{studyDate_1}_{patientID_2}-{studyDate_2}"
 
-        report_dir = os.path.normpath(os.path.join(default_report_dir, subfolder_name))
-        return report_dir
+                if not subfolder_name:
+                    print(f"Could not determine subfolder name from input nodes {node1.GetName()} and {node2.GetName()} - use default report directory")
+                    return fallback_report_dir
+
+            report_dir = os.path.normpath(os.path.join(default_report_dir, subfolder_name))
+            return report_dir
+        except Exception as e:
+            print(f"Could not determine report directory from input nodes {node1.GetName()} and {node2.GetName()} - use default report directory")
+            return fallback_report_dir
 
 
     def create_images(self, report_dir):
