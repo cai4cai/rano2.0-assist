@@ -534,9 +534,7 @@ class Measurements2DMixin:
         lesion_stats = get_lesion_stats(self.resampledVolumeNodes)
 
         # remove the previous lines
-        oldLineNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode')
-        for lineNode in oldLineNodes:
-            slicer.mrmlScene.RemoveNode(lineNode)
+        del self.lineNodePairs[:]
 
         self.lineNodePairs = create_lineNodePairs(lesion_stats)
         setLinePairViews(self.lineNodePairs)
@@ -1257,7 +1255,14 @@ class LineNodePairList(list):
         """
         Makes sure that line nodes contained in the LineNodePairList are removed from the scene when removed from the list
         """
-        self[index].cleanup()
+        if isinstance(index, slice):
+            # Get all items that will be deleted
+            items = self[index]
+            for item in items:
+                item.cleanup()
+        else:
+            self[index].cleanup()
+
         super().__delitem__(index)
         self.uponModified()
 
