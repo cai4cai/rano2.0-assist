@@ -54,6 +54,7 @@ class RANOTest(ScriptedLoadableModuleTest):
                     print(f"Test {test} not found")
         else:  # if no tests were specified run all tests
             self.test_RANO_dicom()
+            self.test_RANO_dicom_CPTAC()
             self.test_RANO_nifti()
 
         if any(['.py' in arg for arg in sys.argv]):
@@ -142,6 +143,94 @@ class RANOTest(ScriptedLoadableModuleTest):
                                inputVolumes_t2,
                                do_affinereg=True,
                                input_is_bet=False,
+                               method2Dmeas="RANO",
+                               seg_model_key="t1c, t1n, t2f, t2w: task4001",
+                               automatic_segmentation=True,
+                               line_placement=True,
+                               report_creation=True)
+
+
+    def test_RANO_dicom_CPTAC(self):
+        slicer.mrmlScene.Clear()
+        self.delayDisplay("Starting the test")
+
+        '''
+        define the test cases
+        '''
+
+        base_path = os.path.join(test_data_path, 'CPTAC-GBM')
+
+        patients = ["C3L-00016"]
+
+
+        cases_of_paths_2tp_times_4channels = []  # n cases, 2 timepoints, 4 channels
+        for patient in patients:
+
+            if patient == "C3L-00016":
+                timepoint1 = "11-15-1999-NA-MR BRAIN WOW CONTRAST-47088"
+                timepoint2 = "11-17-1999-NA-MR BRAIN WOW CONTRAST-15329"
+
+                p_t1c_tp1 = os.path.join(base_path, patient, timepoint1, "13.000000-AX T1C-70939")
+                p_t1n_tp1 = os.path.join(base_path, patient, timepoint1, "9.000000-AX T1-06604")
+                p_t2f_tp1 = os.path.join(base_path, patient, timepoint1, "7.000000-Ax Flair irFSE H-84835")
+                p_t2w_tp1 = os.path.join(base_path, patient, timepoint1, "10.000000-Prop T2 TRF-43669")
+
+                p_t1c_tp2 = os.path.join(base_path, patient, timepoint2, "12.000000-AX T1C-87798")
+                p_t1n_tp2 = os.path.join(base_path, patient, timepoint2, "5.000000-AX T1-46920")
+                p_t2f_tp2 = os.path.join(base_path, patient, timepoint2, "6.000000-Ax Flair irFSE H-49772")
+                p_t2w_tp2 = os.path.join(base_path, patient, timepoint2, "8.000000-Prop T2 TRF-56708")
+
+            # check if all files exist
+            if not all([os.path.isdir(p) for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]]):
+                print(f"Not all files exist for test case {test_case_idx}")
+                continue
+
+            cases_of_paths_2tp_times_4channels.append([[p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1],
+                                                       [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]])
+
+
+        '''
+        run test for each test case
+        '''
+
+        print(f"Running {len(cases_of_paths_2tp_times_4channels)} test cases")
+        for test_case_idx, curr_paths in enumerate(cases_of_paths_2tp_times_4channels):
+            # print(f"Paths t1: {curr_paths[0]}")
+            # print(f"Paths t2: {curr_paths[1]}")
+
+            paths_t1 = curr_paths[0]
+            paths_t2 = curr_paths[1]
+
+            # clear the scene
+            slicer.mrmlScene.Clear()
+
+            # load dicoms into slicer using DICOMutils
+
+            def dcm_dir_to_node(dcm_dir):
+                with DICOMUtils.TemporaryDICOMDatabase() as db:
+                    DICOMUtils.importDicom(dcm_dir, db)
+                    patientUIDs = db.patients()
+                    loadedNodeIDs = []
+                    for patientUID in patientUIDs:
+                        loadedNodeIDs.extend(DICOMUtils.loadPatientByUID(patientUID))
+
+                    if not len(loadedNodeIDs) == 1:
+                        print(f"Expected 1 loaded node from importing DICOM files in {dcm_dir}"
+                                                     f" but got {len(loadedNodeIDs)}: {loadedNodeIDs}")
+
+                    loadedNode = slicer.mrmlScene.GetNodeByID(loadedNodeIDs[0])
+                return loadedNode
+
+            inputVolumes = [dcm_dir_to_node(p) for p in paths_t1]
+            inputVolumes_t2 = [dcm_dir_to_node(p) for p in paths_t2]
+
+            self.delayDisplay('Loaded test data set')
+
+            self.test_pipeline(inputVolumes,
+                               inputVolumes_t2,
+                               do_affinereg=True,
+                               input_is_bet=False,
+                               method2Dmeas="RANO_open3D",
                                seg_model_key="t1c, t1n, t2f, t2w: task4001",
                                automatic_segmentation=True,
                                line_placement=True,
@@ -165,13 +254,6 @@ class RANOTest(ScriptedLoadableModuleTest):
 
         ]
 
-        # check all files exist
-        for brats_case_t1, brats_case_t2 in timepoint_pairs:
-            assert(os.path.isfile(os.path.join(base_path, brats_case_t1 + "t1c.nii.gz")))
-            assert(os.path.isfile(os.path.join(base_path, brats_case_t1 + "t1n.nii.gz")))
-            assert(os.path.isfile(os.path.join(base_path, brats_case_t1 + "t2f.nii.gz")))
-            assert(os.path.isfile(os.path.join(base_path, brats_case_t1 + "t2w.nii.gz")))
-
         for test_case_idx in range(len(timepoint_pairs)):
             p_t1c_tp1 = os.path.join(base_path, timepoint_pairs[test_case_idx][0] + "t1c.nii.gz")
             p_t1n_tp1 = os.path.join(base_path, timepoint_pairs[test_case_idx][0] + "t1n.nii.gz")
@@ -182,6 +264,11 @@ class RANOTest(ScriptedLoadableModuleTest):
             p_t1n_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t1n.nii.gz")
             p_t2f_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t2f.nii.gz")
             p_t2w_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t2w.nii.gz")
+
+            # check if all files exist
+            if not all([os.path.isfile(p) for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]]):
+                print(f"Not all files exist for test case {test_case_idx}")
+                continue
 
             cases_of_paths_2tp_times_4channels.append([[p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1],
                                                        [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]])
@@ -212,6 +299,7 @@ class RANOTest(ScriptedLoadableModuleTest):
                                inputVolumes_t2,
                                do_affinereg=False,
                                input_is_bet=True,
+                               method2Dmeas="RANO",
                                seg_model_key="t1c, t1n, t2f, t2w: task4001",
                                automatic_segmentation=True,
                                line_placement=True,
@@ -222,6 +310,7 @@ class RANOTest(ScriptedLoadableModuleTest):
                       inputVolumes_t2,
                       do_affinereg,
                       input_is_bet,
+                      method2Dmeas,
                       seg_model_key,
                       automatic_segmentation,
                       line_placement,
@@ -294,8 +383,8 @@ class RANOTest(ScriptedLoadableModuleTest):
                 slicer.modules.RANOWidget.ui.SegmentSelectorWidget.setCurrentSegmentID(None)
 
             # set the method
-            slicer.modules.RANOWidget.ui.method2DmeasComboBox.setCurrentIndex(
-                0)  # 0 for RANO, 1 for RANO_open2D, 2 for RANO_open3D, 3 for Random
+            method_idx = slicer.modules.RANOWidget.ui.method2DmeasComboBox.findText(method2Dmeas)
+            slicer.modules.RANOWidget.ui.method2DmeasComboBox.setCurrentIndex(method_idx)
 
             # press the calc 2D button
             slicer.modules.RANOWidget.onCalc2DButton()
