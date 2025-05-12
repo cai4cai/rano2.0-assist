@@ -10,6 +10,7 @@ set(EXTENSION_DESCRIPTION "Semi-automated interactive response assemessment in n
 set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/RANO2assist.png")
 set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/RANO2assist/Screenshots/1.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a list or "NA" if no dependencies
+set(EXTENSION_CATEGORY "Quantification")
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
