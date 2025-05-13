@@ -2,8 +2,9 @@
 
 # the following tests need must be defined in RANO/utils/test_rano.py
 tests=(
-  "test_RANO_dicom"
-  "test_RANO_nifti"
+  "test_RANO_dicom_CPTAC"
+  "test_RANO_dicom_KCH"
+  "test_RANO_nifti_MU"
 )
 
 # Possible paths to the Slicer executable

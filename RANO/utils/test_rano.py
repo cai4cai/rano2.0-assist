@@ -53,15 +53,15 @@ class RANOTest(ScriptedLoadableModuleTest):
                 else:
                     print(f"Test {test} not found")
         else:  # if no tests were specified run all tests
-            self.test_RANO_dicom()
+            self.test_RANO_dicom_KCH()
             self.test_RANO_dicom_CPTAC()
-            self.test_RANO_nifti()
+            self.test_RANO_nifti_MU()
 
         if any(['.py' in arg for arg in sys.argv]):
             print('Tests executed from command line. Quitting Slicer...')
             slicer.app.quit()
 
-    def test_RANO_dicom(self):
+    def test_RANO_dicom_KCH(self):
         slicer.mrmlScene.Clear()
         self.delayDisplay("Starting the test")
 
@@ -237,7 +237,7 @@ class RANOTest(ScriptedLoadableModuleTest):
                                report_creation=True)
 
 
-    def test_RANO_nifti(self):
+    def test_RANO_nifti_MU(self):
         slicer.mrmlScene.Clear()
         self.delayDisplay("Starting the test")
 

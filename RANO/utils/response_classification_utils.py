@@ -37,7 +37,7 @@ class ResponseClassificationMixin:
             Response: the response assessment according to the RANO 2.0 criteria
         """
         # make sure only one of the two is provided
-        assert (rel_area is None) != (rel_vol is None), "Either del_area or del_vol must be provided, but not both"
+        assert (rel_area is None) != (rel_vol is None), "Either rel_area or rel_vol must be provided, but not both"
 
         if rel_area is not None:
             if rel_area < 0:  # decrease in size

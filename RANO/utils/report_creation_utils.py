@@ -111,16 +111,33 @@ class ReportCreationMixin:
                 dataNodeItemID_1 = shNode.GetItemByDataNode(node1)
                 rootID_1 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_1))
                 patientID_1 = shNode.GetItemAttribute(rootID_1, "DICOM.PatientID")  # is actually ScanID for KCH dataset
-                scanID_1 = shNode.GetItemAttribute(rootID_1, "DICOM.StudyInstanceUID")
-                studyDate_1 = shNode.GetItemAttribute(rootID_1, "DICOM.StudyDate")
+                if shNode.GetItemAttribute(dataNodeItemID_1, "DICOM.ContentDate"):
+                    date_1 = shNode.GetItemAttribute(dataNodeItemID_1, "DICOM.ContentDate")
+                elif shNode.GetItemAttribute(dataNodeItemID_1, "DICOM.SeriesDate"):
+                    date_1 = shNode.GetItemAttribute(dataNodeItemID_1, "DICOM.SeriesDate")
+                else:
+                    date_1 = ""
 
                 dataNodeItemID_2 = shNode.GetItemByDataNode(node2)
                 rootID_2 = shNode.GetItemParent(shNode.GetItemParent(dataNodeItemID_2))
                 patientID_2 = shNode.GetItemAttribute(rootID_2, "DICOM.PatientID")  # is actually ScanID for KCH dataset
-                scanID_2 = shNode.GetItemAttribute(rootID_2, "DICOM.StudyInstanceUID")
-                studyDate_2 = shNode.GetItemAttribute(rootID_2, "DICOM.StudyDate")
+                if shNode.GetItemAttribute(dataNodeItemID_2, "DICOM.ContentDate"):
+                    date_2 = shNode.GetItemAttribute(dataNodeItemID_2, "DICOM.ContentDate")
+                elif shNode.GetItemAttribute(dataNodeItemID_2, "DICOM.SeriesDate"):
+                    date_2 = shNode.GetItemAttribute(dataNodeItemID_2, "DICOM.SeriesDate")
+                else:
+                    date_2 = ""
 
-                subfolder_name = f"Report_{patientID_1}-{studyDate_1}_{patientID_2}-{studyDate_2}"
+                # assemble the subfolder name
+                patient_1_info = f"{patientID_1}"
+                if date_1 and not date_1 in patient_1_info:
+                    patient_1_info += f"-{date_1}"
+
+                patient_2_info = f"{patientID_2}"
+                if date_2 and not date_2 in patient_2_info:
+                    patient_2_info += f"-{date_2}"
+
+                subfolder_name = f"Report_{patient_1_info}_{patient_2_info}"
 
                 if not subfolder_name:
                     print(f"Could not determine subfolder name from input nodes {node1.GetName()} and {node2.GetName()} - use default report directory")
