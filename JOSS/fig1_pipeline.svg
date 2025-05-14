@@ -31,7 +31,7 @@
      inkscape:window-x="46"
      inkscape:window-y="32"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g47" />
+     inkscape:current-layer="g44" />
   <defs
      id="defs1">
     <marker
@@ -164,7 +164,7 @@
          id="tspan7"
          style="stroke-width:0.31"
          x="71.600464"
-         y="58.869804"></tspan><tspan
+         y="58.869804" /><tspan
          sodipodi:role="line"
          style="stroke-width:0.31"
          id="tspan8"
@@ -321,17 +321,17 @@
            style="stroke-width:0.31"
            x="54.690029"
            y="74.531906"
-           id="tspan30">normalization</tspan><tspan
+           id="tspan30">• normalization</tspan><tspan
            sodipodi:role="line"
            style="stroke-width:0.31"
            x="54.690029"
            y="80.705536"
-           id="tspan33">resampling</tspan><tspan
+           id="tspan33">• resampling</tspan><tspan
            sodipodi:role="line"
            style="stroke-width:0.31"
            x="54.690029"
            y="86.879158"
-           id="tspan31">skull-stripping</tspan><tspan
+           id="tspan31">• skull-stripping</tspan><tspan
            sodipodi:role="line"
            style="stroke-width:0.31"
            x="54.690029"
@@ -371,12 +371,12 @@
       <rect
          style="fill:none;stroke:#000000;stroke-width:0.147571;stroke-dasharray:none"
          id="rect4-4-3"
-         width="44.072384"
+         width="57.95472"
          height="8.005084"
-         x="49.807346"
+         x="42.813988"
          y="122.22276"
          ry="3.6919336"
-         rx="3.6919339" />
+         rx="3.6919336" />
       <text
          xml:space="preserve"
          style="font-size:4.93889px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:none;stroke:#000000;stroke-width:0.309999;stroke-dasharray:none"
@@ -387,7 +387,7 @@
            style="font-size:4.93889px;text-align:center;text-anchor:middle;fill:#1a1a1a;stroke:none;stroke-width:0.31"
            x="71.778427"
            y="127.62986"
-           id="tspan6-9-4">Instance matching</tspan></text>
+           id="tspan6-9-4">Lesion instance matching</tspan></text>
     </g>
     <text
        xml:space="preserve"
@@ -474,12 +474,12 @@
            style="font-size:4.93889px;text-align:start;text-anchor:start;fill:#1a1a1a;stroke:none;stroke-width:0.31"
            x="42.610519"
            y="148.03947"
-           id="tspan37">segmentation opening</tspan><tspan
+           id="tspan37">• segmentation opening</tspan><tspan
            sodipodi:role="line"
            style="font-size:4.93889px;text-align:start;text-anchor:start;fill:#1a1a1a;stroke:none;stroke-width:0.31"
            x="42.610519"
            y="154.21309"
-           id="tspan38">hole closing</tspan></text>
+           id="tspan38">• hole closing</tspan></text>
     </g>
     <text
        xml:space="preserve"
@@ -508,7 +508,7 @@
            style="font-size:4.93889px;text-align:center;text-anchor:middle;fill:#1a1a1a;stroke:none;stroke-width:0.31"
            x="72.75959"
            y="171.7618"
-           id="tspan6-9-4-8">bi-dimensional</tspan><tspan
+           id="tspan6-9-4-8">Bi-dimensional</tspan><tspan
            sodipodi:role="line"
            style="font-size:4.93889px;text-align:center;text-anchor:middle;fill:#1a1a1a;stroke:none;stroke-width:0.31"
            x="72.75959"
@@ -596,26 +596,35 @@
     <g
        id="g48"
        transform="translate(1.0583271,-50.800015)">
-      <rect
-         style="fill:none;stroke:#000000;stroke-width:0.147571;stroke-dasharray:none"
-         id="rect4-4-3-8-8-7"
-         width="34.731033"
-         height="7.1235251"
-         x="54.478024"
-         y="191.98819"
-         ry="3.6919339"
-         rx="3.6919336" />
-      <text
-         xml:space="preserve"
-         style="font-size:4.93889px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:none;stroke:#000000;stroke-width:0.309999;stroke-dasharray:none"
-         x="71.853188"
-         y="196.82687"
-         id="text6-8-7-4-6"><tspan
-           sodipodi:role="line"
-           style="font-size:4.93889px;text-align:center;text-anchor:middle;fill:#1a1a1a;stroke:none;stroke-width:0.31"
-           x="71.853188"
-           y="196.82687"
-           id="tspan40-5">report creation</tspan></text>
+      <g
+         id="g5">
+        <g
+           id="g4">
+          <g
+             id="g3">
+            <rect
+               style="fill:none;stroke:#000000;stroke-width:0.147571;stroke-dasharray:none"
+               id="rect4-4-3-8-8-7"
+               width="38.071144"
+               height="7.1235251"
+               x="52.599209"
+               y="191.98819"
+               ry="3.6919339"
+               rx="3.6919334" />
+            <text
+               xml:space="preserve"
+               style="font-size:4.93889px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:none;stroke:#000000;stroke-width:0.309999;stroke-dasharray:none"
+               x="71.853188"
+               y="196.82687"
+               id="text6-8-7-4-6"><tspan
+                 sodipodi:role="line"
+                 style="font-size:4.93889px;text-align:center;text-anchor:middle;fill:#1a1a1a;stroke:none;stroke-width:0.31"
+                 x="71.853188"
+                 y="196.82687"
+                 id="tspan40-5">Report creation</tspan></text>
+          </g>
+        </g>
+      </g>
     </g>
   </g>
 </svg>

@@ -43,6 +43,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#installation">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -1232,7 +1233,7 @@
         <span class="n">fiducialNode</span><span class="o">.</span><span class="n">SetNthControlPointLabel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="c1"># make text size smaller</span>
-        <span class="n">fiducialNode</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetTextScale</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">fiducialNode</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetTextScale</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
         <span class="c1"># turn the text shadow off</span>
         <span class="n">fiducialNode</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span><span class="o">.</span><span class="n">GetTextProperty</span><span class="p">()</span><span class="o">.</span><span class="n">ShadowOff</span><span class="p">()</span>
@@ -1292,7 +1293,7 @@
         <span class="n">lineNode2</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetSelectedColor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">fiducialNodeForText</span><span class="p">:</span>
-            <span class="n">fiducialNodeForText</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetSelectedColor</span><span class="p">(</span><span class="nb">tuple</span><span class="p">([</span><span class="n">v</span> <span class="o">/</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">color</span><span class="p">]))</span></div>
+            <span class="n">fiducialNodeForText</span><span class="o">.</span><span class="n">GetDisplayNode</span><span class="p">()</span><span class="o">.</span><span class="n">SetSelectedColor</span><span class="p">(</span><span class="nb">tuple</span><span class="p">([</span><span class="n">v</span> <span class="o">/</span> <span class="mf">1.2</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">color</span><span class="p">]))</span></div>
 
 
 <div class="viewcode-block" id="LineNodePair.annotate_with_text">
