@@ -40,12 +40,15 @@ Module Contents
 
 
 
-   .. py:method:: test_RANO_dicom()
+   .. py:method:: test_RANO_dicom_KCL()
 
 
-   .. py:method:: test_RANO_nifti()
+   .. py:method:: test_RANO_dicom_CPTAC()
 
 
-   .. py:method:: test_pipeline(inputVolumes, inputVolumes_t2, do_affinereg, input_is_bet, seg_model_key, automatic_segmentation, line_placement, report_creation)
+   .. py:method:: test_RANO_nifti_MU()
+
+
+   .. py:method:: test_pipeline(inputVolumes, inputVolumes_t2, do_affinereg, input_is_bet, method2Dmeas, seg_model_key, automatic_segmentation, line_placement, report_creation)
 
 

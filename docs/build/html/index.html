@@ -45,6 +45,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#installation">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -91,29 +92,42 @@ steroid use and clinical status.</p></li>
 <li><p><strong>Report creation:</strong> The tool generates a report summarizing the measurements and response assessment, which can be
 saved in PDF format.</p></li>
 </ol>
+</section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<section id="system-requirements">
+<h2>System requirements<a class="headerlink" href="#system-requirements" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Operating System</strong>: The tool has been tested on Ubuntu 24.04</p></li>
+<li><p><strong>GPU</strong>: The tool requires a GPU with CUDA support for the automatic segmentation. The tool has been tested on
+NVIDIA GPUs with CUDA 12.4.</p></li>
+</ul>
 </section>
-<section id="segmentation-models">
-<h2>Segmentation models<a class="headerlink" href="#segmentation-models" title="Link to this heading"></a></h2>
-<p>The segmentation model weights need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dynunet_pipeline</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">tasks</span>
-</pre></div>
-</div>
-<p>such that the directory structure looks like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└──rano2.0-assist
-   └──dynunet_pipeline/data/tasks`
-      ├── task4000_brats24
-      ├── task4001_brats24allmod
-      └── task...
-</pre></div>
-</div>
+<section id="download-the-repository">
+<h2>Download the repository<a class="headerlink" href="#download-the-repository" title="Link to this heading"></a></h2>
+<p>The repository can be downloaded from GitHub:</p>
+<p><a class="reference external" href="https://github.com/cai4cai/rano2.0-assist">https://github.com/cai4cai/rano2.0-assist</a></p>
 </section>
-<section id="test-data">
-<h2>Test data<a class="headerlink" href="#test-data" title="Link to this heading"></a></h2>
-<p>The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
-following directory:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">input_data</span>
+<section id="segmentation-models-and-test-data">
+<h2>Segmentation models and test data<a class="headerlink" href="#segmentation-models-and-test-data" title="Link to this heading"></a></h2>
+<p>The segmentation model weights and test data need to be downloaded from</p>
+<p><a class="reference external" href="https://zenodo.org/records/15411078">https://zenodo.org/records/15411078</a></p>
+<p>(direct download link: <a class="reference external" href="https://zenodo.org/records/15411078/files/rano2.0-assist.zip?download=1">click here</a> )</p>
+<p>and placed in the rano2.0-assist root directory:</p>
+<p>This will add the following directories to the directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── rano2.0-assist
+    ├── data
+    │   └── test_data
+    │       ├── KCL
+    │       │   └── Patient_003
+    │       └── MU-Glioma-Post  # https://www.cancerimagingarchive.net/collection/mu-glioma-post/
+    │           ├── PatientID_003
+    │           └── PatientID_005
+    └── dynunet_pipeline
+        └── data
+            └── tasks
+                ├── task4000_brats24
+                └── task4001_brats24allmod
 </pre></div>
 </div>
 </section>
@@ -128,8 +142,8 @@ GPU acceleration. The local installation requires 3D Slicer and the necessary Py
 </section>
 <section id="local-installation">
 <h3>Local installation<a class="headerlink" href="#local-installation" title="Link to this heading"></a></h3>
-<section id="requirements">
-<h4>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h4>
+<section id="software-requirements">
+<h4>Software requirements<a class="headerlink" href="#software-requirements" title="Link to this heading"></a></h4>
 <p>Follow the links to install the required software:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://download.slicer.org/">3D Slicer</a> (tested with version 5.8.1)</p></li>
@@ -185,6 +199,21 @@ in that environment on top of the installation in 3D Slicer.</p>
 </section>
 </section>
 </section>
+<section id="running-tests">
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
+<p>To test the docker installation, run the script <a class="reference download internal" download="" href="_downloads/f6975e4f3732f5bd835726bd4e26431b/run_tests_docker.sh"><span class="xref download myst">tests/run_tests_docker.sh</span></a></p>
+<p>To test the local installation, run the script <a class="reference download internal" download="" href="_downloads/33b059e2dcd55f2f3f3873c9359027c3/run_tests.sh"><span class="xref download myst">tests/run_tests.sh</span></a></p>
+<p>Both scripts will start 3D Slicer and run the tests listed in run_tests.sh. By default one test runs on DICOM input data
+and another test runs on NIfTI input data. The tests are define in <a class="reference download internal" download="" href="_downloads/5266e958c0d7fec22be7ee0718afab9e/test_rano.py"><span class="xref download myst">RANO/utils/test_rano.py</span></a>.</p>
+<p>The tests will take a few minutes to run and will create tests in the <code class="docutils literal notranslate"><span class="pre">Reports</span></code> directory.</p>
+<p>Upon successful completion, the script prints:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Test</span> <span class="n">Summary</span><span class="p">:</span>
+<span class="n">Test</span> <span class="n">test_RANO_dicom_KCL</span><span class="p">:</span> <span class="n">PASSED</span>
+<span class="n">Test</span> <span class="n">test_RANO_nifti_MU</span><span class="p">:</span> <span class="n">PASSED</span>
+
+</pre></div>
+</div>
+</section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <section id="running-the-tool">
@@ -204,24 +233,7 @@ in that environment on top of the installation in 3D Slicer.</p>
 “Application Settings”.</p></li>
 <li><p>Under “Developer” tab, check the “Enable developer mode” checkbox. Restart of 3D Slicer is required.</p></li>
 <li><p>At the top of the RANO module, you will find the “Reload &amp; Test” box, which is for developer use only.</p></li>
-<li><p>The “Test Cases” box allow you to load the test data saved under `data/test_data’ in the repository. The folder structure
-is as follows:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── rano2.0-assist
-    └── data
-        └── test_data
-            ├── KCH-internal
-            │   ├── Patient_003
-            │   ├── Patient_006
-            │   └── ...
-            │
-            └── MU-Glioma-Post
-                ├── PatientID_003
-                ├── PatientID_004
-                └── ...
-</pre></div>
-</div>
-<ul class="simple">
+<li><p>The “Test Cases” box allows you to load the test data saved under `data/test_data/KCL’ in the repository.</p></li>
 <li><p>Select the patient and time points in the Test Cases Box and click “Load” to load the data.</p></li>
 </ul>
 <img src="_static/testCasesBox.png" alt="drawing" width="300"/>
@@ -325,11 +337,13 @@ the clinical criteria (steroid use and clinical status) that need to be specifie
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="README.html">RANO2.0-assist</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="README.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#segmentation-models">Segmentation models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="README.html#test-data">Test data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#installation">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#system-requirements">System requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#download-the-repository">Download the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#segmentation-models-and-test-data">Segmentation models and test data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="README.html#d-slicer-extension">3D Slicer extension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#running-tests">Running tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="README.html#usage">Usage</a></li>
 </ul>
 </li>

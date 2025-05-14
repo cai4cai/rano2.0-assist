@@ -611,9 +611,7 @@
         <span class="n">lesion_stats</span> <span class="o">=</span> <span class="n">get_lesion_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resampledVolumeNodes</span><span class="p">)</span>
 
         <span class="c1"># remove the previous lines</span>
-        <span class="n">oldLineNodes</span> <span class="o">=</span> <span class="n">slicer</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">getNodesByClass</span><span class="p">(</span><span class="s1">&#39;vtkMRMLMarkupsLineNode&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">lineNode</span> <span class="ow">in</span> <span class="n">oldLineNodes</span><span class="p">:</span>
-            <span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">RemoveNode</span><span class="p">(</span><span class="n">lineNode</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">[:]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">create_lineNodePairs</span><span class="p">(</span><span class="n">lesion_stats</span><span class="p">)</span>
         <span class="n">setLinePairViews</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">)</span>
@@ -1397,7 +1395,14 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes sure that line nodes contained in the LineNodePairList are removed from the scene when removed from the list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="c1"># Get all items that will be deleted</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uponModified</span><span class="p">()</span></div>
 

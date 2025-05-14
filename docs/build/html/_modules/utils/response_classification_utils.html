@@ -114,7 +114,7 @@
 <span class="sd">            Response: the response assessment according to the RANO 2.0 criteria</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># make sure only one of the two is provided</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="n">rel_area</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">rel_vol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Either del_area or del_vol must be provided, but not both&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">rel_area</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">rel_vol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Either rel_area or rel_vol must be provided, but not both&quot;</span>
 
         <span class="k">if</span> <span class="n">rel_area</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">rel_area</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># decrease in size</span>

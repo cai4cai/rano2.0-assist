@@ -17,27 +17,42 @@ the following steps:
    saved in PDF format.
 
 
-## Installation
+# Installation
 
-## Segmentation models
-The segmentation model weights need to be downloaded from (TODO: add link to Zenodo models) and placed in the following directory:
-```
-dynunet_pipeline/data/tasks
-```
-such that the directory structure looks like this:
-```
-└──rano2.0-assist
-   └──dynunet_pipeline/data/tasks`
-      ├── task4000_brats24
-      ├── task4001_brats24allmod
-      └── task...
-```
+## System requirements
+- **Operating System**: The tool has been tested on Ubuntu 24.04
+- **GPU**: The tool requires a GPU with CUDA support for the automatic segmentation. The tool has been tested on
+  NVIDIA GPUs with CUDA 12.4.
 
-## Test data
-The test data is also available on Zenodo (TODO: add link to Zenodo test data). The test data should be placed in the
-following directory:
+## Download the repository
+The repository can be downloaded from GitHub: 
+
+[https://github.com/cai4cai/rano2.0-assist](https://github.com/cai4cai/rano2.0-assist)
+
+## Segmentation models and test data
+The segmentation model weights and test data need to be downloaded from 
+
+[https://zenodo.org/records/15411078](https://zenodo.org/records/15411078)
+
+(direct download link: [click here](https://zenodo.org/records/15411078/files/rano2.0-assist.zip?download=1) )
+
+and placed in the rano2.0-assist root directory:
+
+This will add the following directories to the directory:
 ```
-data/input_data
+└── rano2.0-assist
+    ├── data
+    │   └── test_data
+    │       ├── KCL
+    │       │   └── Patient_003
+    │       └── MU-Glioma-Post  # https://www.cancerimagingarchive.net/collection/mu-glioma-post/
+    │           ├── PatientID_003
+    │           └── PatientID_005
+    └── dynunet_pipeline
+        └── data
+            └── tasks
+                ├── task4000_brats24
+                └── task4001_brats24allmod
 ```
 
 ## 3D Slicer extension
@@ -50,7 +65,7 @@ For Docker installation, follow instructions here: [docker/README.md](../../dock
 
 ### Local installation
 
-#### Requirements
+#### Software requirements
 Follow the links to install the required software:
 - [3D Slicer](https://download.slicer.org/) (tested with version 5.8.1)
 
@@ -100,6 +115,25 @@ To add the extension to 3D Slicer, follow these steps:
    "RANO" using the search tool.
 
 
+## Running tests
+To test the docker installation, run the script [tests/run_tests_docker.sh](../../tests/run_tests_docker.sh)
+
+To test the local installation, run the script [tests/run_tests.sh](../../tests/run_tests.sh)
+
+Both scripts will start 3D Slicer and run the tests listed in run_tests.sh. By default one test runs on DICOM input data 
+and another test runs on NIfTI input data. The tests are define in [RANO/utils/test_rano.py](../../RANO/utils/test_rano.py).
+
+The tests will take a few minutes to run and will create tests in the `Reports` directory.
+
+Upon successful completion, the script prints:
+```
+Test Summary:
+Test test_RANO_dicom_KCL: PASSED
+Test test_RANO_nifti_MU: PASSED
+
+```
+
+
 ## Usage
 
 ### Running the tool
@@ -118,22 +152,7 @@ To add the extension to 3D Slicer, follow these steps:
 
 - At the top of the RANO module, you will find the "Reload & Test" box, which is for developer use only.
 
-- The "Test Cases" box allow you to load the test data saved under `data/test_data' in the repository. The folder structure
-is as follows:
-```
-└── rano2.0-assist
-    └── data
-        └── test_data
-            ├── KCH-internal
-            │   ├── Patient_003
-            │   ├── Patient_006
-            │   └── ...
-            │
-            └── MU-Glioma-Post
-                ├── PatientID_003
-                ├── PatientID_004
-                └── ...
-```
+- The "Test Cases" box allows you to load the test data saved under `data/test_data/KCL' in the repository.
 
 - Select the patient and time points in the Test Cases Box and click "Load" to load the data. 
 
