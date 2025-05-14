@@ -32,7 +32,7 @@ class UIHelperMixin:
         Set up the test cases for the RANO module.
         """
         # test cases
-        base_path = os.path.join(test_data_path, "KCH-internal")
+        base_path = os.path.join(test_data_path, "KCL")
         patients = glob(os.path.join(base_path, "Patient_*"))
 
         timepoints = {}

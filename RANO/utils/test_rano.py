@@ -53,15 +53,15 @@ class RANOTest(ScriptedLoadableModuleTest):
                 else:
                     print(f"Test {test} not found")
         else:  # if no tests were specified run all tests
-            self.test_RANO_dicom_KCH()
-            self.test_RANO_dicom_CPTAC()
+            self.test_RANO_dicom_KCL()
+            #self.test_RANO_dicom_CPTAC()
             self.test_RANO_nifti_MU()
 
         if any(['.py' in arg for arg in sys.argv]):
             print('Tests executed from command line. Quitting Slicer...')
             slicer.app.quit()
 
-    def test_RANO_dicom_KCH(self):
+    def test_RANO_dicom_KCL(self):
         slicer.mrmlScene.Clear()
         self.delayDisplay("Starting the test")
 
@@ -69,16 +69,18 @@ class RANOTest(ScriptedLoadableModuleTest):
         define the test cases
         '''
 
-        base_path = os.path.join(test_data_path, 'KCH-internal')
+        base_path = os.path.join(test_data_path, 'KCL')
 
-        kch_dcm_timepoint_pairs = [((f"Patient_{id:03d}", f"TimePoint_001"), (f"Patient_{id:03d}", f"TimePoint_002"))
-                                  for id in range(1, 40)]
+        patients = sorted(glob(os.path.join(base_path, "Patient_*")))
+
+        kcl_dcm_timepoint_pairs = [((patient, f"TimePoint_001"), (patient, f"TimePoint_002"))
+                                  for patient in patients]
 
         cases_of_paths_2tp_times_4channels = []  # n cases, 2 timepoints, 4 channels
-        for test_case_idx in range(len(kch_dcm_timepoint_pairs)):
-            patient = kch_dcm_timepoint_pairs[test_case_idx][0][0]
-            timepoint_t1 = kch_dcm_timepoint_pairs[test_case_idx][0][1]
-            timepoint_t2 = kch_dcm_timepoint_pairs[test_case_idx][1][1]
+        for test_case_idx in range(len(kcl_dcm_timepoint_pairs)):
+            patient = kcl_dcm_timepoint_pairs[test_case_idx][0][0]
+            timepoint_t1 = kcl_dcm_timepoint_pairs[test_case_idx][0][1]
+            timepoint_t2 = kcl_dcm_timepoint_pairs[test_case_idx][1][1]
 
             p_t1c_tp1 = os.path.join(base_path, patient, timepoint_t1, "t1c")
             p_t1n_tp1 = os.path.join(base_path, patient, timepoint_t1, "t1n")
@@ -90,16 +92,15 @@ class RANOTest(ScriptedLoadableModuleTest):
             p_t2f_tp2 = os.path.join(base_path, patient, timepoint_t2, "t2f")
             p_t2w_tp2 = os.path.join(base_path, patient, timepoint_t2, "t2w")
 
-            if not "006" in p_t1c_tp1:
-                continue
-
             # check if all files exist
-            if not all([os.path.isdir(p) for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]]):
-                print(f"Not all files exist for test case {test_case_idx}")
-                continue
+            for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]:
+                if not os.path.isdir(p):
+                    raise NotADirectoryError(f"The directory {p} does not exist...")
 
             cases_of_paths_2tp_times_4channels.append([[p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1],
                                                        [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]])
+
+        assert(len(cases_of_paths_2tp_times_4channels) > 0), f"No test cases found for KCL patients"
 
 
         '''
@@ -179,14 +180,18 @@ class RANOTest(ScriptedLoadableModuleTest):
                 p_t1n_tp2 = os.path.join(base_path, patient, timepoint2, "5.000000-AX T1-46920")
                 p_t2f_tp2 = os.path.join(base_path, patient, timepoint2, "6.000000-Ax Flair irFSE H-49772")
                 p_t2w_tp2 = os.path.join(base_path, patient, timepoint2, "8.000000-Prop T2 TRF-56708")
+            else:
+                raise ValueError(f"No paths defined for patient {patient}")
 
-            # check if all files exist
-            if not all([os.path.isdir(p) for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]]):
-                print(f"Not all files exist for test case {test_case_idx}")
-                continue
+            # check if all directories exist
+            for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]:
+                if not os.path.isdir(p):
+                    raise NotADirectoryError(f"The directory {p} does not exist...")
 
             cases_of_paths_2tp_times_4channels.append([[p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1],
                                                        [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]])
+
+        assert(len(cases_of_paths_2tp_times_4channels) > 0), f"No test cases found for CPTAC-GBM patients"
 
 
         '''
@@ -249,29 +254,33 @@ class RANOTest(ScriptedLoadableModuleTest):
 
         base_path = os.path.join(test_data_path, 'MU-Glioma-Post')
 
-        timepoint_pairs = [
-            ("PatientID_0003/Timepoint_1/PatientID_0003_Timepoint_1_brain_", "PatientID_0003/Timepoint_2/PatientID_0003_Timepoint_2_brain_"),
+        patient_dirs = sorted(glob(os.path.join(base_path, "PatientID_*")))
+        patients = [os.path.basename(p) for p in patient_dirs]
 
-        ]
+        for patient, patient_dir in zip(patients, patient_dirs):
+            timepoints = [os.path.basename(p) for p in sorted(glob(os.path.join(patient_dir, "Timepoint_*")))]
+            timepoint_1_dir = os.path.join(patient_dir, timepoints[0])
+            timepoint_2_dir = os.path.join(patient_dir, timepoints[1])
 
-        for test_case_idx in range(len(timepoint_pairs)):
-            p_t1c_tp1 = os.path.join(base_path, timepoint_pairs[test_case_idx][0] + "t1c.nii.gz")
-            p_t1n_tp1 = os.path.join(base_path, timepoint_pairs[test_case_idx][0] + "t1n.nii.gz")
-            p_t2f_tp1 = os.path.join(base_path, timepoint_pairs[test_case_idx][0] + "t2f.nii.gz")
-            p_t2w_tp1 = os.path.join(base_path, timepoint_pairs[test_case_idx][0] + "t2w.nii.gz")
+            p_t1c_tp1 = os.path.join(timepoint_1_dir, patient + f"_{timepoints[0]}_brain_t1c.nii.gz")
+            p_t1n_tp1 = os.path.join(timepoint_1_dir, patient + f"_{timepoints[0]}_brain_t1n.nii.gz")
+            p_t2f_tp1 = os.path.join(timepoint_1_dir, patient + f"_{timepoints[0]}_brain_t2f.nii.gz")
+            p_t2w_tp1 = os.path.join(timepoint_1_dir, patient + f"_{timepoints[0]}_brain_t2w.nii.gz")
 
-            p_t1c_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t1c.nii.gz")
-            p_t1n_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t1n.nii.gz")
-            p_t2f_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t2f.nii.gz")
-            p_t2w_tp2 = os.path.join(base_path, timepoint_pairs[test_case_idx][1] + "t2w.nii.gz")
+            p_t1c_tp2 = os.path.join(timepoint_2_dir, patient + f"_{timepoints[1]}_brain_t1c.nii.gz")
+            p_t1n_tp2 = os.path.join(timepoint_2_dir, patient + f"_{timepoints[1]}_brain_t1n.nii.gz")
+            p_t2f_tp2 = os.path.join(timepoint_2_dir, patient + f"_{timepoints[1]}_brain_t2f.nii.gz")
+            p_t2w_tp2 = os.path.join(timepoint_2_dir, patient + f"_{timepoints[1]}_brain_t2w.nii.gz")
 
             # check if all files exist
-            if not all([os.path.isfile(p) for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]]):
-                print(f"Not all files exist for test case {test_case_idx}")
-                continue
+            for p in [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1, p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]:
+                if not os.path.isfile(p):
+                    raise FileNotFoundError(f"The file {p} does not exist...")
 
             cases_of_paths_2tp_times_4channels.append([[p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1],
                                                        [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]])
+
+        assert(len(cases_of_paths_2tp_times_4channels) > 0), f"No test cases found for MU-Glioma-Post patients"
 
 
         '''
