@@ -7,21 +7,21 @@ tags:
   - MRI
 authors:
   - name: Aaron Kujawa
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0002-1445-6207
     affiliation: 1 #"1, 2" # (Multiple affiliations must be quoted)
   - name: Tangqi Shi
-    orcid: 0000-0000-0000-0000
+    orcid: 0009-0002-5668-239X
     affiliation: 1
   - name: Thomas Booth
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0003-0984-3998
     affiliation: 1
   - name: Tom Vercauteren
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0003-1794-0456
     affiliation: 1
 affiliations:
   - name: School of Biomedical Engineering & Imaging Sciences, King's College London, United Kingdom
     index: 1
-date: 20 March 2025
+date: 15 May 2025
 bibliography: paper.bib
 ---
 
@@ -30,7 +30,7 @@ The Response Assessment in Neuro-Oncology (RANO) criteria [@wen2023rano] are wid
 RANO was introduced to improve reliability and reproducibility of response assessment, classifying patients into four categories: complete response, partial response, stable disease, and progressive disease.
 The classification is primarily based on the change in tumour size and typically requires the identification of all tumour regions and the measurement of their dimensions on MRI scans.
 While manual assessment is time-consuming and prone to inter- and intra-observer variability, automated methods can provide more consistent and efficient response assessment.
-We present RANO2.0-assist, a 3D Slicer extension for (semi-)automatic assessment of response to glioma. 3D Slicer  is a free open-source software application for medical image computing. [@fedorov20123d]
+We present RANO2.0-assist, a 3D Slicer extension for (semi-)automatic assessment of response to glioma. 3D Slicer  is a free open-source software application for medical image computing [@fedorov20123d]. 
 RANO2.0-assist allows for fully automatic respons assessment while also providing interactive tools for manual correction and validation of the results.
 
 # Statement of need
@@ -45,11 +45,11 @@ While the current pipeline is designed for enhancing glioblastoma, it can easily
 non-enhancing low-grade glioma or meningioma.
 
 # Overview of RANO2.0-assist
-The key components of the RANO2.0-assist pipeline are shown in figure \autoref{fig:pipeline}.
+The key components of the RANO2.0-assist pipeline are shown in \autoref{fig:pipeline}.
 
 ![RANO2.0-assist pipeline.\label{fig:pipeline}](pipeline.png){ width=20% }
 
-A snapshot of the user interface is shown in figure \autoref{fig:interface}.
+A snapshot of the user interface is shown in \autoref{fig:interface}.
 
 ![RANO2.0-assist user interface.\label{fig:interface}](ui-screenshot.png){ width=100% }
 
@@ -73,7 +73,8 @@ as the corresponding line pairs in the first time point. Similarly, the user can
 to slices that are within a certain distance from the corresponding slice in the first time point.
 
 The user can interactively modify the line pairs, add new, or remove existing ones.
-Additionally, the user can specify enhancing and non-enhancing lesions, whether they are measurable, and whether they 
+Additionally, the user can specify enhancing and non-enhancing lesions, whether they are measurable (by default, only lesions 
+of at least 10mm in both dimensions are measurable), and whether they 
 are to be considered as target lesions according to the RANO 2.0 criteria.
 
 Based on the bi-dimensional measurements, RANO2.0-assist calculates the percentage change in tumour size and classifies the
