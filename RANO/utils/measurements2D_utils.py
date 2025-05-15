@@ -1113,7 +1113,7 @@ class LineNodePair(list):
         fiducialNode.SetNthControlPointLabel(0, "")
 
         # make text size smaller
-        fiducialNode.GetDisplayNode().SetTextScale(2)
+        fiducialNode.GetDisplayNode().SetTextScale(3)
 
         # turn the text shadow off
         fiducialNode.GetDisplayNode().GetTextProperty().ShadowOff()
@@ -1170,7 +1170,7 @@ class LineNodePair(list):
         lineNode2.GetDisplayNode().SetSelectedColor(color)
 
         if fiducialNodeForText:
-            fiducialNodeForText.GetDisplayNode().SetSelectedColor(tuple([v / 2 for v in color]))
+            fiducialNodeForText.GetDisplayNode().SetSelectedColor(tuple([v / 1.2 for v in color]))
 
     def annotate_with_text(self):
         """
