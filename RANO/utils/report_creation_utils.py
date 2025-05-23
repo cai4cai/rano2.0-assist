@@ -1,17 +1,23 @@
 import os
-import shutil
 from datetime import datetime
 import json
 import ScreenCapture
 import numpy as np
+from collections import defaultdict
+
+from reportlab.lib import utils, colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, KeepTogether, Image, Preformatted
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 import slicer
 import qt
-from utils.config import reports_path
 
+from utils.config import reports_path, debug
 import utils.measurements2D_utils as measurements2D_utils
 import utils.segmentation_utils as segmentation_utils
-
 from utils.rano_utils import find_closest_plane
 
 
@@ -77,6 +83,7 @@ class ReportCreationMixin:
         self.table_to_csv(report_dir)
         self.create_images(report_dir)
         self.create_json_file(report_dir, timestamp)
+        self.create_report_pdf(os.path.join(report_dir, "report.json"))
 
     @staticmethod
     def get_report_dir_from_node(default_report_dir, node1, node2, timestamp):
@@ -307,3 +314,263 @@ class ReportCreationMixin:
         # write the report to a json file
         with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=4)
+
+    def create_report_pdf(self, report_json_path):
+        """
+        Create a PDF report from the JSON file.
+
+        Args:
+            report_json_path (str): Path to the JSON file.
+        """
+
+        # Read the JSON file
+
+        with open(report_json_path, "r") as f:
+            report_data = json.load(f)
+         
+        styles = getSampleStyleSheet()
+
+        header_style = ParagraphStyle(
+            name="CenteredHeader",
+            fontSize=10,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            parent=styles['Normal'],
+        )
+
+        subtitle_style = ParagraphStyle(
+            name="Subtitle",
+            fontSize=14,
+            leading=18,
+            textColor=colors.black,
+            alignment=TA_LEFT,
+            spaceAfter=6
+        )
+
+        table_style_header = TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.darkgrey),  # Color for header (row 0)
+            ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),  # Color for all rows after the header (rows 1 to end)
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Horizontal alignment
+        ])
+
+        table_style_noheader = TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.lightgrey),  # Color for all rows after the header (rows 1 to end)
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Horizontal alignment
+        ])
+
+        spacer = KeepTogether(Spacer(1, 0.25 * inch))
+        spacer2 = KeepTogether(Spacer(1, 0.5 * inch))
+         
+        # Set up document
+        doc = SimpleDocTemplate(report_json_path.replace(".json", ".pdf"), pagesize=letter)
+
+        # Get styles
+        title_style = styles['Title']  # or use 'Heading1', 'Heading2', etc.
+
+        # Create a title paragraph
+        title = Paragraph("RANO Report", title_style)
+         
+        subtitle_target = Paragraph("Target Lesions", subtitle_style)
+        subtitle_nontarget = Paragraph("Non-target Lesions", subtitle_style)
+
+        linePairs = report_data["LinePairs"]
+
+        # sort by key
+        linePairs = dict(sorted(linePairs.items()))
+
+        linePairs_dict = defaultdict(dict)
+        for pair in linePairs:
+            les_idx = linePairs[pair]["LesionIndex"]
+            timepoint = linePairs[pair]["Timepoint"]
+            linePairs_dict[les_idx][timepoint] = linePairs[pair]
+
+        # sort the dictionary by the keys
+        linePairs_dict = dict(sorted(linePairs_dict.items()))
+
+        img_width = 200  # width in pixels
+        img_height = 200
+
+        def get_image(path, width=2 * inch):
+            img = utils.ImageReader(path)
+            iw, ih = img.getSize()
+            aspect = ih / float(iw)
+            return Image(path, width=width, height=(width * aspect))
+
+        target_data = []
+        nontarget_data = []
+        for i, les_idx in enumerate(linePairs_dict):
+
+            # check if target lesion
+            if 'timepoint1' in linePairs_dict[les_idx]:
+                timepoint1_is_target = linePairs_dict[les_idx]['timepoint1']['Target']
+                timepoint1_img = get_image(linePairs_dict[les_idx]['timepoint1']['ImagePath'], width=img_width)
+            else:
+                timepoint1_is_target = False
+                timepoint1_img = None
+
+            if 'timepoint2' in linePairs_dict[les_idx]:
+                timepoint2_is_target = linePairs_dict[les_idx]['timepoint2']['Target']
+                timepoint2_img = get_image(linePairs_dict[les_idx]['timepoint2']['ImagePath'], width=img_width)
+            else:
+                timepoint2_is_target = False
+                timepoint2_img = None
+
+            if timepoint1_is_target or timepoint2_is_target:
+                target_data.append([timepoint1_img, timepoint2_img])
+            else:
+                nontarget_data.append([timepoint1_img, timepoint2_img])
+
+        # insert headers if there are images
+        if target_data:
+            target_data.insert(0, [Paragraph("Timepoint 1", header_style), Paragraph("Timepoint 2", header_style)])
+        if nontarget_data:
+            nontarget_data.insert(0, [Paragraph("Timepoint 1", header_style), Paragraph("Timepoint 2", header_style)])
+         
+        # Create table with header repeat across pages
+        colWidths = [img_width * 1.05, img_width * 1.05]
+
+        if target_data:
+            target_data_table = Table(target_data, colWidths=colWidths, repeatRows=1, hAlign="LEFT")
+            target_data_table.setStyle(table_style_header)
+
+        if nontarget_data:
+            nontarget_data_table = Table(nontarget_data, colWidths=colWidths, repeatRows=1, hAlign="LEFT")
+            nontarget_data_table.setStyle(table_style_header)
+         
+        # Add a table with the lesion info
+        subtitle_lesion_info = Paragraph("Lesion Information", subtitle_style)
+
+        lesion_info = []
+        for pair_name, pair in linePairs.items():
+            new_row = [pair["LesionIndex"],
+                       pair["Timepoint"].replace("timepoint", ""),
+                       "✓" if pair["Target"] else "✗",
+                       "✓" if pair["Measurable"] else "✗",
+                       "✓" if pair["Enhancing"] else "✗",
+                       f"{pair['LineLengthProd']:.0f} mm²",  # square mm
+                       ]
+
+            lesion_info.append(new_row)
+
+        if lesion_info:
+            lesion_info.insert(0, ["Lesion Index", "Timepoint", "Target", "Measurable", "Enhancing", "Product"])
+
+            lesion_info_table = Table(lesion_info, repeatRows=1, hAlign="LEFT")
+            lesion_info_table.setStyle(table_style_header)
+         
+        # Lesion-based response classification
+
+        subtitle_lesion_response = Paragraph("Lesion-based Response Classification", subtitle_style)
+
+        lesion_response_status = report_data["ResponseStatus"]
+
+        lesion_response_data = []
+        for key, val in lesion_response_status.items():
+            if "lesion" in key:
+                new_row = [key, f"{val:.0f}"]
+            elif "product" in key:
+                new_row = [key, f"{val:.0f} mm²"]
+            elif "change" in key:
+                new_row = [key, f"{val:.1f} %"]
+            else:
+                new_row = [key, val]
+
+            lesion_response_data.append(new_row)
+
+        if lesion_response_data:
+            lesion_response_data.insert(0, ["Lesion Index", "Response Classification"])
+
+        lesion_response_table = Table(lesion_response_data, repeatRows=1, hAlign="LEFT")
+        lesion_response_table.setStyle(table_style_noheader)
+         
+        # Overall response classification
+        subtitle_overall_response = Paragraph("Overall Response Classification", subtitle_style)
+
+        overall_response_status = report_data["OverallResponseStatus"]
+        overall_response_data = []
+        for key, val in overall_response_status.items():
+            new_row = [key, val]
+
+            overall_response_data.append(new_row)
+
+        if overall_response_data:
+            overall_response_data.insert(0, ["Lesion Index", "Response Classification"])
+
+        overall_response_table = Table(overall_response_data, repeatRows=1, hAlign="LEFT")
+        overall_response_table.setStyle(table_style_noheader)
+         
+        # Settings
+        subtitle_settings = Paragraph("Settings", subtitle_style)
+
+        settings = []
+        settings.append(["Report Time",
+                         datetime.strptime(report_data["ReportTime"], "%Y%m%d_%H%M%S").strftime("%Y-%m-%d %H:%M:%S")])
+        settings.append(["Affine registration t1", report_data["ParameterNode"]["AffineReg"]])
+        settings.append(["Affine registration t2", report_data["ParameterNode"]["AffineReg_t2"]])
+        settings.append(["Input is skull-stripped t1", report_data["ParameterNode"]["InputIsBET"]])
+        settings.append(["Input is skull-stripped t2", report_data["ParameterNode"]["InputIsBET_t2"]])
+        settings.append(["Segmentation model timepoint 1", report_data["ParameterNode"]["model_key"]])
+        settings.append(["Segmentation model timepoint 2", report_data["ParameterNode"]["model_key_t2"]])
+        settings.append(["Segment for 2D measurements", report_data["2DMeasurement"]["Segment2DMeasurement"]])
+        settings.append(["Method 2D  measurements", report_data["2DMeasurement"]["Method2DMeasurement"]])
+        settings.append(["Allow axial orientation", report_data["ParameterNode"]["axial"]])
+        settings.append(["Allow sagittal orientation", report_data["ParameterNode"]["sagittal"]])
+        settings.append(["Allow coronal orientation", report_data["ParameterNode"]["coronal"]])
+        settings.append(["Force same orientation", report_data["ParameterNode"]["orient_cons_tp"]])
+        settings.append(["Force approx same slice", report_data["ParameterNode"]["same_slc_tp"]])
+
+        if settings:
+            settings.insert(0, ["Setting", "Value"])
+            settings_table = Table(settings, repeatRows=1, hAlign="LEFT")
+            settings_table.setStyle(table_style_header)
+
+        if debug:
+            # add the json data to the end of the document
+            json_style = ParagraphStyle(
+                name="JsonStyle",
+                fontSize=10,
+                textColor=colors.black,
+                alignment=TA_LEFT,
+                parent=styles['Normal'],
+            )
+            json_str = json.dumps(report_data, indent=4)
+
+            # Use Preformatted to preserve line breaks and spacing
+            json_block = Preformatted(json_str, style=styles['Code'])
+         
+        # Build the PDF with title, spacer, and table
+        components = [title, spacer]
+        if 'target_data' in locals() and target_data:
+            components.append(subtitle_target)
+            components.append(target_data_table)
+            components.append(spacer2)
+        if 'nontarget_data' in locals() and nontarget_data:
+            components.append(subtitle_nontarget)
+            components.append(nontarget_data_table)
+            components.append(spacer2)
+        if 'lesion_info_table' in locals() and lesion_info_table:
+            components.append(subtitle_lesion_info)
+            components.append(lesion_info_table)
+            components.append(spacer2)
+        if 'lesion_response_table' in locals() and lesion_response_table:
+            components.append(subtitle_lesion_response)
+            components.append(lesion_response_table)
+            components.append(spacer2)
+        if 'overall_response_table' in locals() and overall_response_table:
+            components.append(subtitle_overall_response)
+            components.append(overall_response_table)
+            components.append(spacer2)
+        if 'settings_table' in locals() and settings_table:
+            components.append(subtitle_settings)
+            components.append(settings_table)
+            components.append(spacer2)
+        if 'json_block' in locals() and json_block:
+            components.append(json_block)
+            components.append(spacer2)
+         
+        # Build the document
+        doc.build(components)

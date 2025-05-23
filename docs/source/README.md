@@ -81,6 +81,7 @@ environment as follow:
 - nibabel (tested with version 5.3.2): `pip_install("nibabel==5.3.2")`
 - tqdm (tested with version 4.67.1) : `pip_install("tqdm==4.67.1")`
 - pyyaml (tested with version 6.0.2): `pip_install("pyyaml==6.0.2")`
+- reportlab (tested with version 4.4.1): `pip_install("reportlab==4.4.1")`
 
 The following packages are required for the segmentation pipeline (DynUNet). These can be installed either in the 3D Slicer
 python environment or in a separate python environment whose path can be specified in the RANO module. The following 
