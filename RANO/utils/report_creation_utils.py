@@ -3,6 +3,8 @@ import shutil
 from datetime import datetime
 import json
 import ScreenCapture
+import numpy as np
+
 import slicer
 import qt
 from utils.config import reports_path
@@ -72,9 +74,9 @@ class ReportCreationMixin:
 
         os.makedirs(report_dir, exist_ok=True)
 
-        self.create_json_file(report_dir, timestamp)
         self.table_to_csv(report_dir)
         self.create_images(report_dir)
+        self.create_json_file(report_dir, timestamp)
 
     @staticmethod
     def get_report_dir_from_node(default_report_dir, node1, node2, timestamp):
@@ -193,6 +195,9 @@ class ReportCreationMixin:
             save_path = os.path.join(report_dir, f"LinePair_{pair.lesion_idx}_{pair.timepoint}.png")
             cap.captureImageFromView(view, save_path)
 
+            # add the image path to the lineNodePair
+            pair.image_path = save_path
+
 
     @staticmethod
     def table_to_csv(report_dir):
@@ -244,6 +249,24 @@ class ReportCreationMixin:
             currentSegmentName = currentSegment.GetName() if currentSegment else "None"
             report_dict["2DMeasurement"]["Segment2DMeasurement"] = currentSegmentName
             report_dict["2DMeasurement"]["Method2DMeasurement"] = self.ui.method2DmeasComboBox.currentText
+
+        # Line pairs
+        report_dict["LinePairs"] = {}
+        for pair in self.lineNodePairs:
+            line_pair_dict = {}
+            line_pair_dict["LesionIndex"] = str(pair.lesion_idx)
+            line_pair_dict["Timepoint"] = str(pair.timepoint)
+            line_pair_dict["Enhancing"] = pair.enhancing
+            line_pair_dict["Measurable"] = pair.measurable
+            line_pair_dict["Target"] = pair.target
+            line_pair_dict["Coordinates"] = np.array(pair.get_coords()).tolist()
+            line_pair_dict["LineLengths"] = np.array(pair.get_line_lengths()).tolist()
+            line_pair_dict["LineLengthProd"] = pair.get_line_length_product()
+
+            if hasattr(pair, "image_path") and pair.image_path:
+                line_pair_dict["ImagePath"] = pair.image_path
+
+            report_dict["LinePairs"][f"Les{pair.lesion_idx}_{pair.timepoint}"] = line_pair_dict
 
 
         # Response Status (Lesion based)
