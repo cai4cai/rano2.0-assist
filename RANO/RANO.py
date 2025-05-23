@@ -103,8 +103,12 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         """ Flag to indicate if the GUI is being updated from the parameter node. This is used to prevent infinite loops
         when the parameter node is changed by a script or any other module. """
 
-        self.lineNodePairs = LineNodePairList()
-        """List of line node pairs used for 2D measurements."""
+        # only create the lineNodePairs list if it does not exist yet
+        if hasattr(slicer.modules, 'RANOWidget') and hasattr(slicer.modules.RANOWidget, 'lineNodePairs'):
+            self.lineNodePairs = slicer.modules.RANOWidget.lineNodePairs
+        else:
+            self.lineNodePairs = LineNodePairList()
+            """List of line node pairs used for 2D measurements."""
 
         SegmentationMixin.__init__(self, self._parameterNode, self.ui)
         UIHelperMixin.__init__(self, self._parameterNode, self.ui)
