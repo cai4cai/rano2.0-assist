@@ -81,11 +81,6 @@ Module Contents
       when the parameter node is changed by a script or any other module.
 
 
-   .. py:attribute:: lineNodePairs
-
-      List of line node pairs used for 2D measurements.
-
-
    .. py:method:: setup()
 
       Called when the user opens the module the first time and the widget is initialized.

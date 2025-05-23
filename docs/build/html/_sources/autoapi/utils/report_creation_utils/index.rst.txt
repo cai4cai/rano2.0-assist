@@ -81,3 +81,12 @@ Module Contents
 
 
 
+   .. py:method:: create_report_pdf(report_json_path)
+
+      Create a PDF report from the JSON file.
+
+      :param report_json_path: Path to the JSON file.
+      :type report_json_path: str
+
+
+

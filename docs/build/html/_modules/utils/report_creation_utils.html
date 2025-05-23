@@ -43,6 +43,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#installation">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -72,17 +73,25 @@
              
   <h1>Source code for utils.report_creation_utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ScreenCapture</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span><span class="p">,</span> <span class="n">colors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">TA_CENTER</span><span class="p">,</span> <span class="n">TA_LEFT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.platypus</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDocTemplate</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableStyle</span><span class="p">,</span> <span class="n">Paragraph</span><span class="p">,</span> <span class="n">Spacer</span><span class="p">,</span> <span class="n">KeepTogether</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Preformatted</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.pagesizes</span><span class="w"> </span><span class="kn">import</span> <span class="n">letter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">inch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">getSampleStyleSheet</span><span class="p">,</span> <span class="n">ParagraphStyle</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">qt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">reports_path</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">reports_path</span><span class="p">,</span> <span class="n">debug</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">utils.measurements2D_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">measurements2D_utils</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">utils.segmentation_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">segmentation_utils</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">utils.rano_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_closest_plane</span>
 
 
@@ -152,9 +161,10 @@
 
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_json_file</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">table_to_csv</span><span class="p">(</span><span class="n">report_dir</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_images</span><span class="p">(</span><span class="n">report_dir</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_images</span><span class="p">(</span><span class="n">report_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_json_file</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_report_pdf</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="s2">&quot;report.json&quot;</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="ReportCreationMixin.get_report_dir_from_node">
@@ -277,7 +287,10 @@
             <span class="n">cap</span> <span class="o">=</span> <span class="n">ScreenCapture</span><span class="o">.</span><span class="n">ScreenCaptureLogic</span><span class="p">()</span>
             <span class="n">view</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">viewFromNode</span><span class="p">(</span><span class="n">slicer</span><span class="o">.</span><span class="n">mrmlScene</span><span class="o">.</span><span class="n">GetNodeByID</span><span class="p">(</span><span class="n">viewNodeID</span><span class="p">))</span>
             <span class="n">save_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;LinePair_</span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
-            <span class="n">cap</span><span class="o">.</span><span class="n">captureImageFromView</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span></div>
+            <span class="n">cap</span><span class="o">.</span><span class="n">captureImageFromView</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
+
+            <span class="c1"># add the image path to the lineNodePair</span>
+            <span class="n">pair</span><span class="o">.</span><span class="n">image_path</span> <span class="o">=</span> <span class="n">save_path</span></div>
 
 
 
@@ -337,6 +350,24 @@
             <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;2DMeasurement&quot;</span><span class="p">][</span><span class="s2">&quot;Segment2DMeasurement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">currentSegmentName</span>
             <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;2DMeasurement&quot;</span><span class="p">][</span><span class="s2">&quot;Method2DMeasurement&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">method2DmeasComboBox</span><span class="o">.</span><span class="n">currentText</span>
 
+        <span class="c1"># Line pairs</span>
+        <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;LinePairs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span><span class="p">:</span>
+            <span class="n">line_pair_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;LesionIndex&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span><span class="p">)</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;Timepoint&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span><span class="p">)</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;Enhancing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">enhancing</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;Measurable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">measurable</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;Target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">target</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pair</span><span class="o">.</span><span class="n">get_coords</span><span class="p">())</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;LineLengths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pair</span><span class="o">.</span><span class="n">get_line_lengths</span><span class="p">())</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;LineLengthProd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">get_line_length_product</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pair</span><span class="p">,</span> <span class="s2">&quot;image_path&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pair</span><span class="o">.</span><span class="n">image_path</span><span class="p">:</span>
+                <span class="n">line_pair_dict</span><span class="p">[</span><span class="s2">&quot;ImagePath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">image_path</span>
+
+            <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;LinePairs&quot;</span><span class="p">][</span><span class="sa">f</span><span class="s2">&quot;Les</span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">lesion_idx</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">pair</span><span class="o">.</span><span class="n">timepoint</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_pair_dict</span>
+
 
         <span class="c1"># Response Status (Lesion based)</span>
         <span class="n">report_dict</span><span class="p">[</span><span class="s2">&quot;ResponseStatus&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -376,6 +407,269 @@
         <span class="c1"># write the report to a json file</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">report_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">report_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportCreationMixin.create_report_pdf">
+<a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.create_report_pdf">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_report_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_json_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a PDF report from the JSON file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            report_json_path (str): Path to the JSON file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Read the JSON file</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">report_json_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">report_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+         
+        <span class="n">styles</span> <span class="o">=</span> <span class="n">getSampleStyleSheet</span><span class="p">()</span>
+
+        <span class="n">header_style</span> <span class="o">=</span> <span class="n">ParagraphStyle</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;CenteredHeader&quot;</span><span class="p">,</span>
+            <span class="n">fontSize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">textColor</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>
+            <span class="n">alignment</span><span class="o">=</span><span class="n">TA_CENTER</span><span class="p">,</span>
+            <span class="n">parent</span><span class="o">=</span><span class="n">styles</span><span class="p">[</span><span class="s1">&#39;Normal&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">subtitle_style</span> <span class="o">=</span> <span class="n">ParagraphStyle</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Subtitle&quot;</span><span class="p">,</span>
+            <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+            <span class="n">leading</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+            <span class="n">textColor</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>
+            <span class="n">alignment</span><span class="o">=</span><span class="n">TA_LEFT</span><span class="p">,</span>
+            <span class="n">spaceAfter</span><span class="o">=</span><span class="mi">6</span>
+        <span class="p">)</span>
+
+        <span class="n">table_style_header</span> <span class="o">=</span> <span class="n">TableStyle</span><span class="p">([</span>
+            <span class="p">(</span><span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">grey</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">darkgrey</span><span class="p">),</span>  <span class="c1"># Color for header (row 0)</span>
+            <span class="p">(</span><span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">lightgrey</span><span class="p">),</span>  <span class="c1"># Color for all rows after the header (rows 1 to end)</span>
+            <span class="p">(</span><span class="s1">&#39;VALIGN&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;MIDDLE&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ALIGN&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;CENTER&#39;</span><span class="p">),</span>  <span class="c1"># Horizontal alignment</span>
+        <span class="p">])</span>
+
+        <span class="n">table_style_noheader</span> <span class="o">=</span> <span class="n">TableStyle</span><span class="p">([</span>
+            <span class="p">(</span><span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">grey</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">lightgrey</span><span class="p">),</span>  <span class="c1"># Color for all rows after the header (rows 1 to end)</span>
+            <span class="p">(</span><span class="s1">&#39;VALIGN&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;MIDDLE&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;ALIGN&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;CENTER&#39;</span><span class="p">),</span>  <span class="c1"># Horizontal alignment</span>
+        <span class="p">])</span>
+
+        <span class="n">spacer</span> <span class="o">=</span> <span class="n">KeepTogether</span><span class="p">(</span><span class="n">Spacer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">inch</span><span class="p">))</span>
+        <span class="n">spacer2</span> <span class="o">=</span> <span class="n">KeepTogether</span><span class="p">(</span><span class="n">Spacer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">inch</span><span class="p">))</span>
+         
+        <span class="c1"># Set up document</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">SimpleDocTemplate</span><span class="p">(</span><span class="n">report_json_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">,</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">),</span> <span class="n">pagesize</span><span class="o">=</span><span class="n">letter</span><span class="p">)</span>
+
+        <span class="c1"># Get styles</span>
+        <span class="n">title_style</span> <span class="o">=</span> <span class="n">styles</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">]</span>  <span class="c1"># or use &#39;Heading1&#39;, &#39;Heading2&#39;, etc.</span>
+
+        <span class="c1"># Create a title paragraph</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;RANO Report&quot;</span><span class="p">,</span> <span class="n">title_style</span><span class="p">)</span>
+         
+        <span class="n">subtitle_target</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Target Lesions&quot;</span><span class="p">,</span> <span class="n">subtitle_style</span><span class="p">)</span>
+        <span class="n">subtitle_nontarget</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Non-target Lesions&quot;</span><span class="p">,</span> <span class="n">subtitle_style</span><span class="p">)</span>
+
+        <span class="n">linePairs</span> <span class="o">=</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;LinePairs&quot;</span><span class="p">]</span>
+
+        <span class="c1"># sort by key</span>
+        <span class="n">linePairs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">linePairs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+        <span class="n">linePairs_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">linePairs</span><span class="p">:</span>
+            <span class="n">les_idx</span> <span class="o">=</span> <span class="n">linePairs</span><span class="p">[</span><span class="n">pair</span><span class="p">][</span><span class="s2">&quot;LesionIndex&quot;</span><span class="p">]</span>
+            <span class="n">timepoint</span> <span class="o">=</span> <span class="n">linePairs</span><span class="p">[</span><span class="n">pair</span><span class="p">][</span><span class="s2">&quot;Timepoint&quot;</span><span class="p">]</span>
+            <span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">][</span><span class="n">timepoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">linePairs</span><span class="p">[</span><span class="n">pair</span><span class="p">]</span>
+
+        <span class="c1"># sort the dictionary by the keys</span>
+        <span class="n">linePairs_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">linePairs_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+        <span class="n">img_width</span> <span class="o">=</span> <span class="mi">200</span>  <span class="c1"># width in pixels</span>
+        <span class="n">img_height</span> <span class="o">=</span> <span class="mi">200</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_image</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">inch</span><span class="p">):</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">ImageReader</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">iw</span><span class="p">,</span> <span class="n">ih</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+            <span class="n">aspect</span> <span class="o">=</span> <span class="n">ih</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">iw</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Image</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">aspect</span><span class="p">))</span>
+
+        <span class="n">target_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nontarget_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">les_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">linePairs_dict</span><span class="p">):</span>
+
+            <span class="c1"># check if target lesion</span>
+            <span class="k">if</span> <span class="s1">&#39;timepoint1&#39;</span> <span class="ow">in</span> <span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">]:</span>
+                <span class="n">timepoint1_is_target</span> <span class="o">=</span> <span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">][</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">][</span><span class="s1">&#39;Target&#39;</span><span class="p">]</span>
+                <span class="n">timepoint1_img</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">(</span><span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">][</span><span class="s1">&#39;timepoint1&#39;</span><span class="p">][</span><span class="s1">&#39;ImagePath&#39;</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="n">img_width</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">timepoint1_is_target</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">timepoint1_img</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="s1">&#39;timepoint2&#39;</span> <span class="ow">in</span> <span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">]:</span>
+                <span class="n">timepoint2_is_target</span> <span class="o">=</span> <span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">][</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">][</span><span class="s1">&#39;Target&#39;</span><span class="p">]</span>
+                <span class="n">timepoint2_img</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">(</span><span class="n">linePairs_dict</span><span class="p">[</span><span class="n">les_idx</span><span class="p">][</span><span class="s1">&#39;timepoint2&#39;</span><span class="p">][</span><span class="s1">&#39;ImagePath&#39;</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="n">img_width</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">timepoint2_is_target</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">timepoint2_img</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">timepoint1_is_target</span> <span class="ow">or</span> <span class="n">timepoint2_is_target</span><span class="p">:</span>
+                <span class="n">target_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">timepoint1_img</span><span class="p">,</span> <span class="n">timepoint2_img</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nontarget_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">timepoint1_img</span><span class="p">,</span> <span class="n">timepoint2_img</span><span class="p">])</span>
+
+        <span class="c1"># insert headers if there are images</span>
+        <span class="k">if</span> <span class="n">target_data</span><span class="p">:</span>
+            <span class="n">target_data</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Timepoint 1&quot;</span><span class="p">,</span> <span class="n">header_style</span><span class="p">),</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Timepoint 2&quot;</span><span class="p">,</span> <span class="n">header_style</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="n">nontarget_data</span><span class="p">:</span>
+            <span class="n">nontarget_data</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Timepoint 1&quot;</span><span class="p">,</span> <span class="n">header_style</span><span class="p">),</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Timepoint 2&quot;</span><span class="p">,</span> <span class="n">header_style</span><span class="p">)])</span>
+         
+        <span class="c1"># Create table with header repeat across pages</span>
+        <span class="n">colWidths</span> <span class="o">=</span> <span class="p">[</span><span class="n">img_width</span> <span class="o">*</span> <span class="mf">1.05</span><span class="p">,</span> <span class="n">img_width</span> <span class="o">*</span> <span class="mf">1.05</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">target_data</span><span class="p">:</span>
+            <span class="n">target_data_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">target_data</span><span class="p">,</span> <span class="n">colWidths</span><span class="o">=</span><span class="n">colWidths</span><span class="p">,</span> <span class="n">repeatRows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hAlign</span><span class="o">=</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)</span>
+            <span class="n">target_data_table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style_header</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nontarget_data</span><span class="p">:</span>
+            <span class="n">nontarget_data_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">nontarget_data</span><span class="p">,</span> <span class="n">colWidths</span><span class="o">=</span><span class="n">colWidths</span><span class="p">,</span> <span class="n">repeatRows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hAlign</span><span class="o">=</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)</span>
+            <span class="n">nontarget_data_table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style_header</span><span class="p">)</span>
+         
+        <span class="c1"># Add a table with the lesion info</span>
+        <span class="n">subtitle_lesion_info</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Lesion Information&quot;</span><span class="p">,</span> <span class="n">subtitle_style</span><span class="p">)</span>
+
+        <span class="n">lesion_info</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pair_name</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">linePairs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="s2">&quot;LesionIndex&quot;</span><span class="p">],</span>
+                       <span class="n">pair</span><span class="p">[</span><span class="s2">&quot;Timepoint&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;timepoint&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                       <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">pair</span><span class="p">[</span><span class="s2">&quot;Target&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">pair</span><span class="p">[</span><span class="s2">&quot;Measurable&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">pair</span><span class="p">[</span><span class="s2">&quot;Enhancing&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span><span class="p">,</span>
+                       <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="s1">&#39;LineLengthProd&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> mm²&quot;</span><span class="p">,</span>  <span class="c1"># square mm</span>
+                       <span class="p">]</span>
+
+            <span class="n">lesion_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_row</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">lesion_info</span><span class="p">:</span>
+            <span class="n">lesion_info</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Lesion Index&quot;</span><span class="p">,</span> <span class="s2">&quot;Timepoint&quot;</span><span class="p">,</span> <span class="s2">&quot;Target&quot;</span><span class="p">,</span> <span class="s2">&quot;Measurable&quot;</span><span class="p">,</span> <span class="s2">&quot;Enhancing&quot;</span><span class="p">,</span> <span class="s2">&quot;Product&quot;</span><span class="p">])</span>
+
+            <span class="n">lesion_info_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">lesion_info</span><span class="p">,</span> <span class="n">repeatRows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hAlign</span><span class="o">=</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)</span>
+            <span class="n">lesion_info_table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style_header</span><span class="p">)</span>
+         
+        <span class="c1"># Lesion-based response classification</span>
+
+        <span class="n">subtitle_lesion_response</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Lesion-based Response Classification&quot;</span><span class="p">,</span> <span class="n">subtitle_style</span><span class="p">)</span>
+
+        <span class="n">lesion_response_status</span> <span class="o">=</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ResponseStatus&quot;</span><span class="p">]</span>
+
+        <span class="n">lesion_response_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">lesion_response_status</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;lesion&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s2">&quot;product&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> mm²&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s2">&quot;change&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> %&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">]</span>
+
+            <span class="n">lesion_response_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_row</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">lesion_response_data</span><span class="p">:</span>
+            <span class="n">lesion_response_data</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Lesion Index&quot;</span><span class="p">,</span> <span class="s2">&quot;Response Classification&quot;</span><span class="p">])</span>
+
+        <span class="n">lesion_response_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">lesion_response_data</span><span class="p">,</span> <span class="n">repeatRows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hAlign</span><span class="o">=</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)</span>
+        <span class="n">lesion_response_table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style_noheader</span><span class="p">)</span>
+         
+        <span class="c1"># Overall response classification</span>
+        <span class="n">subtitle_overall_response</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Overall Response Classification&quot;</span><span class="p">,</span> <span class="n">subtitle_style</span><span class="p">)</span>
+
+        <span class="n">overall_response_status</span> <span class="o">=</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;OverallResponseStatus&quot;</span><span class="p">]</span>
+        <span class="n">overall_response_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">overall_response_status</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">]</span>
+
+            <span class="n">overall_response_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_row</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">overall_response_data</span><span class="p">:</span>
+            <span class="n">overall_response_data</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Lesion Index&quot;</span><span class="p">,</span> <span class="s2">&quot;Response Classification&quot;</span><span class="p">])</span>
+
+        <span class="n">overall_response_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">overall_response_data</span><span class="p">,</span> <span class="n">repeatRows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hAlign</span><span class="o">=</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)</span>
+        <span class="n">overall_response_table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style_noheader</span><span class="p">)</span>
+         
+        <span class="c1"># Settings</span>
+        <span class="n">subtitle_settings</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Settings&quot;</span><span class="p">,</span> <span class="n">subtitle_style</span><span class="p">)</span>
+
+        <span class="n">settings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Report Time&quot;</span><span class="p">,</span>
+                         <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ReportTime&quot;</span><span class="p">],</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Affine registration t1&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;AffineReg&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Affine registration t2&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;AffineReg_t2&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Input is skull-stripped t1&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;InputIsBET&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Input is skull-stripped t2&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;InputIsBET_t2&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Segmentation model timepoint 1&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;model_key&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Segmentation model timepoint 2&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;model_key_t2&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Segment for 2D measurements&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;2DMeasurement&quot;</span><span class="p">][</span><span class="s2">&quot;Segment2DMeasurement&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Method 2D  measurements&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;2DMeasurement&quot;</span><span class="p">][</span><span class="s2">&quot;Method2DMeasurement&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Allow axial orientation&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;axial&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Allow sagittal orientation&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;sagittal&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Allow coronal orientation&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;coronal&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Force same orientation&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;orient_cons_tp&quot;</span><span class="p">]])</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;Force approx same slice&quot;</span><span class="p">,</span> <span class="n">report_data</span><span class="p">[</span><span class="s2">&quot;ParameterNode&quot;</span><span class="p">][</span><span class="s2">&quot;same_slc_tp&quot;</span><span class="p">]])</span>
+
+        <span class="k">if</span> <span class="n">settings</span><span class="p">:</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Setting&quot;</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">])</span>
+            <span class="n">settings_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">repeatRows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hAlign</span><span class="o">=</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)</span>
+            <span class="n">settings_table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style_header</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="c1"># add the json data to the end of the document</span>
+            <span class="n">json_style</span> <span class="o">=</span> <span class="n">ParagraphStyle</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;JsonStyle&quot;</span><span class="p">,</span>
+                <span class="n">fontSize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                <span class="n">textColor</span><span class="o">=</span><span class="n">colors</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>
+                <span class="n">alignment</span><span class="o">=</span><span class="n">TA_LEFT</span><span class="p">,</span>
+                <span class="n">parent</span><span class="o">=</span><span class="n">styles</span><span class="p">[</span><span class="s1">&#39;Normal&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">report_data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+            <span class="c1"># Use Preformatted to preserve line breaks and spacing</span>
+            <span class="n">json_block</span> <span class="o">=</span> <span class="n">Preformatted</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">styles</span><span class="p">[</span><span class="s1">&#39;Code&#39;</span><span class="p">])</span>
+         
+        <span class="c1"># Build the PDF with title, spacer, and table</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">title</span><span class="p">,</span> <span class="n">spacer</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;target_data&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">target_data</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle_target</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_data_table</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;nontarget_data&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">nontarget_data</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle_nontarget</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nontarget_data_table</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;lesion_info_table&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">lesion_info_table</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle_lesion_info</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lesion_info_table</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;lesion_response_table&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">lesion_response_table</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle_lesion_response</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lesion_response_table</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;overall_response_table&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">overall_response_table</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle_overall_response</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">overall_response_table</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;settings_table&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">settings_table</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtitle_settings</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">settings_table</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;json_block&#39;</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span> <span class="ow">and</span> <span class="n">json_block</span><span class="p">:</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json_block</span><span class="p">)</span>
+            <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacer2</span><span class="p">)</span>
+         
+        <span class="c1"># Build the document</span>
+        <span class="n">doc</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">components</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
