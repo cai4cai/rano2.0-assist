@@ -145,12 +145,13 @@ NVIDIA GPUs with CUDA 12.4.</p></li>
 </section>
 <section id="segmentation-models-and-test-data">
 <h2>Segmentation models and test data<a class="headerlink" href="#segmentation-models-and-test-data" title="Link to this heading"></a></h2>
-<p>The segmentation model weights and test data need to be downloaded from</p>
+<p>Due to the larger file sizes, the segmentation model weights and test data need to be downloaded from</p>
 <p><a class="reference external" href="https://zenodo.org/records/15411078">https://zenodo.org/records/15411078</a></p>
 <p>(direct download link: <a class="reference external" href="https://zenodo.org/records/15411078/files/rano2.0-assist.zip?download=1">click here</a> )</p>
-<p>and placed in the rano2.0-assist root directory:</p>
-<p>This will add the following directories to the directory:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── rano2.0-assist
+<p>The directories <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">dynunet_pipeline</span></code> contained in the download have to be merged with the respective directories of same
+name in the rano2.0-assist root directory:</p>
+<p>This will add the following directories (and further subdirectories) to the root directory of the repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>└── rano2.0-assist  # root directory of the repository
     ├── data
     │   └── test_data
     │       ├── KCL
@@ -165,6 +166,8 @@ NVIDIA GPUs with CUDA 12.4.</p></li>
                 └── task4001_brats24allmod
 </pre></div>
 </div>
+<p>Note: if the replace files dialog appears for the .gitignore file, either keeping the existing file or replacing it with
+the new one is fine (they are identical).</p>
 </section>
 <section id="d-slicer-extension">
 <h2>3D Slicer extension<a class="headerlink" href="#d-slicer-extension" title="Link to this heading"></a></h2>
@@ -288,7 +291,7 @@ in that environment on top of the installation in 3D Slicer.</p>
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
 <p>To run the tests, please make sure that the Slicer binary is in your PATH environment variable.
 Alternatively, you can include the path to the Slicer binary in the <code class="docutils literal notranslate"><span class="pre">tests/run_tests.sh</span></code> script, by adding it to the <code class="docutils literal notranslate"><span class="pre">SLICER_EXECUTABLE_PATHS</span></code> variable.</p>
-<p>To test the docker installation, run the script <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh">tests/run_tests_docker.sh</a></p>
+<p>To test the docker installation, run this script located in the repository at <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh">tests/run_tests_docker.sh</a></p>
 <p>To test the local installation, run the script <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests.sh">tests/run_tests.sh</a></p>
 <p>Both scripts will start 3D Slicer and run the tests listed in run_tests.sh. By default, one test runs on DICOM input data
 and another test runs on NIfTI input data. The tests are define in <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/RANO/utils/test_rano.py">RANO/utils/test_rano.py</a>.</p>

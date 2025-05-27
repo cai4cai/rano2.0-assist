@@ -30,17 +30,18 @@ The repository can be downloaded from GitHub:
 [https://github.com/cai4cai/rano2.0-assist](https://github.com/cai4cai/rano2.0-assist)
 
 ## Segmentation models and test data
-The segmentation model weights and test data need to be downloaded from 
+Due to the larger file sizes, the segmentation model weights and test data need to be downloaded from 
 
 [https://zenodo.org/records/15411078](https://zenodo.org/records/15411078)
 
 (direct download link: [click here](https://zenodo.org/records/15411078/files/rano2.0-assist.zip?download=1) )
 
-and placed in the rano2.0-assist root directory:
+The directories `data` and `dynunet_pipeline` contained in the download have to be merged with the respective directories of same 
+name in the rano2.0-assist root directory:
 
-This will add the following directories to the directory:
+This will add the following directories (and further subdirectories) to the root directory of the repository:
 ```
-└── rano2.0-assist
+└── rano2.0-assist  # root directory of the repository
     ├── data
     │   └── test_data
     │       ├── KCL
@@ -54,6 +55,9 @@ This will add the following directories to the directory:
                 ├── task4000_brats24
                 └── task4001_brats24allmod
 ```
+
+Note: if the replace files dialog appears for the .gitignore file, either keeping the existing file or replacing it with
+the new one is fine (they are identical). 
 
 ## 3D Slicer extension
 RANO2.0-assist can be installed as a local 3D Slicer extension, or it can be run in a Docker container. The Docker
@@ -169,7 +173,7 @@ To add the extension to 3D Slicer, follow these steps:
 To run the tests, please make sure that the Slicer binary is in your PATH environment variable.
 Alternatively, you can include the path to the Slicer binary in the `tests/run_tests.sh` script, by adding it to the `SLICER_EXECUTABLE_PATHS` variable.
 
-To test the docker installation, run the script [tests/run_tests_docker.sh](https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh)
+To test the docker installation, run this script located in the repository at [tests/run_tests_docker.sh](https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh)
 
 To test the local installation, run the script [tests/run_tests.sh](https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests.sh)
 
