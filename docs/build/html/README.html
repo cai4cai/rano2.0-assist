@@ -51,7 +51,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#download-the-repository">Download the repository</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#segmentation-models-and-test-data">Segmentation models and test data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#d-slicer-extension">3D Slicer extension</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#installation-with-docker">Installation with Docker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation-with-docker">Installation with Docker</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#docker-build">docker build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#docker-run">docker run</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#local-installation">Local installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#software-requirements">Software requirements</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#add-the-extension-to-3d-slicer">Add the extension to 3D Slicer</a></li>
@@ -168,7 +173,56 @@ container includes all the necessary dependencies and can be run on any machine 
 GPU acceleration. The local installation requires 3D Slicer and the necessary Python packages to be installed.</p>
 <section id="installation-with-docker">
 <h3>Installation with Docker<a class="headerlink" href="#installation-with-docker" title="Link to this heading"></a></h3>
-<p>For Docker installation, follow instructions here: <span class="xref myst">docker/README.md</span>.</p>
+<section id="requirements">
+<h4>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h4>
+<ol class="arabic">
+<li><p>Docker (<a class="reference external" href="https://docs.docker.com/engine/install/">https://docs.docker.com/engine/install/</a>)</p></li>
+<li><p>nvidia-container-toolkit (<a class="reference external" href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html</a>)</p>
+<p>The NVIDIA Container Toolkit is a collection of libraries and utilities enabling users to build and run GPU-accelerated containers.</p>
+<p>After installing nvidia-container-toolkit, restart the Docker daemon, for example use:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span> sudo systemctl restart docker
+</pre></div>
+</div>
+<p>To validate that the installation was successful, run the following docker command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span> sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
+</pre></div>
+</div>
+<p>This should display the output of the <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command.</p>
+</li>
+<li><p>Manage Docker as a non-root user (<a class="reference external" href="https://docs.docker.com/engine/install/linux-postinstall/">https://docs.docker.com/engine/install/linux-postinstall/</a>)</p>
+<p>Alternatively, modify the following docker scripts so that the docker commands are run with <code class="docutils literal notranslate"><span class="pre">sudo</span></code>.</p>
+</li>
+</ol>
+</section>
+<section id="docker-build">
+<h4>docker build<a class="headerlink" href="#docker-build" title="Link to this heading"></a></h4>
+<p>The following commands should be run in the root directory of the repository (where the <code class="docutils literal notranslate"><span class="pre">docker</span></code> directory is located).</p>
+<p>Make sure the <code class="docutils literal notranslate"><span class="pre">docker/docker_build.sh</span></code> script can be executed:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>chmod +x docker/docker_build.sh
+</pre></div>
+</div>
+<p>Run the <code class="docutils literal notranslate"><span class="pre">docker/docker_build.sh</span></code> script.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>./docker/docker_build.sh
+</pre></div>
+</div>
+<p>This will build the Docker image. The image will be built using the
+Dockerfile in the <code class="docutils literal notranslate"><span class="pre">docker</span></code> directory. Building the image may take a 10-20 minutes, depending on your system and internet connection.</p>
+</section>
+<section id="docker-run">
+<h4>docker run<a class="headerlink" href="#docker-run" title="Link to this heading"></a></h4>
+<p>Make sure the <code class="docutils literal notranslate"><span class="pre">docker/docker_run.sh</span></code> script can be executed:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>chmod +x docker/docker_run.sh
+</pre></div>
+</div>
+<p>Run the <code class="docutils literal notranslate"><span class="pre">docker/docker_runs.sh</span></code> script.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.docker/docker_run.sh
+</pre></div>
+</div>
+<p>This will run the Docker container with the RANO2.0-assist tool. The container will start 3D Slicer and the RANO module
+will be started automatically. The container will also mount the <code class="docutils literal notranslate"><span class="pre">data</span></code> directory,
+allowing you to access the data in it from within Slicer. It will also mount the <code class="docutils literal notranslate"><span class="pre">Reports</span></code> directory to save the reports
+generated by the tool.</p>
+</section>
 </section>
 <section id="local-installation">
 <h3>Local installation<a class="headerlink" href="#local-installation" title="Link to this heading"></a></h3>
@@ -232,10 +286,12 @@ in that environment on top of the installation in 3D Slicer.</p>
 </section>
 <section id="running-tests">
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
-<p>To test the docker installation, run the script <a class="reference download internal" download="" href="_downloads/f6975e4f3732f5bd835726bd4e26431b/run_tests_docker.sh"><span class="xref download myst">tests/run_tests_docker.sh</span></a></p>
-<p>To test the local installation, run the script <a class="reference download internal" download="" href="_downloads/33b059e2dcd55f2f3f3873c9359027c3/run_tests.sh"><span class="xref download myst">tests/run_tests.sh</span></a></p>
-<p>Both scripts will start 3D Slicer and run the tests listed in run_tests.sh. By default one test runs on DICOM input data
-and another test runs on NIfTI input data. The tests are define in <a class="reference download internal" download="" href="_downloads/5266e958c0d7fec22be7ee0718afab9e/test_rano.py"><span class="xref download myst">RANO/utils/test_rano.py</span></a>.</p>
+<p>To run the tests, please make sure that the Slicer binary is in your PATH environment variable.
+Alternatively, you can include the path to the Slicer binary in the <code class="docutils literal notranslate"><span class="pre">tests/run_tests.sh</span></code> script, by adding it to the <code class="docutils literal notranslate"><span class="pre">SLICER_EXECUTABLE_PATHS</span></code> variable.</p>
+<p>To test the docker installation, run the script <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh">tests/run_tests_docker.sh</a></p>
+<p>To test the local installation, run the script <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests.sh">tests/run_tests.sh</a></p>
+<p>Both scripts will start 3D Slicer and run the tests listed in run_tests.sh. By default, one test runs on DICOM input data
+and another test runs on NIfTI input data. The tests are define in <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/RANO/utils/test_rano.py">RANO/utils/test_rano.py</a>.</p>
 <p>The tests will take a few minutes to run and will create tests in the <code class="docutils literal notranslate"><span class="pre">Reports</span></code> directory.</p>
 <p>Upon successful completion, the script prints:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Test</span> <span class="n">Summary</span><span class="p">:</span>
