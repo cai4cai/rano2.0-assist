@@ -62,7 +62,7 @@ if __name__ == '__main__':
             stdout_all += "run_command stdout: " + stdout_line
 
         if stderr_line:
-            stderr_all += "run_command stderr: " + stderr_line
+            stderr_all += "run_command stderr: " + stderr_line if not "MRMLIDImageIO" in stderr_line else ""
 
         if not stdout_line and not stderr_line and popen.poll() is not None:
             break
