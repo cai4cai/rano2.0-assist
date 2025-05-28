@@ -4,7 +4,7 @@
 tests=(
   #"test_RANO_dicom_CPTAC"
   "test_RANO_dicom_KCL"
-  #"test_RANO_nifti_MU"
+  "test_RANO_nifti_MU"
 )
 
 # Possible paths to the Slicer executable
