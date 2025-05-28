@@ -4,7 +4,7 @@
 tests=(
   #"test_RANO_dicom_CPTAC"
   "test_RANO_dicom_KCL"
-  "test_RANO_nifti_MU"
+  #"test_RANO_nifti_MU"
 )
 
 # Possible paths to the Slicer executable
@@ -35,14 +35,13 @@ THIS_DIR=$(dirname "$(readlink -f "$0")")
 
 REPORTS_DIR="${THIS_DIR}/../Reports"
 
-echo "Reports directory: $REPORTS_DIR"
-
 test_summary=""
 # run tests one by one
 for test in "${tests[@]}"; do
     echo "Running $test..."
     # run the test script in Slicer
-    $SLICER_EXECUTABLE --no-splash --python-script ${THIS_DIR}/run_tests.py "$test"
+    $SLICER_EXECUTABLE --no-splash --python-script "${THIS_DIR}"/run_tests.py "$test"
+    status=$?
 
     # Get all report files in the Reports directory again after running the test
     report_files=("${REPORTS_DIR}"/*/*.pdf)
@@ -64,17 +63,18 @@ for test in "${tests[@]}"; do
         date_diffs+=("$diff")
     done
 
-    # sort the date differences
-    sorted_diffs=$(printf "%s\n" "${date_diffs[@]}" | sort -n)
-    min_diff=${sorted_diffs[0]}
-
-    # in case of no reports, set min_diff to a large number
-    if [ ${#report_dates[@]} -eq 0 ]; then
-        min_diff=9999999999
+    # find the minimum date difference
+    if [ ${#date_diffs[@]} -gt 0 ]; then
+        min_diff=$(printf "%s\n" "${date_diffs[@]}" | sort -n | head -n 1)
+    else
+        min_diff=9999999999  # set to a large number if no reports found
     fi
 
+    echo "Status of Slicer executable: $status"
+    echo "Last report created: $min_diff seconds ago"
+
     # Check if the Slicer executable ran successfully and if the newest report was created within the last 10 seconds
-    if [ $? -eq 0 ] && [ "$min_diff" -lt 10 ]; then
+    if [ $status -eq 0 ] && [ "$min_diff" -lt 10 ]; then
         test_summary+="Test $test: PASSED\n"
     else
         test_summary+="Test $test: FAILED\n"

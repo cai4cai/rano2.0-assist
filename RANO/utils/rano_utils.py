@@ -98,8 +98,9 @@ def run_segmentation(inputVolume_list,
     assert (os.path.isfile(inference_files_path)), f"Is not a file: {inference_files_path} ..."
     assert (os.path.isdir(out_folder)), f"Is not a folder: {out_folder} ..."
 
+    # By default, use the PythonSlicer executable
     if python_executable == "":
-        python_executable = "python"
+        python_executable = sys.executable
 
     # check if the system can find the external python
     if shutil.which(python_executable) is None:
