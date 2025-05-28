@@ -138,7 +138,7 @@ environment as follow:
 
 The following packages are required for the segmentation pipeline (DynUNet). These can be installed either in the 3D Slicer
 python environment or in a separate python environment whose path can be specified in the RANO module. The following 
-commands are for installing the packages in the 3D Slicer python environment.
+commands are to install the packages in the 3D Slicer python environment.
 - PyTorch: check here which pip command is appropriate for your system (https://pytorch.org/get-started/locally/) (tested with version 2.6)
     - for example, in 3D Slicer's python console type: `pip_install("torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124 --index-url https://download.pytorch.org/whl/cu124")`
 - MONAI (install from https://github.com/aaronkujawa/MONAI/tree/rano): `pip_install("git+https://github.com/aaronkujawa/MONAI.git@rano")`
@@ -150,6 +150,22 @@ commands are for installing the packages in the 3D Slicer python environment.
 Note: if a separate python environment is used, numpy, scikit-image, numba, nibabel, tqdm and pyyaml need to be installed
 in that environment on top of the installation in 3D Slicer.
 
+Summary of commands for the 3D Slicer Python Console:
+```
+pip_install("numpy==2.0.2")
+pip_install("scikit-image==0.24.0")
+pip_install("numba==0.60.0")
+pip_install("nibabel==5.3.2")
+pip_install("tqdm==4.67.1")
+pip_install("pyyaml==6.0.2")
+pip_install("reportlab==4.4.1")
+pip_install("torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124 --index-url https://download.pytorch.org/whl/cu124")  # adjust the command according to your system
+pip_install("git+https://github.com/aaronkujawa/MONAI.git@rano")
+pip_install("pytorch-ignite==0.5.2")
+pip_install("tensorboard==2.19.0")
+pip_install("antspyx==0.5.4")
+pip_install("git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651")
+```
 
 #### Add the extension to 3D Slicer
 
