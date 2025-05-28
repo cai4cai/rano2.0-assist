@@ -242,6 +242,8 @@ def get_task_transforms(mode,
             ], unpack_items=True)
 
             return transform
+        else:
+            raise ValueError(f"Unknown mode {mode}. Supported modes are 'prep', 'train', and 'validation'.")
 
     elif mode == "test":
         affine_reg = ANTsAffineRegistrationd(keys=mod_inty_keys,  # register only the intensity image, the prior is already registered to the template
@@ -252,7 +254,7 @@ def get_task_transforms(mode,
         brain_extraction = BrainExtractiond(keys=mod_inty_keys, save_path_key="save_path")
         load_image = LoadImaged(keys=modality_keys, image_only=True)
         ensure_channel_first = EnsureChannelFirstd(keys=modality_keys)
-        crop_transform = CropForegroundd(keys=modality_keys, source_key=mod_inty_keys[0], start_coord_key=None, end_coord_key=None)
+        crop_transform = CropForegroundd(keys=modality_keys, source_key=mod_inty_keys[0], start_coord_key=None, end_coord_key=None,  allow_smaller=False)
         norm_transform = NormalizeIntensityd(keys=modality_keys, nonzero=use_nonzero)
 
         # map the training prior to the labels the model was trained with
@@ -280,6 +282,9 @@ def get_task_transforms(mode,
         ], unpack_items=True)
 
         return transform
+
+    else:
+        raise ValueError(f"Unknown mode {mode}. Supported modes are 'prep', 'train', 'validation', and 'test'.")
 
 
 def determine_normalization_param_from_crop(prep_data_loader, key, multi_gpu):
