@@ -217,7 +217,7 @@ class SegmentationMixin:
             # else:  # upon success
             progressBar.setValue(100)
             start_time = self.start_time_t1 if timepoint == 'timepoint1' else self.start_time_t2
-            print(f"Segmentation for {timepoint} '{cliNode.GetStatusString()}' after {int(time.time() - start_time)} seconds.")
+            print(f"Segmentation for {timepoint} completed after {int(time.time() - start_time)} seconds.")
             if debug: print("CLI output text: \n" + cliNode.GetOutputText(), flush=True)
             # print("CLI error text: \n" + cliNode.GetErrorText(), flush=True)  # commented out here, because stderr is printed by VTK to the console already
             self.onSegmentationCliNodeSuccess(input_volume_list, output_segmentation,
