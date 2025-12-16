@@ -14,6 +14,50 @@ import slicer, vtk
 from slicer.ScriptedLoadableModule import *
 from slicer.util import *
 
+try:
+    import numpy
+    import skimage
+    import numba
+    import nibabel
+    import tqdm
+    import yaml
+    import reportlab
+except:
+    pip_install("numpy==2.0.2")
+    pip_install("scikit-image==0.24.0")
+    pip_install("numba==0.60.0")
+    pip_install("nibabel==5.3.2")
+    pip_install("tqdm==4.67.1")
+    pip_install("pyyaml==6.0.2")
+    pip_install("reportlab==4.4.1")
+
+try:
+    import torch
+except:
+    try:
+        import PyTorchUtils
+    except ModuleNotFoundError as e:
+        raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
+    minimumTorchVersion = "2.6.0"
+    torchLogic = PyTorchUtils.PyTorchUtilsLogic()
+    if not torchLogic.torchInstalled():
+        print('PyTorch Python package is required. Installing... (it may take several minutes)')
+        torch = torchLogic.installTorch(askConfirmation=False, torchVersionRequirement=f">={minimumTorchVersion}")
+        if torch is None:
+            raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
+try:
+    import monai
+    import ignite
+    import tensorboard
+    import ants
+    import HD_BET
+except:
+    pip_install("git+https://github.com/aaronkujawa/MONAI.git@rano")
+    pip_install("pytorch-ignite==0.5.2")
+    pip_install("tensorboard==2.19.0")
+    pip_install("antspyx==0.5.4")
+    pip_install("git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651")
+
 from utils.config import debug
 
 # reload the submodules to ensure that the latest version of the code is used upon pressing the "Reload" button in the
