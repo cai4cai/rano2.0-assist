@@ -13,6 +13,7 @@ from importlib import reload
 import slicer, vtk
 from slicer.ScriptedLoadableModule import *
 from slicer.util import *
+slicer_stdout = sys.stdout
 
 try:
     import numpy
@@ -59,6 +60,7 @@ except:
     pip_install("git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651")
 
 from utils.config import debug
+sys.stdout = slicer_stdout
 
 # reload the submodules to ensure that the latest version of the code is used upon pressing the "Reload" button in the
 # module GUI (development mode)
