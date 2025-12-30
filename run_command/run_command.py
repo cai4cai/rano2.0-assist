@@ -5,7 +5,7 @@ import sys
 import subprocess
 import re
 from pathlib import Path
-from slicer import ScriptedLoadableModule
+from slicer.ScriptedLoadableModule import ScriptedLoadableModule
 
 if __name__ == '__main__':
     # define progress bar steps as fraction of 1
