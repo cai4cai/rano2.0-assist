@@ -115,11 +115,13 @@ def run_segmentation(inputVolume_list,
     if os.path.isfile(os.sep.join(activate_path)):
         python_executable = os.sep.join(activate_path) + "; " + python_executable
 
-    cmd = (f"{python_executable} {ext_inference_script_path} "
-           f"-task_dir {task_dir} "
-           f"-args_file config/infer_args.json "
-           f"-inference_files_path {inference_files_path} "
-           f"-out_dir {out_folder}")
+    cmd = (
+        f'"{python_executable}" "{ext_inference_script_path}" '
+        f'-task_dir "{task_dir}" '
+        f'-args_file "config/infer_args.json" '
+        f'-inference_files_path "{inference_files_path}" '
+        f'-out_dir "{out_folder}"'
+    )
 
     if do_affinereg:
         cmd += " -reg "
