@@ -198,7 +198,7 @@ class SegmentationMixin:
                 self.start_time_t1 = time.time()
             elif timepoint == 'timepoint2' and not self.start_time_t2:
                 self.start_time_t2 = time.time()
-            progressBar.setValue(cliNode.GetProgress())
+            progressBar.setValue(min(cliNode.GetProgress(), 99.0))
             # print("Status is %s" % cliNode.GetStatusString())
             # print("cli update: progressBar value is %s" % cliNode.GetProgress(), flush=True)
             if cliNode.GetProgress() == 100:
