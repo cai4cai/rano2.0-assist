@@ -1,6 +1,5 @@
 import csv
 import os
-import subprocess
 import sys
 import logging
 import nibabel as nib
@@ -25,7 +24,23 @@ def setup_root_logger():
     logger.addHandler(handler)
 
 
-def save_stdout_in_logfile(logfile, multi_gpu_flag, local_rank):
+class Tee:
+    def __init__(self, logfile, stream):
+        self.log = open(logfile, "a")
+        self.stream = stream
+
+    def write(self, data):
+        self.log.write(data)
+        self.log.flush()  # force flush to disk
+        self.stream.write(data)
+        self.stream.flush()
+
+    def flush(self):
+        self.log.flush()
+        self.stream.flush()
+
+
+def save_stdout_in_logfile(logfile, multi_gpu_flag=False, local_rank=None):
     if multi_gpu_flag:
         if local_rank == 0:  # only one process should delete the file
             if os.path.isfile(logfile):
@@ -39,25 +54,11 @@ def save_stdout_in_logfile(logfile, multi_gpu_flag, local_rank):
         if not os.path.exists(os.path.dirname(logfile)):
             os.makedirs(os.path.dirname(logfile))
 
+    sys.stdout = Tee(logfile, sys.stdout)
+    sys.stderr = Tee(logfile, sys.stderr)
+
     print(f"Save stdout in {logfile}...", flush=True)
     print(f"Save stderr in {logfile}...", file=sys.stderr, flush=True)
-    
-    tee_stdout = subprocess.Popen(f"(tee -a {logfile})", stdin=subprocess.PIPE, shell=True)
-    tee_stderr = subprocess.Popen(f"(tee -a {logfile}) >&2", stdin=subprocess.PIPE, shell=True)
-
-    # Cause tee's stdin to get a copy of our stdin/stdout (as well as that
-    # of any child processes we spawn)
-    os.dup2(tee_stdout.stdin.fileno(), sys.stdout.fileno())
-    os.dup2(tee_stderr.stdin.fileno(), sys.stderr.fileno())
-
-    # # The flush flag is needed to guarantee these lines are written before
-    # # the two spawned /bin/ls processes emit any output
-    # print("\nstdout", flush=True)
-    # print("stderr", file=sys.stderr, flush=True)
-
-    # # These child processes' stdin/stdout are
-    # os.spawnve("P_WAIT", "/bin/ls", ["/bin/ls"], {})
-    # os.execve("/bin/ls", ["/bin/ls"], os.environ)
     
         
 def run_on_rank0_then_broadcast_object_list(fun, *args, **kwargs):
