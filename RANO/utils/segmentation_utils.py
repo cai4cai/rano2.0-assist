@@ -203,8 +203,14 @@ class SegmentationMixin:
             # print("cli update: progressBar value is %s" % cliNode.GetProgress(), flush=True)
             if cliNode.GetProgress() == 100:
                 # disable stderr output from VTK etc that come from the segmentation CLI
-                logLevelNone = getattr(ctk.ctkErrorLogLevel, "None")
-                if not debug: slicer.app.setPythonConsoleLogLevel(logLevelNone)
+                logLevels = { n: getattr(ctk.ctkErrorLogLevel, n) for n in dir(ctk.ctkErrorLogLevel) if type(getattr(ctk.ctkErrorLogLevel, n)).__name__ == 'LogLevel'}
+                if "None" in logLevels:
+                    logLevelValue = getattr(ctk.ctkErrorLogLevel, "None")
+                elif "Unknown" in logLevels:
+                    logLevelValue = getattr(ctk.ctkErrorLogLevel, "Unknown")
+                else:
+                    raise ValueError("Neither 'None' nor 'Unknown' logLevel was available in ctk.ctkErrorLogLevel")
+                if not debug: slicer.app.setPythonConsoleLogLevel(logLevelValue)
 
         if cliNode.GetStatus() & cliNode.Completed:  # do this when the cli module is done
             # print("Status is %s" % cliNode.GetStatusString())
