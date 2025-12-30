@@ -6,6 +6,8 @@ import subprocess
 import re
 from pathlib import Path
 from slicer.ScriptedLoadableModule import ScriptedLoadableModule
+import threading
+import queue
 
 if __name__ == '__main__':
     # define progress bar steps as fraction of 1
@@ -16,85 +18,110 @@ if __name__ == '__main__':
 
     command = sys.argv[1]
 
-    # send progress bar start line to stdout
+    # send progress bar start line
     print("""<filter-start><filter-name>TestFilter</filter-name><filter-comment>ibid</filter-comment></filter-start>""")
     sys.stdout.flush()
-
-    print("""<filter-progress>{}</filter-progress>""".format(command_received_progress))
+    print(f"<filter-progress>{command_received_progress}</filter-progress>")
     sys.stdout.flush()
 
-    # create startup environment for subprocess (to run python outside slicer)
+    # startup environment
     slicer_path = Path(os.environ["SLICER_HOME"]).resolve()
     PATH_without_slicer = os.pathsep.join(
-        [p for p in os.environ["PATH"].split(os.pathsep) if not slicer_path in Path(p).parents])
+        [p for p in os.environ["PATH"].split(os.pathsep) if not slicer_path in Path(p).parents]
+    )
+    startupEnv = {
+        "PATH": PATH_without_slicer,
+        "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+        "USERPROFILE": os.environ.get("USERPROFILE", "")
+    }
 
-    startupEnv = {}
-    try:
-        startupEnv["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
-    except:
-        print("SYSTEMROOT environment variable does not exist...")
+    popen = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        env=startupEnv,
+        shell=True
+    )
 
-    try:
-        startupEnv["USERPROFILE"] = os.environ["USERPROFILE"]
-    except:
-        print("USERPROFILE environment variable does not exist...")
-
-    startupEnv['PATH'] = PATH_without_slicer
-
-    popen = subprocess.Popen(command,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             universal_newlines=True,
-                             env=startupEnv,
-                             shell=True)
     stdout_all = ""
     stderr_all = ""
-    while True:
+    progress_queue = queue.Queue()
+
+
+    # Reader for stdout
+    def read_stdout(pipe):
+        nonlocal_stdout = []
         loop_idx = 0
-        stdout_line = popen.stdout.readline()
-        stderr_line = popen.stderr.readline()
+        for line in iter(pipe.readline, ''):
+            #print("STDOUT:", line.strip())
+            if loop_idx == 0:
+                # enqueue initial progress update
+                progress_queue.put(first_output_progress)
+            if line:
+                nonlocal_stdout.append("run_command stdout: " + line)
+            loop_idx += 1
+        pipe.close()
+        # merge back into global
+        nonlocal_stdout_str = "".join(nonlocal_stdout)
+        if nonlocal_stdout_str:
+            progress_queue.put(("stdout_all", nonlocal_stdout_str))
 
-        if loop_idx == 0:
-            print("""<filter-progress>{}</filter-progress>""".format(first_output_progress))
-            sys.stdout.flush()
 
-        if stdout_line:
-            stdout_all += "run_command stdout: " + stdout_line
+    # Reader for stderr
+    def read_stderr(pipe):
+        nonlocal_stderr = []
+        for line in iter(pipe.readline, ''):
+            #print("STDERR:", line.strip())
+            if line and "MRMLIDImageIO" not in line:
+                nonlocal_stderr.append("run_command stderr: " + line)
+            # check for tqdm progress
+            match = re.findall(r"[\s]*([\d]+)%\|", line)
+            if match:
+                tqdm_progress = float(match[0]) / 100.0
+                relative_progress = (tqdm_end - tqdm_start) * tqdm_progress + tqdm_start
+                progress_queue.put(relative_progress)
+        pipe.close()
+        nonlocal_stderr_str = "".join(nonlocal_stderr)
+        if nonlocal_stderr_str:
+            progress_queue.put(("stderr_all", nonlocal_stderr_str))
 
-        if stderr_line:
-            stderr_all += "run_command stderr: " + stderr_line if not "MRMLIDImageIO" in stderr_line else ""
 
-        if not stdout_line and not stderr_line and popen.poll() is not None:
-            break
+    # Start threads
+    t_out = threading.Thread(target=read_stdout, args=(popen.stdout,))
+    t_err = threading.Thread(target=read_stderr, args=(popen.stderr,))
+    t_out.start()
+    t_err.start()
 
-        # check if tqdm sent a progress line (via stderr)
-        pattern = r"[\s]*([\d]+)%\|"
-        match = re.findall(pattern, stderr_line)
-        if match:
-            # send progress bar update to stdout
-            tqdm_progress = float(match[0]) / 100.0
-            relative_progress = (tqdm_end - tqdm_start) * tqdm_progress + tqdm_start
-            print("""<filter-progress>{}</filter-progress>""".format(relative_progress))
-            sys.stdout.flush()
+    # Main loop: poll process and queue
+    while popen.poll() is None or not progress_queue.empty():
+        try:
+            item = progress_queue.get(timeout=0.1)
+            if isinstance(item, tuple):
+                # accumulate stdout/stderr
+                if item[0] == "stdout_all":
+                    stdout_all += item[1]
+                elif item[0] == "stderr_all":
+                    stderr_all += item[1]
+            else:
+                # progress update
+                print(f"<filter-progress>{item}</filter-progress>")
+                sys.stdout.flush()
+        except queue.Empty:
+            pass
 
-        loop_idx += 1
+    # Wait for threads to finish
+    t_out.join()
+    t_err.join()
 
-    popen.stderr.close()
-    popen.stdout.close()
-    return_code = popen.wait()
+    print("Process finished with return code:", popen.returncode)
 
-    print("run_command stdout:", flush=True)
-    print(stdout_all, flush=True)
-    print("run_command stderr:", file=sys.stderr, flush=True)
-    print(stderr_all, file=sys.stderr, flush=True)
+    # send progress bar completed
+    print("""<filter-end><filter-name>TestFilter</filter-name><filter-time>10</filter-time></filter-end>""")
+    sys.stdout.flush()
 
-    # send progress bar completed to stdout
-    #print("""<filter-end><filter-name>TestFilter</filter-name><filter-time>10</filter-time></filter-end>""")
-    #sys.stdout.flush()
-
-    if return_code:
-        raise subprocess.CalledProcessError(return_code, command)
-
+    if popen.returncode:
+        raise subprocess.CalledProcessError(popen.returncode, command)
 
 # add this class so the extension wizard can import the scripted CLI
 class run_command(ScriptedLoadableModule):
