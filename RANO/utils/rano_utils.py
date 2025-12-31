@@ -239,10 +239,6 @@ def get_max_orthogonal_line_product_coords_plane(line_coords, degree_tol=0):
         of their lengths is maximal
     """
 
-    if debug:
-        # pick only 10 lines
-        line_coords = line_coords[:10]
-
     num_lines = len(line_coords)
     if not num_lines >= 2:
         return None
@@ -539,9 +535,6 @@ def get_max_orthogonal_line_product_coords(seg, valid_axes=(0, 1, 2), center=Non
                 max_line_length_product = line_length_product
 
                 max_ortho_line_coords = ortho_line_coords
-
-                if debug:
-                    break
 
     max_ortho_line_coords = np.array(max_ortho_line_coords)
 
