@@ -57,7 +57,7 @@ except:
     pip_install("pytorch-ignite==0.5.2")
     pip_install("tensorboard==2.19.0")
     pip_install("antspyx==0.5.4")
-    pip_install("git+https://github.com/MIC-DKFZ/HD-BET@3e3d2a5993e8288f2eae928744ffb496cfc7c651")
+    pip_install("hd-bet==2.0.1")
 
 from utils.config import debug
 sys.stdout = slicer_stdout
