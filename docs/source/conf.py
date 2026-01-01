@@ -30,7 +30,7 @@ extensions = [
     'sphinx.ext.viewcode',  # add links to source code
 ]
 
-autoapi_dirs = ['/home/slicer/Projects/rano2.0-assist/RANO', ]
+autoapi_dirs = ['../../RANO', ]
 
 myst_enable_extensions = ["colon_fence"]  # For markdown support
 
@@ -53,3 +53,13 @@ autodoc_default_options = {
     'undoc-members': True,
     'show-inheritance': True,
 }
+
+
+#  the following are only needed at runtime (not for documentation)
+autodoc_mock_imports = [
+    "qt",
+    "ctk",
+    "slicer",
+    "DICOMLib",
+    "vtk"
+]

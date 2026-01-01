@@ -16,7 +16,7 @@ BUILD_DIR=$(realpath "$THIS_DIR/build")
 
 echo "BUILD_DIR: $BUILD_DIR"
 
-PYTHONEXEC="/home/slicer/bin/Slicer-5.8.1-linux-amd64/Slicer"
+PYTHONEXEC="/home/aaron/bin/Slicer-5.6.2-linux-amd64/Slicer"
 
 ${PYTHONEXEC} --no-main-window --python-code "from sphinx.cmd.build import main as sphinxmain; sphinxmain(['-M', 'html', '${SOURCE_DIR}', '${BUILD_DIR}']); exit()"
 

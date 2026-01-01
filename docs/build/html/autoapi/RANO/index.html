@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RANO &mdash; RANO2.0-assist  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
 
@@ -47,10 +47,14 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#python-libraries">Python libraries</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">RANO</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#classes">Classes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#RANO.slicer_stdout"><code class="docutils literal notranslate"><span class="pre">slicer_stdout</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#RANO.minimumTorchVersion"><code class="docutils literal notranslate"><span class="pre">minimumTorchVersion</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#RANO.RANO"><code class="docutils literal notranslate"><span class="pre">RANO</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#RANO.RANOWidget"><code class="docutils literal notranslate"><span class="pre">RANOWidget</span></code></a></li>
 </ul>
@@ -93,6 +97,19 @@
 <p>This module is part of a 3D Slicer extension and  provides tools for Response Assessment in Neuro-Oncology (RANO)
 based on the RANO 2.0 guidelines. It includes functionality for segmentation, 2D measurements,
 response classification, and report generation.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#RANO.slicer_stdout" title="RANO.slicer_stdout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slicer_stdout</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#RANO.minimumTorchVersion" title="RANO.minimumTorchVersion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimumTorchVersion</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
 <table class="autosummary longtable docutils align-default">
@@ -108,6 +125,16 @@ response classification, and report generation.</p>
 </section>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="RANO.slicer_stdout">
+<span class="sig-prename descclassname"><span class="pre">RANO.</span></span><span class="sig-name descname"><span class="pre">slicer_stdout</span></span><a class="headerlink" href="#RANO.slicer_stdout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="RANO.minimumTorchVersion">
+<span class="sig-prename descclassname"><span class="pre">RANO.</span></span><span class="sig-name descname"><span class="pre">minimumTorchVersion</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'2.6.0'</span></em><a class="headerlink" href="#RANO.minimumTorchVersion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="RANO.RANO">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">RANO.</span></span><span class="sig-name descname"><span class="pre">RANO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RANO.html#RANO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#RANO.RANO" title="Link to this definition"></a></dt>
@@ -120,7 +147,7 @@ Uses ScriptedLoadableModule base class, available at:
 <dl class="py class">
 <dt class="sig sig-object py" id="RANO.RANOWidget">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">RANO.</span></span><span class="sig-name descname"><span class="pre">RANOWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/RANO.html#RANOWidget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#RANO.RANOWidget" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="../utils/segmentation_utils/index.html#utils.segmentation_utils.SegmentationMixin" title="utils.segmentation_utils.SegmentationMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.segmentation_utils.SegmentationMixin</span></code></a>, <a class="reference internal" href="../utils/ui_helper_utils/index.html#utils.ui_helper_utils.UIHelperMixin" title="utils.ui_helper_utils.UIHelperMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.ui_helper_utils.UIHelperMixin</span></code></a>, <a class="reference internal" href="../utils/measurements2D_utils/index.html#utils.measurements2D_utils.Measurements2DMixin" title="utils.measurements2D_utils.Measurements2DMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.measurements2D_utils.Measurements2DMixin</span></code></a>, <a class="reference internal" href="../utils/response_classification_utils/index.html#utils.response_classification_utils.ResponseClassificationMixin" title="utils.response_classification_utils.ResponseClassificationMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.response_classification_utils.ResponseClassificationMixin</span></code></a>, <a class="reference internal" href="../utils/report_creation_utils/index.html#utils.report_creation_utils.ReportCreationMixin" title="utils.report_creation_utils.ReportCreationMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.report_creation_utils.ReportCreationMixin</span></code></a>, <a class="reference internal" href="../utils/results_table_utils/index.html#utils.results_table_utils.ResultsTableMixin" title="utils.results_table_utils.ResultsTableMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.results_table_utils.ResultsTableMixin</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">slicer.util.VTKObservationMixin</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin" title="utils.segmentation_utils.SegmentationMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.segmentation_utils.SegmentationMixin</span></code></a>, <a class="reference internal" href="../utils/ui_helper_utils/index.html#utils.ui_helper_utils.UIHelperMixin" title="utils.ui_helper_utils.UIHelperMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.ui_helper_utils.UIHelperMixin</span></code></a>, <a class="reference internal" href="../../utils.measurements2D_utils.html#utils.measurements2D_utils.Measurements2DMixin" title="utils.measurements2D_utils.Measurements2DMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.measurements2D_utils.Measurements2DMixin</span></code></a>, <a class="reference internal" href="../utils/response_classification_utils/index.html#utils.response_classification_utils.ResponseClassificationMixin" title="utils.response_classification_utils.ResponseClassificationMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.response_classification_utils.ResponseClassificationMixin</span></code></a>, <a class="reference internal" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin" title="utils.report_creation_utils.ReportCreationMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.report_creation_utils.ReportCreationMixin</span></code></a>, <a class="reference internal" href="../utils/results_table_utils/index.html#utils.results_table_utils.ResultsTableMixin" title="utils.results_table_utils.ResultsTableMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.results_table_utils.ResultsTableMixin</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">slicer.util.VTKObservationMixin</span></code></p>
 <p>Required class for 3D Slicer module.
 UI elements can be accessed as follows from the Slicer python console:</p>
 <blockquote>

@@ -13,6 +13,15 @@ RANO
 
 
 
+Attributes
+----------
+
+.. autoapisummary::
+
+   RANO.slicer_stdout
+   RANO.minimumTorchVersion
+
+
 Classes
 -------
 
@@ -24,6 +33,12 @@ Classes
 
 Module Contents
 ---------------
+
+.. py:data:: slicer_stdout
+
+.. py:data:: minimumTorchVersion
+   :value: '2.6.0'
+
 
 .. py:class:: RANO(parent)
 
