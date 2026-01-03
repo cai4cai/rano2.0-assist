@@ -46,10 +46,14 @@ try:
     import torch
 except:
     minimumTorchVersion = "2.6.0"
+    maximumTorchVersion = "2.8.0"
+
+    torchRequirement = f">={minimumTorchVersion},<={maximumTorchVersion}"
+
     torchLogic = PyTorchUtils.PyTorchUtilsLogic()
     if not torchLogic.torchInstalled():
         print('PyTorch Python package is required. Installing... (it may take several minutes)')
-        torch = torchLogic.installTorch(askConfirmation=False, torchVersionRequirement=f">={minimumTorchVersion}")
+        torch = torchLogic.installTorch(askConfirmation=False, torchVersionRequirement=torchRequirement)
         if torch is None:
             raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
     import torch
