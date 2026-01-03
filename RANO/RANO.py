@@ -16,29 +16,35 @@ from slicer.util import *
 slicer_stdout = sys.stdout
 
 try:
-    import numpy
-    import skimage
-    import numba
-    import nibabel
-    import tqdm
-    import yaml
-    import reportlab
-except:
-    pip_install("numpy==2.0.2")
-    pip_install("scikit-image==0.24.0")
-    pip_install("numba==0.60.0")
-    pip_install("nibabel==5.3.2")
-    pip_install("tqdm==4.67.1")
-    pip_install("pyyaml==6.0.2")
-    pip_install("reportlab==4.4.1")
+    import PyTorchUtils
+except ModuleNotFoundError as e:
+    raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
+
+def ensure_package(import_name, spec, verbose=True):
+    import importlib
+
+    try:
+        if verbose:
+            print(f"[ensure_package] importing {import_name}")
+        return importlib.import_module(import_name)
+    except ModuleNotFoundError:
+        if verbose:
+            print(f"[ensure_package] installing {spec}")
+        pip_install(spec)
+        importlib.invalidate_caches()
+        return importlib.import_module(import_name)
+
+numpy = ensure_package("numpy", "numpy==2.0.2")
+skimage = ensure_package("skimage", "scikit-image==0.24.0")
+numba = ensure_package("numba", "numba==0.60.0")
+nibabel = ensure_package("nibabel", "nibabel==5.3.2")
+tqdm = ensure_package("tqdm", "tqdm==4.67.1")
+yaml = ensure_package("yaml", "pyyaml==6.0.2")
+reportlab = ensure_package("reportlab", "reportlab==4.4.1")
 
 try:
     import torch
 except:
-    try:
-        import PyTorchUtils
-    except ModuleNotFoundError as e:
-        raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
     minimumTorchVersion = "2.6.0"
     torchLogic = PyTorchUtils.PyTorchUtilsLogic()
     if not torchLogic.torchInstalled():
@@ -46,18 +52,13 @@ except:
         torch = torchLogic.installTorch(askConfirmation=False, torchVersionRequirement=f">={minimumTorchVersion}")
         if torch is None:
             raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
-try:
-    import monai
-    import ignite
-    import tensorboard
-    import ants
-    import HD_BET
-except:
-    pip_install("git+https://github.com/aaronkujawa/MONAI.git@rano")
-    pip_install("pytorch-ignite==0.5.2")
-    pip_install("tensorboard==2.19.0")
-    pip_install("antspyx==0.5.4")
-    pip_install("hd-bet==2.0.1")
+    import torch
+
+ensure_package("ignite", "pytorch-ignite==0.5.2")
+ensure_package("tensorboard", "tensorboard==2.19.0")
+ensure_package("ants", "antspyx==0.5.4")
+ensure_package("HD_BET", "hd-bet==2.0.1")
+ensure_package("monai", "git+https://github.com/aaronkujawa/MONAI.git@rano")
 
 from utils.config import debug
 sys.stdout = slicer_stdout
