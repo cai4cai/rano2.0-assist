@@ -56,7 +56,38 @@ except:
 
 ensure_package("ignite", "pytorch-ignite==0.5.2")
 ensure_package("tensorboard", "tensorboard==2.19.0")
-ensure_package("ants", "antspyx==0.5.4")
+
+def installANTsPyX():
+    try:
+        import ants
+    except:
+        import platform
+        if platform.system() == 'Linux':
+            import urllib.request
+            import tempfile
+
+            # Download the wheel file from Box
+            download_url = 'https://app.box.com/shared/static/mu1gy26t80oopbtv3mndl5yveb6s4431.whl'
+            temp_dir = tempfile.gettempdir()
+            whl_filename = 'antspyx-0.6.2-cp312-cp312-linux_x86_64.whl'
+            whl_path = os.path.join(temp_dir, whl_filename)
+
+            print(f"Downloading antspyx wheel from {download_url}")
+            urllib.request.urlretrieve(download_url, whl_path)
+            print(f"Downloaded to {whl_path}")
+
+            slicer.util.pip_install(whl_path)
+
+            # Clean up the downloaded file
+            try:
+                os.remove(whl_path)
+            except:
+                pass
+        else:
+            slicer.util.pip_install('antspyx')
+
+installANTsPyX()
+
 ensure_package("HD_BET", "hd-bet==2.0.1")
 ensure_package("monai", "git+https://github.com/aaronkujawa/MONAI.git@rano")
 
