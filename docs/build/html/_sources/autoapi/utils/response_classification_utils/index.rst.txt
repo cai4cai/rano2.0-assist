@@ -15,24 +15,9 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: ResponseClassificationMixin(parameterNode, ui, lineNodePairs)
+.. py:class:: ResponseClassificationMixin
 
    Mixin class for response classification in the RANO module.
-
-
-   .. py:attribute:: _parameterNode
-
-      Parameter node for the RANO module
-
-
-   .. py:attribute:: ui
-
-      UI for the RANO module
-
-
-   .. py:attribute:: lineNodePairs
-
-      List of line node pairs for the RANO module
 
 
    .. py:method:: response_assessment_from_rel_area_or_vol(rel_area=None, rel_vol=None)

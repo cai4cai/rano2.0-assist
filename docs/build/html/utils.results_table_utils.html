@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>utils.results_table_utils module &mdash; RANO2.0-assist  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -45,6 +45,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">RANO2.0-assist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#python-libraries">Python libraries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -76,12 +77,12 @@
 <span id="utils-results-table-utils-module"></span><h1>utils.results_table_utils module<a class="headerlink" href="#module-utils.results_table_utils" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.results_table_utils.ResultsTableMixin">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.results_table_utils.</span></span><span class="sig-name descname"><span class="pre">ResultsTableMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameterNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ui</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineNodePairs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/results_table_utils.html#ResultsTableMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.results_table_utils.ResultsTableMixin" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.results_table_utils.</span></span><span class="sig-name descname"><span class="pre">ResultsTableMixin</span></span><a class="reference internal" href="_modules/utils/results_table_utils.html#ResultsTableMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.results_table_utils.ResultsTableMixin" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Mixin class for creating a results table for the RANO module.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.results_table_utils.ResultsTableMixin.calculate_results_table">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_results_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lineNodePairs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/results_table_utils.html#ResultsTableMixin.calculate_results_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.results_table_utils.ResultsTableMixin.calculate_results_table" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_results_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lineNodePairs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/results_table_utils.html#ResultsTableMixin.calculate_results_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.results_table_utils.ResultsTableMixin.calculate_results_table" title="Link to this definition"></a></dt>
 <dd><p>Calculate the results table for the RANO module.
 This function calculates the perpendicular product and volume for each line pair
 and adds the results to a table.</p>
@@ -94,7 +95,7 @@ and adds the results to a table.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.results_table_utils.ResultsTableMixin.present_table">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">present_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/results_table_utils.html#ResultsTableMixin.present_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.results_table_utils.ResultsTableMixin.present_table" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">present_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_existing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils/results_table_utils.html#ResultsTableMixin.present_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.results_table_utils.ResultsTableMixin.present_table" title="Link to this definition"></a></dt>
 <dd><p>Present a table in the table view.
 This function creates a table node in the scene and adds the columns and values
 to the table. It also shows the table in the view layout.</p>

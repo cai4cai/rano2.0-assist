@@ -16,8 +16,9 @@ BUILD_DIR=$(realpath "$THIS_DIR/build")
 
 echo "BUILD_DIR: $BUILD_DIR"
 
-PYTHONEXEC="/home/aaron/bin/Slicer-5.6.2-linux-amd64/Slicer"
+PYTHONEXEC="/home/aaron/bin/Slicer-5.10.0-linux-amd64/Slicer"
 
+${PYTHONEXEC} --no-main-window --python-code 'from slicer.util import pip_install;pip_install("-U sphinx");pip_install("myst_parser");pip_install("sphinx-autoapi");pip_install("sphinx_rtd_theme");pip_install("beautifulsoup4");exit()'
 ${PYTHONEXEC} --no-main-window --python-code "from sphinx.cmd.build import main as sphinxmain; sphinxmain(['-M', 'html', '${SOURCE_DIR}', '${BUILD_DIR}']); exit()"
 
 # open the generated documentation in the default web browser

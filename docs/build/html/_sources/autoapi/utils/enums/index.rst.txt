@@ -27,7 +27,7 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: Response
+.. py:class:: Response(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -61,7 +61,7 @@ Module Contents
    .. py:method:: description_detailed()
 
 
-.. py:class:: TumorComponentsForEval
+.. py:class:: TumorComponentsForEval(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -87,7 +87,7 @@ Module Contents
    .. py:method:: description()
 
 
-.. py:class:: RefScanRole
+.. py:class:: RefScanRole(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -128,7 +128,7 @@ Module Contents
    .. py:method:: description()
 
 
-.. py:class:: CurrScanRole
+.. py:class:: CurrScanRole(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -159,7 +159,7 @@ Module Contents
    .. py:method:: description()
 
 
-.. py:class:: NonTargetOrNonMeasLes
+.. py:class:: NonTargetOrNonMeasLes(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -180,7 +180,7 @@ Module Contents
    .. py:method:: description()
 
 
-.. py:class:: ClinicalStatus
+.. py:class:: ClinicalStatus(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -201,7 +201,7 @@ Module Contents
    .. py:method:: description()
 
 
-.. py:class:: SteroidDose
+.. py:class:: SteroidDose(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -222,7 +222,7 @@ Module Contents
    .. py:method:: description()
 
 
-.. py:class:: OverallResponse
+.. py:class:: OverallResponse(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 

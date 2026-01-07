@@ -15,24 +15,9 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: ReportCreationMixin(parameterNode, ui, lineNodePairs)
+.. py:class:: ReportCreationMixin
 
    Mixin class for creating a report for the RANO module.
-
-
-   .. py:attribute:: _parameterNode
-
-      Parameter node for the RANO module
-
-
-   .. py:attribute:: ui
-
-      UI for the RANO module
-
-
-   .. py:attribute:: lineNodePairs
-
-      List of line node pairs for the RANO module
 
 
    .. py:method:: onCreateReportButton()

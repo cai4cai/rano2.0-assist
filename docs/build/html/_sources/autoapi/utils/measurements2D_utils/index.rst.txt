@@ -24,27 +24,11 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: Measurements2DMixin(parameterNode, ui, lineNodePairs)
+.. py:class:: Measurements2DMixin
 
    This mixin class provides methods for performing 2D measurements on lesions in medical images.
    It includes methods for calculating, displaying, and managing lesion measurements, as well as
    handling user interactions with the GUI.
-
-
-   .. py:attribute:: _parameterNode
-
-      The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
-      so that when the scene is saved and reloaded, these settings are restored.
-
-
-   .. py:attribute:: ui
-
-      The UI elements of the module. This is a dictionary containing all the widgets in the module.
-
-
-   .. py:attribute:: lineNodePairs
-
-      List of line node pairs used for 2D measurements.
 
 
    .. py:attribute:: instance_segmentations_matched

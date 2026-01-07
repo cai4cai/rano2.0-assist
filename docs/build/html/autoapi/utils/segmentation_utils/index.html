@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>utils.segmentation_utils &mdash; RANO2.0-assist  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -113,7 +113,7 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.segmentation_utils.</span></span><span class="sig-name descname"><span class="pre">SegmentationMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameterNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ui</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/segmentation_utils.html#SegmentationMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.segmentation_utils.</span></span><span class="sig-name descname"><span class="pre">SegmentationMixin</span></span><a class="reference internal" href="../../../_modules/utils/segmentation_utils.html#SegmentationMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin" title="Link to this definition"></a></dt>
 <dd><p>Mixin class for the segmentation functionality of the RANO module.
 This class handles the segmentation of the input volumes and the loading of the results into Slicer.
 It also handles the progress bar and the cancellation of the segmentation process.</p>
@@ -127,18 +127,6 @@ It also handles the progress bar and the cancellation of the segmentation proces
 <dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.start_time_t2">
 <span class="sig-name descname"><span class="pre">start_time_t2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.start_time_t2" title="Link to this definition"></a></dt>
 <dd><p>Start time for the second segmentation process</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin._parameterNode">
-<span class="sig-name descname"><span class="pre">_parameterNode</span></span><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin._parameterNode" title="Link to this definition"></a></dt>
-<dd><p>Parameter node for the RANO module</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.ui">
-<span class="sig-name descname"><span class="pre">ui</span></span><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.ui" title="Link to this definition"></a></dt>
-<dd><p>UI for the RANO module</p>
 </dd></dl>
 
 <dl class="py method">
@@ -193,7 +181,7 @@ This function loads the output segmentation into Slicer and applies the transfor
 
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loadedLabelVolumeNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_segmentation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/segmentation_utils.html#SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loadedLabelVolumeNode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_segmentation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/segmentation_utils.html#SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment" title="Link to this definition"></a></dt>
 <dd><p>Import the labelVolumeNode into the segmentation node. The labels in the labelVolumeNode are increased by 1
 temporarily to include the background label (0) and then decreased by 1 again to have the original labels.
 (This is because slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode ignores the background label)
@@ -218,7 +206,7 @@ and sets it as the current segment in the segment selector widget.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.segmentation_utils.SegmentationMixin.get_task_dir">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_task_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterNode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/segmentation_utils.html#SegmentationMixin.get_task_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.get_task_dir" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_task_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameterNode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/utils/segmentation_utils.html#SegmentationMixin.get_task_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.segmentation_utils.SegmentationMixin.get_task_dir" title="Link to this definition"></a></dt>
 <dd><p>Get the task directory for the given model key.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

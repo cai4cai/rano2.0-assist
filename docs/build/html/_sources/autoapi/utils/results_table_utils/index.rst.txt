@@ -15,18 +15,9 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: ResultsTableMixin(parameterNode, ui, lineNodePairs)
+.. py:class:: ResultsTableMixin
 
    Mixin class for creating a results table for the RANO module.
-
-
-   .. py:attribute:: _parameterNode
-
-
-   .. py:attribute:: ui
-
-
-   .. py:attribute:: lineNodePairs
 
 
    .. py:method:: calculate_results_table(lineNodePairs)

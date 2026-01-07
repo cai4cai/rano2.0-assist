@@ -15,19 +15,9 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: UIHelperMixin(parameterNode, ui)
+.. py:class:: UIHelperMixin
 
    Mixin class for setting up the UI for the RANO module.
-
-
-   .. py:attribute:: _parameterNode
-
-      Parameter node for the RANO module
-
-
-   .. py:attribute:: ui
-
-      UI for the RANO module
 
 
    .. py:method:: setup_test_cases()

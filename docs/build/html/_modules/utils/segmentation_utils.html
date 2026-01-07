@@ -6,15 +6,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>utils.segmentation_utils &mdash; RANO2.0-assist  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -73,44 +73,38 @@
            <div itemprop="articleBody">
              
   <h1>Source code for utils.segmentation_utils</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">ctk</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">ui_helper_utils</span><span class="p">,</span> <span class="n">measurements2D_utils</span>
-<span class="kn">from</span> <span class="nn">utils.config</span> <span class="kn">import</span> <span class="n">module_path</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">traceback</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">slicer</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ctk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ui_helper_utils</span><span class="p">,</span> <span class="n">measurements2D_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">module_path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">slicer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">utils.rano_utils</span> <span class="kn">import</span> <span class="n">run_segmentation</span>
-<span class="kn">from</span> <span class="nn">utils.config</span> <span class="kn">import</span> <span class="n">debug</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.rano_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_segmentation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">debug</span>
 
 
 <div class="viewcode-block" id="SegmentationMixin">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin">[docs]</a>
-<span class="k">class</span> <span class="nc">SegmentationMixin</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SegmentationMixin</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mixin class for the segmentation functionality of the RANO module.</span>
 <span class="sd">    This class handles the segmentation of the input volumes and the loading of the results into Slicer.</span>
 <span class="sd">    It also handles the progress bar and the cancellation of the segmentation process.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t1</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Start time for the first segmentation process&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">start_time_t2</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Start time for the second segmentation process&quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter node for the RANO module&quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;UI for the RANO module&quot;&quot;&quot;</span>
-
 <div class="viewcode-block" id="SegmentationMixin.onCalcSegmentationsButton">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onCalcSegmentationsButton">[docs]</a>
-    <span class="k">def</span> <span class="nf">onCalcSegmentationsButton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCalcSegmentationsButton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run processing when user clicks the &quot;Calculate Segmentations&quot; button.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -255,7 +249,7 @@
 
 <div class="viewcode-block" id="SegmentationMixin.onCliNodeStatusUpdate">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onCliNodeStatusUpdate">[docs]</a>
-    <span class="k">def</span> <span class="nf">onCliNodeStatusUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCliNodeStatusUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span>
                               <span class="n">input_volume_list</span><span class="p">,</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">original_log_level</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Callback function to handle the status update of the CLI node.</span>
@@ -316,7 +310,7 @@
 
 <div class="viewcode-block" id="SegmentationMixin.onSegmentationCliNodeSuccess">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onSegmentationCliNodeSuccess">[docs]</a>
-    <span class="k">def</span> <span class="nf">onSegmentationCliNodeSuccess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_volume_list</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onSegmentationCliNodeSuccess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_volume_list</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">,</span> <span class="n">task_dir</span><span class="p">,</span>
                                      <span class="n">timepoint</span><span class="p">,</span> <span class="n">tmp_path_out</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Callback function to handle the success of the CLI node.</span>
@@ -428,7 +422,7 @@
     <span class="c1"># add an observer to the progress bar cancel button</span>
 <div class="viewcode-block" id="SegmentationMixin.onCancel">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.onCancel">[docs]</a>
-    <span class="k">def</span> <span class="nf">onCancel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onCancel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cliNode</span><span class="p">,</span> <span class="n">progressBar</span><span class="p">):</span>
         <span class="n">cliNode</span><span class="o">.</span><span class="n">Cancel</span><span class="p">()</span>
         <span class="n">progressBar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -437,7 +431,7 @@
 <div class="viewcode-block" id="SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.ImportLabelmapToSegmentationNodeWithBackgroundSegment">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ImportLabelmapToSegmentationNodeWithBackgroundSegment</span><span class="p">(</span><span class="n">loadedLabelVolumeNode</span><span class="p">,</span> <span class="n">output_segmentation</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Import the labelVolumeNode into the segmentation node. The labels in the labelVolumeNode are increased by 1</span>
 <span class="sd">        temporarily to include the background label (0) and then decreased by 1 again to have the original labels.</span>
@@ -482,7 +476,7 @@
 
 <div class="viewcode-block" id="SegmentationMixin.setDefaultSegmentFor2DMeasurements">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.setDefaultSegmentFor2DMeasurements">[docs]</a>
-    <span class="k">def</span> <span class="nf">setDefaultSegmentFor2DMeasurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaultSegmentName</span><span class="o">=</span><span class="s2">&quot;ETC&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setDefaultSegmentFor2DMeasurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaultSegmentName</span><span class="o">=</span><span class="s2">&quot;ETC&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the default segment for 2D measurements in the segment selector widget.</span>
 <span class="sd">        This function checks if the default segment exists in either of the segmentations</span>
@@ -507,7 +501,7 @@
 <div class="viewcode-block" id="SegmentationMixin.get_task_dir">
 <a class="viewcode-back" href="../../utils.segmentation_utils.html#utils.segmentation_utils.SegmentationMixin.get_task_dir">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_task_dir</span><span class="p">(</span><span class="n">model_key</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the task directory for the given model key.</span>
 

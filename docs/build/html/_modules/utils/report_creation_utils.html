@@ -8,13 +8,13 @@
   <title>utils.report_creation_utils &mdash; RANO2.0-assist  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -44,6 +44,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">RANO2.0-assist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#python-libraries">Python libraries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -101,15 +102,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mixin class for creating a report for the RANO module.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameterNode</span><span class="p">,</span> <span class="n">ui</span><span class="p">,</span> <span class="n">lineNodePairs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameterNode</span> <span class="o">=</span> <span class="n">parameterNode</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter node for the RANO module&quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;UI for the RANO module&quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">lineNodePairs</span> <span class="o">=</span> <span class="n">lineNodePairs</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of line node pairs for the RANO module&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ReportCreationMixin.onCreateReportButton">
 <a class="viewcode-back" href="../../utils.report_creation_utils.html#utils.report_creation_utils.ReportCreationMixin.onCreateReportButton">[docs]</a>

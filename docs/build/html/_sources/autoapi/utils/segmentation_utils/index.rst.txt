@@ -15,7 +15,7 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: SegmentationMixin(parameterNode, ui)
+.. py:class:: SegmentationMixin
 
    Mixin class for the segmentation functionality of the RANO module.
    This class handles the segmentation of the input volumes and the loading of the results into Slicer.
@@ -34,16 +34,6 @@ Module Contents
 
 
       Start time for the second segmentation process
-
-
-   .. py:attribute:: _parameterNode
-
-      Parameter node for the RANO module
-
-
-   .. py:attribute:: ui
-
-      UI for the RANO module
 
 
    .. py:method:: onCalcSegmentationsButton()

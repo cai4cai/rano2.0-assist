@@ -13,15 +13,6 @@ RANO
 
 
 
-Attributes
-----------
-
-.. autoapisummary::
-
-   RANO.slicer_stdout
-   RANO.minimumTorchVersion
-
-
 Classes
 -------
 
@@ -31,14 +22,16 @@ Classes
    RANO.RANOWidget
 
 
+Functions
+---------
+
+.. autoapisummary::
+
+   RANO.installAndImportDependencies
+
+
 Module Contents
 ---------------
-
-.. py:data:: slicer_stdout
-
-.. py:data:: minimumTorchVersion
-   :value: '2.6.0'
-
 
 .. py:class:: RANO(parent)
 
@@ -52,7 +45,7 @@ Module Contents
 
 .. py:class:: RANOWidget(parent=None)
 
-   Bases: :py:obj:`utils.segmentation_utils.SegmentationMixin`, :py:obj:`utils.ui_helper_utils.UIHelperMixin`, :py:obj:`utils.measurements2D_utils.Measurements2DMixin`, :py:obj:`utils.response_classification_utils.ResponseClassificationMixin`, :py:obj:`utils.report_creation_utils.ReportCreationMixin`, :py:obj:`utils.results_table_utils.ResultsTableMixin`, :py:obj:`slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget`, :py:obj:`slicer.util.VTKObservationMixin`
+   Bases: :py:obj:`slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget`, :py:obj:`slicer.util.VTKObservationMixin`
 
 
    Required class for 3D Slicer module.
@@ -69,37 +62,23 @@ Module Contents
       :value: None
 
 
-      The UI elements of the module. This is a dictionary containing all the widgets in the module.
-
 
    .. py:attribute:: logic
       :value: None
 
-
-      The logic class of the module. This class implements all computations that should be possible to run
-      in batch mode, without a graphical user interface.
 
 
    .. py:attribute:: _parameterNode
       :value: None
 
 
-      The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
-      so that when the scene is saved and reloaded, these settings are restored.
-
 
    .. py:attribute:: _updatingGUIFromParameterNode
       :value: False
 
 
-      Flag to indicate if the GUI is being updated from the parameter node. This is used to prevent infinite loops
-      when the parameter node is changed by a script or any other module.
-
 
    .. py:method:: setup()
-
-      Called when the user opens the module the first time and the widget is initialized.
-
 
 
    .. py:method:: cleanup()
@@ -173,5 +152,10 @@ Module Contents
       :param caller: The object that triggered the event.
       :param event: The event that occurred.
 
+
+
+.. py:function:: installAndImportDependencies()
+
+   Dependency handling
 
 
