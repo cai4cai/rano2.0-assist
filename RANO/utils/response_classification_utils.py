@@ -10,15 +10,6 @@ class ResponseClassificationMixin:
     """
     Mixin class for response classification in the RANO module.
     """
-    def __init__(self, parameterNode, ui, lineNodePairs):
-        self._parameterNode = parameterNode
-        """Parameter node for the RANO module"""
-
-        self.ui = ui
-        """UI for the RANO module"""
-
-        self.lineNodePairs = lineNodePairs
-        """List of line node pairs for the RANO module"""
 
     @staticmethod
     def response_assessment_from_rel_area_or_vol(rel_area=None, rel_vol=None):

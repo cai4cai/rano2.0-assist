@@ -20,12 +20,6 @@ class UIHelperMixin:
     """
     Mixin class for setting up the UI for the RANO module.
     """
-    def __init__(self, parameterNode, ui):
-        self._parameterNode = parameterNode
-        """Parameter node for the RANO module"""
-
-        self.ui = ui
-        """UI for the RANO module"""
 
     def setup_test_cases(self):
         """

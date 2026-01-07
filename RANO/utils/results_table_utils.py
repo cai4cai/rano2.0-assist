@@ -10,11 +10,6 @@ class ResultsTableMixin:
     """
     Mixin class for creating a results table for the RANO module.
     """
-    def __init__(self, parameterNode, ui, lineNodePairs):
-        self._parameterNode = parameterNode
-        self.ui = ui
-        self.lineNodePairs = lineNodePairs
-
     @staticmethod
     def calculate_results_table(lineNodePairs):
         """

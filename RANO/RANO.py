@@ -221,6 +221,13 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         # in batch mode, without a graphical user interface.
         self.logic = RANOLogic()
 
+        SegmentationMixin.__init__(self)
+        UIHelperMixin.__init__(self)
+        Measurements2DMixin.__init__(self)
+        ResponseClassificationMixin.__init__(self)
+        ReportCreationMixin.__init__(self)
+        ResultsTableMixin.__init__(self)
+
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
 

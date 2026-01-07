@@ -33,17 +33,7 @@ class Measurements2DMixin:
     handling user interactions with the GUI.
     """
 
-    def __init__(self, parameterNode, ui, lineNodePairs):
-        self._parameterNode = parameterNode
-        """The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
-        so that when the scene is saved and reloaded, these settings are restored."""
-
-        self.ui = ui
-        """The UI elements of the module. This is a dictionary containing all the widgets in the module."""
-
-        self.lineNodePairs = lineNodePairs
-        """List of line node pairs used for 2D measurements."""
-
+    def __init__(self):
         self.instance_segmentations_matched = None
         """List of instance segmentations (numpy arrays) with matching labels across time points."""
 

@@ -18,18 +18,12 @@ class SegmentationMixin:
     This class handles the segmentation of the input volumes and the loading of the results into Slicer.
     It also handles the progress bar and the cancellation of the segmentation process.
     """
-    def __init__(self, parameterNode, ui):
+    def __init__(self):
         self.start_time_t1 = None
         """Start time for the first segmentation process"""
 
         self.start_time_t2 = None
         """Start time for the second segmentation process"""
-
-        self._parameterNode = parameterNode
-        """Parameter node for the RANO module"""
-
-        self.ui = ui
-        """UI for the RANO module"""
 
     def onCalcSegmentationsButton(self):
         """
