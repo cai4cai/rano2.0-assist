@@ -13,119 +13,27 @@ from importlib import reload
 import slicer, vtk
 from slicer.ScriptedLoadableModule import *
 from slicer.util import *
-slicer_stdout = sys.stdout
 
-try:
-    import PyTorchUtils
-except ModuleNotFoundError as e:
-    raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
-
-def ensure_package(import_name, spec, verbose=True):
-    import importlib
-
-    try:
-        if verbose:
-            print(f"[ensure_package] importing {import_name}")
-        return importlib.import_module(import_name)
-    except ModuleNotFoundError:
-        if verbose:
-            print(f"[ensure_package] installing {spec}")
-        pip_install(spec)
-        importlib.invalidate_caches()
-        return importlib.import_module(import_name)
-
-numpy = ensure_package("numpy", "numpy==2.0.2")
-skimage = ensure_package("skimage", "scikit-image==0.24.0")
-numba = ensure_package("numba", "numba==0.60.0")
-nibabel = ensure_package("nibabel", "nibabel==5.3.2")
-tqdm = ensure_package("tqdm", "tqdm==4.67.1")
-yaml = ensure_package("yaml", "pyyaml==6.0.2")
-reportlab = ensure_package("reportlab", "reportlab==4.4.1")
-
-try:
-    import torch
-except:
-    minimumTorchVersion = "2.6.0"
-    maximumTorchVersion = "2.8.0"
-
-    torchRequirement = f">={minimumTorchVersion},<={maximumTorchVersion}"
-
-    torchLogic = PyTorchUtils.PyTorchUtilsLogic()
-    if not torchLogic.torchInstalled():
-        print('PyTorch Python package is required. Installing... (it may take several minutes)')
-        torch = torchLogic.installTorch(askConfirmation=False, torchVersionRequirement=torchRequirement)
-        if torch is None:
-            raise Exception("This module requires PyTorch extension. Install it from the Extensions Manager.")
-    import torch
-
-ensure_package("ignite", "pytorch-ignite==0.5.2")
-ensure_package("tensorboard", "tensorboard==2.19.0")
-
-def installANTsPyX():
-    try:
-        import ants
-    except:
-        import platform
-        if platform.system() == 'Linux':
-            import urllib.request
-            import tempfile
-
-            # Download the wheel file from Box
-            download_url = 'https://app.box.com/shared/static/mu1gy26t80oopbtv3mndl5yveb6s4431.whl'
-            temp_dir = tempfile.gettempdir()
-            whl_filename = 'antspyx-0.6.2-cp312-cp312-linux_x86_64.whl'
-            whl_path = os.path.join(temp_dir, whl_filename)
-
-            print(f"Downloading antspyx wheel from {download_url}")
-            urllib.request.urlretrieve(download_url, whl_path)
-            print(f"Downloaded to {whl_path}")
-
-            slicer.util.pip_install(whl_path)
-
-            # Clean up the downloaded file
-            try:
-                os.remove(whl_path)
-            except:
-                pass
-        else:
-            slicer.util.pip_install('antspyx')
-
-installANTsPyX()
-
-ensure_package("HD_BET", "hd-bet==2.0.1")
-ensure_package("monai", "git+https://github.com/aaronkujawa/MONAI.git@rano")
-
-from utils.config import debug
-sys.stdout = slicer_stdout
-
-# reload the submodules to ensure that the latest version of the code is used upon pressing the "Reload" button in the
-# module GUI (development mode)
-for mod in ['utils.enums',  # must be first to ensure that the subsequent modules are reloaded with the new enums
-            'utils.config',
-            'utils.rano_utils',
-            'utils.RANO_Logic',
-            'utils.ui_helper_utils',
-            'utils.segmentation_utils',
-            'utils.measurements2D_utils',
-            'utils.response_classification_utils',
-            'utils.report_creation_utils',
-            'utils.results_table_utils',
-            'utils.test_rano',
-            ]:
-    if debug: print(f"Reloading {mod}")
+# Reload utils on Reload button
+for mod in [
+    'utils.enums',
+    'utils.config',
+    'utils.rano_utils',
+    'utils.RANOLogic',
+    'utils.ui_helper_utils',
+    'utils.segmentation_utils',
+    'utils.measurements2D_utils',
+    'utils.response_classification_utils',
+    'utils.report_creation_utils',
+    'utils.results_table_utils',
+    'utils.test_rano',
+]:
     if mod in sys.modules:
         reload(sys.modules[mod])
 
-from utils.ui_helper_utils import UIHelperMixin
-from utils.RANOLogic import RANOLogic
-from utils.segmentation_utils import SegmentationMixin
-from utils.measurements2D_utils import Measurements2DMixin, LineNodePairList
-from utils.response_classification_utils import ResponseClassificationMixin
-from utils.report_creation_utils import ReportCreationMixin
-from utils.results_table_utils import ResultsTableMixin
+from utils.config import debug
 
 from utils.test_rano import RANOTest  # tests run in developer mode
-
 
 class RANO(ScriptedLoadableModule):
     """
@@ -146,12 +54,7 @@ This file is based on a file developed by Jean-Christophe Fillion-Robin, Kitware
 and Steve Pieper, Isomics, Inc. which was partially funded by NIH grant 3P41RR013218-12S1.
 """
 
-#
-# RANOWidget
-#
-class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, ResponseClassificationMixin,
-                 ReportCreationMixin, ResultsTableMixin,
-                 ScriptedLoadableModuleWidget, VTKObservationMixin):  # these two classes have to be last because of the super() calls in their __init__ methods (MRO), otherwise the __init__ parameters are incompatible
+class RANOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Required class for 3D Slicer module.
     UI elements can be accessed as follows from the Slicer python console:
@@ -171,19 +74,47 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         VTKObservationMixin.__init__(self)  # needed for parameter node observation
 
         self.ui = None
-        """The UI elements of the module. This is a dictionary containing all the widgets in the module."""
-
         self.logic = None
-        """The logic class of the module. This class implements all computations that should be possible to run
-        in batch mode, without a graphical user interface."""
 
         self._parameterNode = None
-        """The parameter node of the module. This node stores all user choices in parameter values, node selections, etc.
-        so that when the scene is saved and reloaded, these settings are restored."""
-
         self._updatingGUIFromParameterNode = False
-        """ Flag to indicate if the GUI is being updated from the parameter node. This is used to prevent infinite loops
-        when the parameter node is changed by a script or any other module. """
+
+    def setup(self):
+        ScriptedLoadableModuleWidget.setup(self)
+
+        uiWidget = slicer.util.loadUI(self.resourcePath('UI/RANO.ui'))
+        self.layout.addWidget(uiWidget)
+        self.ui = slicer.util.childWidgetVariables(uiWidget)
+        uiWidget.setMRMLScene(slicer.mrmlScene)
+
+        # Install deps ONLY now
+        installAndImportDependencies()
+
+        # Safe imports AFTER deps
+        from utils.ui_helper_utils import UIHelperMixin
+        from utils.RANOLogic import RANOLogic
+        from utils.segmentation_utils import SegmentationMixin
+        from utils.measurements2D_utils import Measurements2DMixin, LineNodePairList
+        from utils.response_classification_utils import ResponseClassificationMixin
+        from utils.report_creation_utils import ReportCreationMixin
+        from utils.results_table_utils import ResultsTableMixin
+
+        # Create logic class. Logic implements all computations that should be possible to run
+        # in batch mode, without a graphical user interface.
+        self.logic = RANOLogic()
+
+        # Dynamically add mixins
+        self.__class__ = type(
+            "RANOWidgetWithMixins",
+            (SegmentationMixin,
+             UIHelperMixin,
+             Measurements2DMixin,
+             ResponseClassificationMixin,
+             ReportCreationMixin,
+             ResultsTableMixin,
+             self.__class__),  # keep original class last
+            {}
+        )
 
         # only create the lineNodePairs list if it does not exist yet
         if hasattr(slicer.modules, 'RANOWidget') and hasattr(slicer.modules.RANOWidget, 'lineNodePairs'):
@@ -191,35 +122,6 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         else:
             self.lineNodePairs = LineNodePairList()
             """List of line node pairs used for 2D measurements."""
-
-        SegmentationMixin.__init__(self, self._parameterNode, self.ui)
-        UIHelperMixin.__init__(self, self._parameterNode, self.ui)
-        Measurements2DMixin.__init__(self, self._parameterNode, self.ui, self.lineNodePairs)
-        ResponseClassificationMixin.__init__(self, self._parameterNode, self.ui, self.lineNodePairs)
-        ReportCreationMixin.__init__(self, self._parameterNode, self.ui, self.lineNodePairs)
-        ResultsTableMixin.__init__(self, self._parameterNode, self.ui, self.lineNodePairs)
-
-
-    def setup(self):
-        """
-        Called when the user opens the module the first time and the widget is initialized.
-        """
-        ScriptedLoadableModuleWidget.setup(self)
-
-        # Load widget from .ui file (created by Qt Designer).
-        # Additional widgets can be instantiated manually and added to self.layout.
-        uiWidget = slicer.util.loadUI(self.resourcePath('UI/RANO.ui'))
-        self.layout.addWidget(uiWidget)
-        self.ui = slicer.util.childWidgetVariables(uiWidget)
-
-        # Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget's
-        # "mrmlSceneChanged(vtkMRMLScene*)" signal in is connected to each MRML widget's.
-        # "setMRMLScene(vtkMRMLScene*)" slot.
-        uiWidget.setMRMLScene(slicer.mrmlScene)
-
-        # Create logic class. Logic implements all computations that should be possible to run
-        # in batch mode, without a graphical user interface.
-        self.logic = RANOLogic()
 
         SegmentationMixin.__init__(self)
         UIHelperMixin.__init__(self)
@@ -237,31 +139,14 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
 
-        # set up the 3D slicer layout for the module
         self.setup_layout()
-
-        # set up the test cases box
         self.setup_test_cases()
-
-        # set up the directory load box
         self.setup_add_data_box()
-
-        # set up the box for the input files
         self.setup_input_box()
-
-        # set up the box for the auto segmentation
         self.setup_autosegmentation_box()
-
-        # set up automatic 2D measurements
         self.setup_auto_2D_measurements()
-
-        # set up manual 2D measurements
         self.setup_manual_2D_measurements()
-
-        # set up response status box (lesion based)
         self.setup_lesion_based_response_status_box()
-
-        # set up overall response status box
         self.setup_overall_response_status_box()
 
         # create report button
@@ -294,7 +179,8 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         Called each time the user opens a different module.
         """
         # Do not react to parameter node changes (GUI will be updated when the user enters into the module)
-        self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+        if self._parameterNode:
+            self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
 
     def onSceneStartClose(self, caller, event):
         """
@@ -508,3 +394,50 @@ class RANOWidget(SegmentationMixin, UIHelperMixin, Measurements2DMixin, Response
         self._parameterNode.SetParameter("same_slc_tp", "true" if self.ui.checkBox_same_slc_tp.checked else "false")
 
         self._parameterNode.EndModify(wasModified)
+
+
+def installAndImportDependencies():
+    """
+    Dependency handling
+    """
+    slicer_stdout = sys.stdout
+
+    try:
+        import PyTorchUtils
+    except ModuleNotFoundError:
+        raise Exception("This module requires the PyTorch extension.")
+
+    def ensure_package(import_name, spec):
+        import importlib
+        try:
+            return importlib.import_module(import_name)
+        except ModuleNotFoundError:
+            pip_install(spec)
+            importlib.invalidate_caches()
+            return importlib.import_module(import_name)
+
+    ensure_package("numpy", "numpy==2.0.2")
+    ensure_package("skimage", "scikit-image==0.24.0")
+    ensure_package("numba", "numba==0.60.0")
+    ensure_package("nibabel", "nibabel==5.3.2")
+    ensure_package("tqdm", "tqdm==4.67.1")
+    ensure_package("yaml", "pyyaml==6.0.2")
+    ensure_package("reportlab", "reportlab==4.4.1")
+
+    # Torch via Slicer extension
+    try:
+        import torch
+    except Exception:
+        torchLogic = PyTorchUtils.PyTorchUtilsLogic()
+        torchLogic.installTorch(
+            askConfirmation=False,
+            torchVersionRequirement=">=2.6.0,<=2.8.0"
+        )
+
+    ensure_package("ignite", "pytorch-ignite==0.5.2")
+    ensure_package("tensorboard", "tensorboard==2.19.0")
+
+    ensure_package("HD_BET", "hd-bet==2.0.1")
+    ensure_package("monai", "git+https://github.com/aaronkujawa/MONAI.git@rano")
+
+    sys.stdout = slicer_stdout
