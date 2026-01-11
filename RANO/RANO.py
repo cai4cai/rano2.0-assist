@@ -140,7 +140,6 @@ class RANOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
 
         self.setup_layout()
-        self.setup_test_cases()
         self.setup_add_data_box()
         self.setup_input_box()
         self.setup_autosegmentation_box()
