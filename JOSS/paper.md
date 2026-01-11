@@ -44,6 +44,16 @@ such as the patient's clinical status, steroid dose, and other relevant informat
 While the current pipeline is designed for enhancing glioblastoma, it can easily be adapted to other types of brain tumours by training new segmentation models, for example, for
 non-enhancing low-grade glioma or meningioma.
 
+# State of the field
+Commercial imaging platforms such as mint Lesion [@mintlesion] support configurable RANO 2.0 criteria for clinical-trial reads, 
+including automated tumor burden tracking. Additionally, an AI-based algorithm developed by
+Graylight Imaging [@graylight_rano] demonstrates automated tumour segmentation, bidimensional and volumetric assessment aligned 
+with RANO principles. These efforts reflect a trend toward integrating advanced automated image analysis into standardized 
+response assessment to support clinical research and trial endpoint evaluation. In this context, RANO2.0-assist represents
+a non-commercial tool with the aim to facilitate further development in research and commercial applications. 
+To the best of our knowledge, RANO2.0-assist is currently the only fully automatic tool for classification based on 
+RANO 2.0 criteria that allows for interactive correction of tumour measurements.
+
 # Overview of RANO2.0-assist
 The key components of the RANO2.0-assist pipeline are shown in \autoref{fig:pipeline}.
 
