@@ -304,3 +304,28 @@ the clinical criteria (steroid use and clinical status) that need to be specifie
 ### Other
 - The "External Python Path" box allows the user to specify the path to a different python environment for the segmentation pipeline.
 - If the specified path is not valid, the Slicer python environment will be used as a fallback.
+
+
+# Community guidelines
+We welcome contributions, bug reports, and questions from the community.
+
+## Reporting issues
+Please report bugs, problems, or feature requests via GitHub Issues.  
+When reporting an issue, please include: a minimal example that reproduces the problem,
+your operating system and Python version, and any relevant error messages or output.  
+More detailed error logs can be obtained by setting `debug = True` in `RANO/utils/config.py`.
+
+## Getting help
+Questions about how to use the software can be asked by opening a GitHub issue.  
+Please describe what you are trying to do and include any relevant code or data snippets.  
+
+## Contributing
+Contributions are welcome, including bug fixes, documentation improvements, and new features.
+
+To contribute:  
+Fork the repository on GitHub.  
+Create a new branch for your change.  
+Make your changes and add or update tests if appropriate.  
+Open a pull request describing what you have changed and why.  
+For larger changes, please open an issue first to discuss the proposed idea.  
+All contributions should follow standard good practice for scientific software: code should be clear, tested where possible, and documented.  
