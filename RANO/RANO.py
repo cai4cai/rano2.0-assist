@@ -7,7 +7,9 @@ response classification, and report generation.
 """
 
 import os
+import shutil
 import sys
+import zipfile
 from importlib import reload
 
 import slicer, vtk
@@ -31,7 +33,7 @@ for mod in [
     if mod in sys.modules:
         reload(sys.modules[mod])
 
-from utils.config import debug
+from utils.config import debug, module_path, dynunet_pipeline_path, test_data_path
 
 from utils.test_rano import RANOTest  # tests run in developer mode
 
@@ -415,13 +417,13 @@ def installAndImportDependencies():
             importlib.invalidate_caches()
             return importlib.import_module(import_name)
 
-    ensure_package("numpy", "numpy==2.0.2")
-    ensure_package("skimage", "scikit-image==0.24.0")
-    ensure_package("numba", "numba==0.60.0")
-    ensure_package("nibabel", "nibabel==5.3.2")
-    ensure_package("tqdm", "tqdm==4.67.1")
-    ensure_package("yaml", "pyyaml==6.0.2")
-    ensure_package("reportlab", "reportlab==4.4.1")
+    numpy = ensure_package("numpy", "numpy==2.0.2")
+    skimage = ensure_package("skimage", "scikit-image==0.24.0")
+    numba = ensure_package("numba", "numba==0.60.0")
+    nibabel = ensure_package("nibabel", "nibabel==5.3.2")
+    tqdm = ensure_package("tqdm", "tqdm==4.67.1")
+    yaml = ensure_package("yaml", "pyyaml==6.0.2")
+    reportlib = ensure_package("reportlab", "reportlab==4.4.1")
 
     # Torch via Slicer extension
     try:
@@ -433,10 +435,10 @@ def installAndImportDependencies():
             torchVersionRequirement=">=2.6.0,<=2.8.0"
         )
 
-    ensure_package("ignite", "pytorch-ignite==0.5.2")
-    ensure_package("tensorboard", "tensorboard==2.19.0")
+    ignite = ensure_package("ignite", "pytorch-ignite==0.5.2")
+    tensorboard = ensure_package("tensorboard", "tensorboard==2.19.0")
 
-    ensure_package("HD_BET", "hd-bet==2.0.1")
+    HD_BET = ensure_package("HD_BET", "hd-bet==2.0.1")
 
     def installANTsPyX():
         """
@@ -473,6 +475,50 @@ def installAndImportDependencies():
     installANTsPyX()
     import ants
 
-    ensure_package("monai", "git+https://github.com/aaronkujawa/MONAI.git@rano")
+    monai = ensure_package("monai", "git+https://github.com/aaronkujawa/MONAI.git@rano")
 
     sys.stdout = slicer_stdout
+
+    def download_model_weights_and_test_data_from_zenodo():
+        doi = "10.5281/zenodo.15411078"
+        fname = "rano2.0-assist.zip"
+        checksum = "md5:df95653320bee3182775cde51ffad298"
+
+        if os.path.isdir(test_data_path) and os.path.isdir(os.path.join(dynunet_pipeline_path, "data", "tasks")):
+            # model weights and test data already downloaded
+            return
+
+        print("Downloading model weights and test data.")
+
+        pooch = ensure_package("pooch", "pooch==1.8.2")
+
+        zip_path = pooch.retrieve(
+            url=f"doi:{doi}/{fname}",
+            known_hash=checksum,
+            progressbar=True,
+        )
+
+        print("Completed downloading model weights and test data.")
+
+        extract_dir = os.path.join("tmp_extract")
+        if not os.path.exists(extract_dir):
+            os.makedirs(extract_dir)
+
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            z.extractall(extract_dir)
+
+        print("Extracted model weights and test data.")
+
+        src = os.path.join(extract_dir, "rano2.0-assist", "dynunet_pipeline")
+        dst = dynunet_pipeline_path
+        shutil.copytree(src, dst, dirs_exist_ok=True)  # merges + overwrites files
+        print("Installed model weights.")
+
+        src = os.path.join(extract_dir, "rano2.0-assist", "data", "test_data")
+        dst = test_data_path
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+        print("Installed test data.")
+
+        shutil.rmtree(extract_dir)
+
+    download_model_weights_and_test_data_from_zenodo()
