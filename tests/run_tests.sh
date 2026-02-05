@@ -11,6 +11,7 @@ tests=(
 SLICER_EXECUTABLE_PATHS=(
   "Slicer"
   "${HOME}/bin/Slicer-5.8.1-linux-amd64/Slicer"
+  "${HOME}/bin/Slicer-5.10.0-linux-amd64/Slicer"
   "/home/researcher/slicer/Slicer-5.8.1-linux-amd64/Slicer"  # path in docker image
 )
 
@@ -40,7 +41,7 @@ test_summary=""
 for test in "${tests[@]}"; do
     echo "Running $test..."
     # run the test script in Slicer
-    $SLICER_EXECUTABLE --no-splash --python-script "${THIS_DIR}"/run_tests.py "$test"
+    "$SLICER_EXECUTABLE" --no-splash --python-script "${THIS_DIR}"/run_tests.py "$test"
     status=$?
 
     # Get all report files in the Reports directory again after running the test
