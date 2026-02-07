@@ -10,6 +10,7 @@ tests=(
 # Possible paths to the Slicer executable
 SLICER_EXECUTABLE_PATHS=(
   "Slicer"
+  "Slicer.exe"
   "${HOME}/bin/Slicer-5.8.1-linux-amd64/Slicer"
   "${HOME}/bin/Slicer-5.10.0-linux-amd64/Slicer"
   "/home/researcher/slicer/Slicer-5.8.1-linux-amd64/Slicer"  # path in docker image
@@ -18,8 +19,8 @@ SLICER_EXECUTABLE_PATHS=(
 # check if any of the SLICER_EXECUTABLE_PATHS exist and use the first one found
 SLICER_EXECUTABLE=""
 for path in "${SLICER_EXECUTABLE_PATHS[@]}"; do
-    if [ -f "$path" ]; then
-        SLICER_EXECUTABLE="$path"
+    if resolved="$(command -v "$path" 2>/dev/null)"; then
+        SLICER_EXECUTABLE="${resolved}"
         break
     fi
 done
