@@ -15,6 +15,7 @@ from importlib import reload
 import slicer, vtk
 from slicer.ScriptedLoadableModule import *
 from slicer.util import *
+from qt import QMessageBox
 
 # Reload utils on Reload button
 for mod in [
@@ -90,6 +91,7 @@ class RANOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         uiWidget.setMRMLScene(slicer.mrmlScene)
 
         # Install deps ONLY now
+        installExtension(extensionName="PyTorch")
         installAndImportDependencies()
 
         # Safe imports AFTER deps
@@ -434,7 +436,6 @@ def installAndImportDependencies():
             askConfirmation=False,
             torchVersionRequirement=">=2.6.0,<=2.8.0"
         )
-
     ignite = ensure_package("ignite", "pytorch-ignite==0.5.2")
     tensorboard = ensure_package("tensorboard", "tensorboard==2.19.0")
 
@@ -522,3 +523,28 @@ def installAndImportDependencies():
         shutil.rmtree(extract_dir)
 
     download_model_weights_and_test_data_from_zenodo()
+
+
+def installExtension(extensionName):
+    em = slicer.app.extensionsManagerModel()
+    # Check if the extension is already installed
+    if extensionName not in em.installedExtensions:
+        # Ask user whether to install the extension
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.setWindowTitle("Extension Installation")
+        msgBox.setText(f"The extension '{extensionName}' will be installed.")
+        msgBox.setInformativeText("This will trigger a restart of Slicer. Do you want to continue?")
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msgBox.setDefaultButton(QMessageBox.No)
+
+        response = msgBox.exec_()
+
+        if response == QMessageBox.Yes:
+            em.interactive = False  # prevent display of other popups
+            restart = True
+            if not em.installExtensionFromServer(extensionName, restart):
+                raise ValueError(f"Failed to install {extensionName} extension")
+        else:
+            print(f"Installation of '{extensionName}' cancelled by user.")
+
