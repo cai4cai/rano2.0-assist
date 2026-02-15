@@ -51,7 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#download-the-repository">Download the repository</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#segmentation-models-and-test-data">Segmentation models and test data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#d-slicer-extension">3D Slicer extension</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#installation-with-docker">Installation with Docker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation-with-docker-linux-only">Installation with Docker (Linux only)</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#docker-build">docker build</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#docker-run">docker run</a></li>
@@ -68,7 +68,15 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#python-libraries">Python libraries</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#add-slicer-to-your-path">Add Slicer to Your PATH</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#linux">Linux</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#windows">Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#run-the-tests">Run the tests</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#running-the-tool">Running the tool</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#loading-the-image-data">Loading the image data</a><ul>
@@ -155,7 +163,9 @@ NVIDIA GPUs with CUDA 12.4.</p></li>
 </section>
 <section id="segmentation-models-and-test-data">
 <h2>Segmentation models and test data<a class="headerlink" href="#segmentation-models-and-test-data" title="Link to this heading"></a></h2>
-<p>Due to the larger file sizes, the segmentation model weights and test data need to be downloaded from</p>
+<p>Due to the larger file sizes, the segmentation model weights and test data are not part of the GitHub repository and
+will be automatically downloaded when the RANO module is first opened.</p>
+<p>Alternatively, they can be downloaded from</p>
 <p><a class="reference external" href="https://zenodo.org/records/15411078">https://zenodo.org/records/15411078</a></p>
 <p>(direct download link: <a class="reference external" href="https://zenodo.org/records/15411078/files/rano2.0-assist.zip?download=1">click here</a> )</p>
 <p>The directories <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">dynunet_pipeline</span></code> contained in the download have to be merged with the respective directories of same
@@ -184,8 +194,8 @@ the new one is fine (they are identical).</p>
 <p>RANO2.0-assist can be installed as a local 3D Slicer extension, or it can be run in a Docker container. The Docker
 container includes all the necessary dependencies and can be run on any machine with Docker installed that supports
 GPU acceleration. The local installation requires 3D Slicer and the necessary Python packages to be installed.</p>
-<section id="installation-with-docker">
-<h3>Installation with Docker<a class="headerlink" href="#installation-with-docker" title="Link to this heading"></a></h3>
+<section id="installation-with-docker-linux-only">
+<h3>Installation with Docker (Linux only)<a class="headerlink" href="#installation-with-docker-linux-only" title="Link to this heading"></a></h3>
 <section id="requirements">
 <h4>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h4>
 <ol class="arabic">
@@ -300,8 +310,51 @@ extension facilitates the installation of PyTorch in 3D Slicer.</p>
 </div>
 <section id="running-tests">
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
-<p>To run the tests, please make sure that the Slicer binary is in your PATH environment variable.
-Alternatively, you can include the path to the Slicer binary in the <code class="docutils literal notranslate"><span class="pre">tests/run_tests.sh</span></code> script, by adding it to the <code class="docutils literal notranslate"><span class="pre">SLICER_EXECUTABLE_PATHS</span></code> variable.</p>
+<section id="add-slicer-to-your-path">
+<h3>Add Slicer to Your PATH<a class="headerlink" href="#add-slicer-to-your-path" title="Link to this heading"></a></h3>
+<p>To run the tests, please make sure that the Slicer binary is in your PATH environment variable.</p>
+<section id="linux">
+<h4>Linux<a class="headerlink" href="#linux" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">Slicer</span></code> binary is located in the 3D Slicer installation folder, for example:</p>
+<p><code class="docutils literal notranslate"><span class="pre">/home/username/bin/Slicer-5.10.0-linux-amd64/Slicer)</span></code></p>
+<ol class="arabic" start="2">
+<li><p><strong>Add it to your PATH</strong></p>
+<p>Add this line to your <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span>/path/to/Slicer-folder:<span class="nv">$PATH</span>
+</pre></div>
+</div>
+<p>Reload your shell:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>~/.bashrc
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="windows">
+<h4>Windows<a class="headerlink" href="#windows" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">Slicer.exe</span></code> binary is located in the 3D Slicer installation folder, for example:</p>
+<div class="highlight-cmd notranslate"><div class="highlight"><pre><span></span>C:\Program Files\Slicer &lt;version&gt;\Slicer.exe
+</pre></div>
+</div>
+<ol class="arabic" start="2">
+<li><p><strong>Add it to your PATH</strong></p>
+<ul class="simple">
+<li><p>Open <strong>Environment Variables</strong> by searching for “env” in the Start menu and selecting “Edit the system environment variables”</p></li>
+<li><p>Edit the <strong>Path</strong> variable under <em>System variables</em></p></li>
+<li><p>Add the folder containing <code class="docutils literal notranslate"><span class="pre">Slicer.exe</span></code></p></li>
+</ul>
+<p>Open a new Command Prompt and verify:</p>
+<div class="highlight-cmd notranslate"><div class="highlight"><pre><span></span>Slicer --version
+</pre></div>
+</div>
+</li>
+</ol>
+<p>Alternatively, you can include the path to the Slicer binary in the <code class="docutils literal notranslate"><span class="pre">tests/run_tests.sh</span></code> script, by adding it to the <code class="docutils literal notranslate"><span class="pre">SLICER_EXECUTABLE_PATHS</span></code> variable.</p>
+</section>
+</section>
+<section id="run-the-tests">
+<h3>Run the tests<a class="headerlink" href="#run-the-tests" title="Link to this heading"></a></h3>
 <p>To test the docker installation, run this script located in the repository at <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh">tests/run_tests_docker.sh</a></p>
 <p>To test the local installation, run the script <a class="reference external" href="https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests.sh">tests/run_tests.sh</a></p>
 <p>Both scripts will start 3D Slicer and run the tests listed in run_tests.sh. By default, one test runs on DICOM input data
@@ -314,6 +367,7 @@ and another test runs on NIfTI input data. The tests are define in <a class="ref
 
 </pre></div>
 </div>
+</section>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>

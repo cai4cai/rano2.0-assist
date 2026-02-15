@@ -18,26 +18,22 @@ RUN mkdir -p /etc /opt /usr
 
 # The following are taken from: https://gitlab.com/nvidia/container-images/opengl/-/blob/ubuntu22.04/base/Dockerfile
 RUN dpkg --add-architecture i386 && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        libxau6 libxau6:i386 \
-        libxdmcp6 libxdmcp6:i386 \
-        libxcb1 libxcb1:i386 \
-        libxext6 libxext6:i386 \
-        libx11-6 libx11-6:i386 \
-        vim net-tools curl \
-         xserver-xorg-video-dummy \
-         libxrender1 \
-         libpulse0 \
-         libpulse-mainloop-glib0  \
-         libnss3  \
-         libxcomposite1 \
-         libxcursor1 \
-         libfontconfig1 \
-         libxrandr2 \
-         libglu1 \
-         awesome \
-        x11vnc && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get update && apt-get install -y --no-install-recommends \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxrandr2 \
+    libfontconfig1 \
+    libglu1 \
+    libnss3 \
+    libpulse0 \
+    libpulse-mainloop-glib0 \
+    qt5dxcb-plugin \
+    xvfb \
+    xserver-xorg-video-dummy \
+ && rm -rf /var/lib/apt/lists/*
 
 # nvidia-container-runtime
 ENV NVIDIA_VISIBLE_DEVICES \

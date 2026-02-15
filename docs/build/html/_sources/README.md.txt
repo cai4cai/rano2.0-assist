@@ -30,7 +30,10 @@ The repository can be downloaded from GitHub:
 [https://github.com/cai4cai/rano2.0-assist](https://github.com/cai4cai/rano2.0-assist)
 
 ## Segmentation models and test data
-Due to the larger file sizes, the segmentation model weights and test data need to be downloaded from 
+Due to the larger file sizes, the segmentation model weights and test data are not part of the GitHub repository and
+will be automatically downloaded when the RANO module is first opened.
+
+Alternatively, they can be downloaded from 
 
 [https://zenodo.org/records/15411078](https://zenodo.org/records/15411078)
 
@@ -64,7 +67,7 @@ RANO2.0-assist can be installed as a local 3D Slicer extension, or it can be run
 container includes all the necessary dependencies and can be run on any machine with Docker installed that supports
 GPU acceleration. The local installation requires 3D Slicer and the necessary Python packages to be installed.
 
-### Installation with Docker
+### Installation with Docker (Linux only)
 #### Requirements
 1. Docker ([https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/))
 
@@ -172,8 +175,51 @@ hd-bet==2.0.1
 
 
 ## Running tests
+
+### Add Slicer to Your PATH
 To run the tests, please make sure that the Slicer binary is in your PATH environment variable.
+
+#### Linux
+
+The `Slicer` binary is located in the 3D Slicer installation folder, for example:
+
+`/home/username/bin/Slicer-5.10.0-linux-amd64/Slicer)`
+
+2. **Add it to your PATH**
+
+   Add this line to your `~/.bashrc`:
+   ```bash
+   export PATH=/path/to/Slicer-folder:$PATH
+   ```
+   Reload your shell:
+   ```bash
+   source ~/.bashrc
+   ```
+
+---
+
+#### Windows
+
+The `Slicer.exe` binary is located in the 3D Slicer installation folder, for example:
+
+```cmd
+C:\Program Files\Slicer <version>\Slicer.exe
+```
+
+2. **Add it to your PATH**
+   - Open **Environment Variables** by searching for "env" in the Start menu and selecting "Edit the system environment variables"
+   - Edit the **Path** variable under *System variables*
+   - Add the folder containing `Slicer.exe`
+
+   Open a new Command Prompt and verify:
+   ```cmd
+   Slicer --version
+   ```
+
+
 Alternatively, you can include the path to the Slicer binary in the `tests/run_tests.sh` script, by adding it to the `SLICER_EXECUTABLE_PATHS` variable.
+
+### Run the tests
 
 To test the docker installation, run this script located in the repository at [tests/run_tests_docker.sh](https://github.com/cai4cai/rano2.0-assist/blob/main/tests/run_tests_docker.sh)
 

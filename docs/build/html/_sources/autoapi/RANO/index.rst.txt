@@ -28,6 +28,7 @@ Functions
 .. autoapisummary::
 
    RANO.installAndImportDependencies
+   RANO.installExtension
 
 
 Module Contents
@@ -158,4 +159,6 @@ Module Contents
 
    Dependency handling
 
+
+.. py:function:: installExtension(extensionName)
 
