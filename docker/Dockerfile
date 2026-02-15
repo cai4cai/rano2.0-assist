@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/pytorch:25.03-py3
 
-# Slicer 5.8.1
-RUN SLICER_URL="https://download.slicer.org/bitstream/67c51fc129825655577cfee9" && \
+# Slicer 5.10.0
+RUN SLICER_URL="https://download.slicer.org/bitstream/6911b598ac7b1c95e7934427" && \
   curl -k -v -s -L $SLICER_URL | tar xz -C /tmp
 
 
@@ -84,12 +84,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends xvfb
 
 # set the user
 USER researcher
-RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install numpy==2.0.2
-RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install scikit-image==0.24.0
-RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install nibabel==5.3.2
-RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install tqdm==4.67.1
-RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install numba==0.60.0
-RUN /home/researcher/slicer/Slicer-5.8.1-linux-amd64/bin/PythonSlicer -m pip install torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124 --index-url https://download.pytorch.org/whl/cu124
 
 # set home directory
 ENV HOME /home/researcher
@@ -97,6 +91,7 @@ ENV HOME /home/researcher
 # make the home directory the working directory
 WORKDIR /home/researcher
 
+RUN  mkdir -p /home/researcher/rano2.0-assist
 
 COPY --chown=researcher:researcher ./dynunet_pipeline /home/researcher/rano2.0-assist/dynunet_pipeline
 COPY --chown=researcher:researcher ./RANO /home/researcher/rano2.0-assist/RANO
@@ -113,18 +108,17 @@ COPY --chown=researcher:researcher ./docker/start-xorg.sh .
 COPY --chown=researcher:researcher ./docker/install.sh .
 RUN chmod +x ./install.sh
 
+RUN /home/researcher/slicer/Slicer-5.10.0-linux-amd64/bin/PythonSlicer -m pip install torch
 COPY --chown=researcher:researcher ./docker/install_dependencies.py /home/researcher/rano2.0-assist/install_dependencies.py
-RUN ./install.sh "/home/researcher/slicer/Slicer-5.8.1-linux-amd64/Slicer"
+RUN ./install.sh "/home/researcher/slicer/Slicer-5.10.0-linux-amd64/Slicer"
 
 # copy the slicer startup script
-COPY --chown=researcher:researcher ./docker/.slicerrc.py /home/researcher/slicer/Slicer-5.8.1-linux-amd64/.slicerrc.py
+COPY --chown=researcher:researcher ./docker/.slicerrc.py /home/researcher/slicer/Slicer-5.10.0-linux-amd64/.slicerrc.py
 # copy the Slicer.ini settings file (to enable Developer mode)
 COPY --chown=researcher:researcher ./docker/Slicer.ini /home/researcher/.config/slicer.org/Slicer.ini
 
-
-
 # add to PATH
-ENV PATH="/home/researcher/slicer/Slicer-5.8.1-linux-amd64:${PATH}"
+ENV PATH="/home/researcher/slicer/Slicer-5.10.0-linux-amd64:${PATH}"
 ENV PATH="/home/researcher/rano2.0-assist/dynunet_pipeline/tools/ants:${PATH}"
 
 # initial command
