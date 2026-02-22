@@ -26,13 +26,15 @@ class UIHelperMixin:
         Set up the test cases for the RANO module.
         """
         # test cases
-        base_path = os.path.join(test_data_path, "KCL")
-        patients = glob(os.path.join(base_path, "Patient_*"))
+        patients_KCL = glob(os.path.join(test_data_path, "KCL", "Patient_*"))
+        patients_MU = glob(os.path.join(test_data_path, "MU-Glioma-Post", "PatientID_*"))
+
+        patients = patients_KCL + patients_MU
 
         timepoints = {}
 
         for p in sorted(patients):
-            timepoints_this_patient = glob(os.path.join(base_path, p, "TimePoint*"))
+            timepoints_this_patient = glob(os.path.join(p, "Time*oint*"))
             if len(timepoints_this_patient) > 1:
                 timepoints[p] = timepoints_this_patient
 
@@ -45,7 +47,7 @@ class UIHelperMixin:
         def onUpdateTestCaseComboBox(*args, **kwargs):
             if debug: print(f"Triggered onUpdateTestCaseComboBox with args {args} and kwargs {kwargs} ")
             p = args[0]
-            tps = sorted([p.split(os.sep)[-1] for p in glob(os.path.join(base_path, p, "TimePoint*"))])
+            tps = sorted([p.split(os.sep)[-1] for p in glob(os.path.join(test_data_path, p, "Time*oint*"))])
 
             # remove previous items and add found timepoints
             self.ui.testCaseTp1ComboBox.clear()
@@ -62,7 +64,7 @@ class UIHelperMixin:
         self.ui.testCaseComboBox.connect("currentIndexChanged(const QString &)", onUpdateTestCaseComboBox)
 
         for p in timepoints.keys():
-            self.ui.testCaseComboBox.addItem(p.split(os.sep)[-1])
+            self.ui.testCaseComboBox.addItem(p.split(os.sep)[-2] + os.sep + p.split(os.sep)[-1])
 
 
         # test cases push button
@@ -75,15 +77,29 @@ class UIHelperMixin:
             timepoint_t1 = self.ui.testCaseTp1ComboBox.currentText
             timepoint_t2 = self.ui.testCaseTp2ComboBox.currentText
 
-            p_t1c_tp1 = os.path.join(base_path, patient, timepoint_t1, "t1c")
-            p_t1n_tp1 = os.path.join(base_path, patient, timepoint_t1, "t1n")
-            p_t2f_tp1 = os.path.join(base_path, patient, timepoint_t1, "t2f")
-            p_t2w_tp1 = os.path.join(base_path, patient, timepoint_t1, "t2w")
+            if "KCL" in patient:
+                p_t1c_tp1 = os.path.join(test_data_path, patient, timepoint_t1, "t1c")
+                p_t1n_tp1 = os.path.join(test_data_path, patient, timepoint_t1, "t1n")
+                p_t2f_tp1 = os.path.join(test_data_path, patient, timepoint_t1, "t2f")
+                p_t2w_tp1 = os.path.join(test_data_path, patient, timepoint_t1, "t2w")
 
-            p_t1c_tp2 = os.path.join(base_path, patient, timepoint_t2, "t1c")
-            p_t1n_tp2 = os.path.join(base_path, patient, timepoint_t2, "t1n")
-            p_t2f_tp2 = os.path.join(base_path, patient, timepoint_t2, "t2f")
-            p_t2w_tp2 = os.path.join(base_path, patient, timepoint_t2, "t2w")
+                p_t1c_tp2 = os.path.join(test_data_path, patient, timepoint_t2, "t1c")
+                p_t1n_tp2 = os.path.join(test_data_path, patient, timepoint_t2, "t1n")
+                p_t2f_tp2 = os.path.join(test_data_path, patient, timepoint_t2, "t2f")
+                p_t2w_tp2 = os.path.join(test_data_path, patient, timepoint_t2, "t2w")
+            elif "MU-Glioma-Post" in patient:
+                p_t1c_tp1 = glob(os.path.join(test_data_path, patient, timepoint_t1, "*_t1c.nii.gz"))[0]
+                p_t1n_tp1 = glob(os.path.join(test_data_path, patient, timepoint_t1, "*_t1n.nii.gz"))[0]
+                p_t2f_tp1 = glob(os.path.join(test_data_path, patient, timepoint_t1, "*_t2f.nii.gz"))[0]
+                p_t2w_tp1 = glob(os.path.join(test_data_path, patient, timepoint_t1, "*_t2w.nii.gz"))[0]
+
+                p_t1c_tp2 = glob(os.path.join(test_data_path, patient, timepoint_t2, "*_t1c.nii.gz"))[0]
+                p_t1n_tp2 = glob(os.path.join(test_data_path, patient, timepoint_t2, "*_t1n.nii.gz"))[0]
+                p_t2f_tp2 = glob(os.path.join(test_data_path, patient, timepoint_t2, "*_t2f.nii.gz"))[0]
+                p_t2w_tp2 = glob(os.path.join(test_data_path, patient, timepoint_t2, "*_t2w.nii.gz"))[0]
+            else:
+                raise Exception(f"Could not identify patient type: {patient}")
+
 
             paths_t1 = [p_t1c_tp1, p_t1n_tp1, p_t2f_tp1, p_t2w_tp1]
             paths_t2 = [p_t1c_tp2, p_t1n_tp2, p_t2f_tp2, p_t2w_tp2]
@@ -106,8 +122,9 @@ class UIHelperMixin:
                     loadedNode = slicer.mrmlScene.GetNodeByID(loadedVolumeNodeIDs[0])
                 return loadedNode
 
-            inputVolumes = [dcm_dir_to_node(p) for p in paths_t1]
-            inputVolumes_t2 = [dcm_dir_to_node(p) for p in paths_t2]
+            # load the NIfTI's or DICOMs
+            inputVolumes = [slicer.util.loadVolume(p) if p.endswith(".nii.gz") else dcm_dir_to_node(p) for p in paths_t1]
+            inputVolumes_t2 = [slicer.util.loadVolume(p) if p.endswith(".nii.gz") else dcm_dir_to_node(p) for p in paths_t2]
 
             # set the input volumes
             slicer.modules.RANOWidget.ui.inputSelector_channel1_t1.setCurrentNode(inputVolumes[0])
