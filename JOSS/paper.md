@@ -34,8 +34,8 @@ We present RANO2.0-assist, a 3D Slicer extension for (semi-)automatic assessment
 RANO2.0-assist allows for fully automatic respons assessment while also providing interactive tools for manual correction and validation of the results.
 
 # Statement of need
-Tools for automatic response assessment based on RANO criteria have been developed, for example [@chang2019automatic; @nalepa2023deep]. For a comprehensive review of 
-existing methods, we refer the reader to [@shi2025automated].
+Tools for automatic response assessment based on RANO criteria have been developed, for example @chang2019automatic and @nalepa2023deep. For a comprehensive review of 
+existing methods, we refer the reader to @shi2025automated.
 However, existing tools do not support the most recent RANO criteria [@wen2010updated] and do not allow for the interactive correction and validation of results.
 Moreover, some tools are proprietary and not freely available to the research community.
 RANO2.0-assist is based on the recently updated RANO 2.0 criteria and provides a user-friendly interface for the assessment of treatment response.
@@ -64,7 +64,7 @@ A snapshot of the user interface is shown in \autoref{fig:interface}.
 ![RANO2.0-assist user interface.\label{fig:interface}](ui-screenshot.png){ width=100% }
 
 RANO2.0-assist includes a model for automatic segmentation of glioblastoma, which requires T1-contrast, native T1, T2-FLAIR, and T2-weighted MRI 
-scans as input and returns an output segmentations containing up to 4 regions as specified in the Brain Tumour Segmentation (BraTS) challenge [@de20242024]: 
+scans as input and returns output segmentations containing up to 4 regions as specified in the Brain Tumour Segmentation (BraTS) challenge [@de20242024]: 
 enhancing tumour, edema, necrosis, and resection cavity. These inputs have to be provided for both time points (baseline and follow-up scan).
 The model was trained on the BraTS challenge dataset [@de20242024]. Other segmentation models can be added to RANO2.0-assist by the user.
 After loading the image files (any formats supported by 3D Slicer), the user can select the corresponding scans and the
@@ -103,11 +103,11 @@ and the response classification.
 
 # Acknowledgements
 The authors would like to thank
-Dr. Mark McDodonald and
+Dr. Mark McDonald and
 Dr. Stuart Currie
 for their valuable feedback and suggestions.
 
-This work was supported by the MRC [MR/X502923/1] and core funding from the Wellcome/EPSRC [WT203148/Z/16/Z; NS/A000049/1].
+This work was supported by the MRC (grant number MR/X502923/1) and core funding from the Wellcome/EPSRC (grant numbers WT203148/Z/16/Z and NS/A000049/1).
 
 # References
 
