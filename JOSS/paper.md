@@ -103,7 +103,7 @@ and the response classification.
 
 # Acknowledgements
 The authors would like to thank
-Dr. Mark McDonald and
+Dr. Mark MacDonald and
 Dr. Stuart Currie
 for their valuable feedback and suggestions.
 
