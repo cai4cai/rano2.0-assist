@@ -31,7 +31,7 @@ RANO was introduced to improve reliability and reproducibility of response asses
 The classification is primarily based on the change in tumour size and typically requires the identification of all tumour regions and the measurement of their dimensions on MRI scans.
 While manual assessment is time-consuming and prone to inter- and intra-observer variability, automated methods can provide more consistent and efficient response assessment.
 We present RANO2.0-assist, a 3D Slicer extension for (semi-)automatic assessment of response to glioma. 3D Slicer  is a free open-source software application for medical image computing [@fedorov20123d]. 
-RANO2.0-assist allows for fully automatic respons assessment while also providing interactive tools for manual correction and validation of the results.
+RANO2.0-assist allows for fully automatic response assessment while also providing interactive tools for manual correction and validation of the results.
 
 # Statement of need
 Tools for automatic response assessment based on RANO criteria have been developed, for example @chang2019automatic and @nalepa2023deep. For a comprehensive review of 

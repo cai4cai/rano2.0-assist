@@ -1,7 +1,7 @@
 # RANO2.0-assist: A 3D Slicer Extension for (semi-)automatic Assessment of Response to Glioma Treatment
 [![status](https://joss.theoj.org/papers/0509e4f9f5083c686ea4febb28547c8f/status.svg)](https://joss.theoj.org/papers/0509e4f9f5083c686ea4febb28547c8f)
 
-Click [here](https://cai4cai.github.io/rano2.0-assist/) to see the full documentation.
+Click [here](https://cai4cai.github.io/rano2.0-assist/) to see the full documentation and community guidelines for how to contribute to RANO2.0-assist
 
 ### In a nutshell
 The RANO2.0-assist is an interactive tool for Response Assessment in Neuro-Oncology (RANO). It is based on the RANO 2.0
