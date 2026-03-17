@@ -1,0 +1,46 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Kujawa
+  given-names: Aaron
+  orcid: "https://orcid.org/0000-0002-1445-6207"
+- family-names: Shi
+  given-names: Tangqi
+  orcid: "https://orcid.org/0009-0002-5668-239X"
+- family-names: Booth
+  given-names: Thomas
+  orcid: "https://orcid.org/0000-0003-0984-3998"
+- family-names: Vercauteren
+  given-names: Tom
+  orcid: "https://orcid.org/0000-0003-1794-0456"
+doi: 10.5281/zenodo.18853917
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Kujawa
+    given-names: Aaron
+    orcid: "https://orcid.org/0000-0002-1445-6207"
+  - family-names: Shi
+    given-names: Tangqi
+    orcid: "https://orcid.org/0009-0002-5668-239X"
+  - family-names: Booth
+    given-names: Thomas
+    orcid: "https://orcid.org/0000-0003-0984-3998"
+  - family-names: Vercauteren
+    given-names: Tom
+    orcid: "https://orcid.org/0000-0003-1794-0456"
+  date-published: 2026-03-15
+  doi: 10.21105/joss.09629
+  issn: 2475-9066
+  issue: 119
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 9629
+  title: "RANO2.0-assist: A 3D Slicer Extension for (semi-)automatic
+    Assessment of Response to Glioma Treatment"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.09629"
+  volume: 11
+title: "RANO2.0-assist: A 3D Slicer Extension for (semi-)automatic
+  Assessment of Response to Glioma Treatment"
