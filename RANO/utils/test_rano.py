@@ -4,12 +4,14 @@ import time
 from glob import glob
 import json
 
+import numpy as np
 import qt
 import slicer
 from slicer.ScriptedLoadableModule import *
 from DICOMLib import DICOMUtils
 
 from utils.config import module_path, test_data_path
+from utils.rano_utils import match_instance_segmentations_by_IoU
 
 
 #
@@ -53,6 +55,13 @@ class RANOTest(ScriptedLoadableModuleTest):
                 else:
                     print(f"Test {test} not found")
         else:  # if no tests were specified run all tests
+            self.test_match_instances_zero_overlap_not_matched()
+            self.test_match_instances_new_lesion_gets_fresh_label()
+            self.test_match_instances_overlapping_lesions_matched()
+            self.test_match_instances_multiple_new_lesions()
+            self.test_match_instances_nonconsecutive_labels()
+            self.test_match_instances_empty_segmentations()
+            self.test_match_instances_multiple_timepoints()
             self.test_RANO_dicom_KCL()
             #self.test_RANO_dicom_CPTAC()
             self.test_RANO_nifti_MU()
@@ -60,6 +69,102 @@ class RANOTest(ScriptedLoadableModuleTest):
         if any(['.py' in arg for arg in sys.argv]):
             print('Tests executed from command line. Quitting Slicer...')
             slicer.app.quit()
+
+    @staticmethod
+    def _instance_seg(lesions, shape=(30, 4, 4)):
+        """
+        Create an instance segmentation with box-shaped lesions along the first axis.
+
+        Args:
+            lesions: dict mapping label -> (start, stop) index range along the first axis
+            shape: shape of the segmentation
+        Returns:
+            seg: instance segmentation with background 0
+        """
+        seg = np.zeros(shape, dtype=np.int64)
+        for label, (start, stop) in lesions.items():
+            seg[start:stop] = label
+        return seg
+
+    def test_match_instances_zero_overlap_not_matched(self):
+        # a lesion at the follow-up that does not overlap the baseline lesion must not inherit its label
+        seg_t1 = self._instance_seg({1: (0, 5)})
+        seg_t2 = self._instance_seg({1: (20, 25)})
+
+        matched = match_instance_segmentations_by_IoU([seg_t1, seg_t2])
+
+        np.testing.assert_array_equal(matched[0], seg_t1)
+        np.testing.assert_array_equal(matched[1], self._instance_seg({2: (20, 25)}))
+
+    def test_match_instances_new_lesion_gets_fresh_label(self):
+        # lesion A persists, lesion B disappears, a new lesion C appears where B was not
+        seg_t1 = self._instance_seg({1: (0, 5), 2: (10, 15)})
+        seg_t2 = self._instance_seg({1: (1, 6), 2: (20, 25)})
+
+        matched = match_instance_segmentations_by_IoU([seg_t1, seg_t2])
+
+        # A keeps label 1, C gets a label not used at the previous timepoint (not the label 2 of B)
+        np.testing.assert_array_equal(matched[1], self._instance_seg({1: (1, 6), 3: (20, 25)}))
+        self.assertNotIn(2, np.unique(matched[1]))
+
+    def test_match_instances_overlapping_lesions_matched(self):
+        # overlapping lesions are matched as before, also when the follow-up labels are in a different order
+        seg_t1 = self._instance_seg({1: (0, 5), 2: (10, 15)})
+        seg_t2 = self._instance_seg({1: (11, 16), 2: (1, 6)})
+
+        matched = match_instance_segmentations_by_IoU([seg_t1, seg_t2])
+
+        np.testing.assert_array_equal(matched[0], seg_t1)
+        np.testing.assert_array_equal(matched[1], self._instance_seg({1: (1, 6), 2: (11, 16)}))
+
+    def test_match_instances_multiple_new_lesions(self):
+        # several unmatched lesions get distinct new labels, none of them used at the previous timepoint
+        seg_t1 = self._instance_seg({1: (0, 4), 2: (8, 12)})
+        seg_t2 = self._instance_seg({1: (16, 19), 2: (0, 4), 3: (22, 25), 4: (27, 30)})
+
+        matched = match_instance_segmentations_by_IoU([seg_t1, seg_t2])
+
+        np.testing.assert_array_equal(matched[1],
+                                      self._instance_seg({3: (16, 19), 1: (0, 4), 4: (22, 25), 5: (27, 30)}))
+        # background stays background
+        np.testing.assert_array_equal(matched[1] == 0, seg_t2 == 0)
+
+    def test_match_instances_nonconsecutive_labels(self):
+        seg_t1 = self._instance_seg({3: (0, 5), 7: (10, 15)})
+        seg_t2 = self._instance_seg({5: (11, 16), 9: (20, 25)})
+
+        matched = match_instance_segmentations_by_IoU([seg_t1, seg_t2])
+
+        # 5 overlaps 7 -> 7, 9 is new -> next label after the largest label of the previous timepoint
+        np.testing.assert_array_equal(matched[1], self._instance_seg({7: (11, 16), 8: (20, 25)}))
+
+    def test_match_instances_empty_segmentations(self):
+        empty = self._instance_seg({})
+        seg = self._instance_seg({1: (0, 5), 2: (10, 15)})
+
+        # empty baseline: all follow-up lesions are new
+        matched = match_instance_segmentations_by_IoU([empty.copy(), seg.copy()])
+        np.testing.assert_array_equal(matched[1], seg)
+
+        # empty follow-up: all lesions disappeared
+        matched = match_instance_segmentations_by_IoU([seg.copy(), empty.copy()])
+        np.testing.assert_array_equal(matched[1], empty)
+
+        # both empty
+        matched = match_instance_segmentations_by_IoU([empty.copy(), empty.copy()])
+        np.testing.assert_array_equal(matched[1], empty)
+
+    def test_match_instances_multiple_timepoints(self):
+        # A persists over all timepoints, B disappears after the first, C appears at the second, D at the third
+        seg_t1 = self._instance_seg({1: (0, 5), 2: (10, 15)})
+        seg_t2 = self._instance_seg({1: (20, 24), 2: (1, 6)})
+        seg_t3 = self._instance_seg({1: (2, 7), 2: (26, 30), 3: (20, 24)})
+
+        matched = match_instance_segmentations_by_IoU([seg_t1, seg_t2, seg_t3])
+
+        np.testing.assert_array_equal(matched[0], seg_t1)
+        np.testing.assert_array_equal(matched[1], self._instance_seg({1: (1, 6), 3: (20, 24)}))
+        np.testing.assert_array_equal(matched[2], self._instance_seg({1: (2, 7), 3: (20, 24), 4: (26, 30)}))
 
     def test_RANO_dicom_KCL(self):
         slicer.mrmlScene.Clear()
