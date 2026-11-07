@@ -1,9 +1,12 @@
 import os
+import shutil
 import sys
+import tempfile
 import time
 from glob import glob
 import json
 
+import numpy as np
 import qt
 import slicer
 from slicer.ScriptedLoadableModule import *
@@ -53,6 +56,12 @@ class RANOTest(ScriptedLoadableModuleTest):
                 else:
                     print(f"Test {test} not found")
         else:  # if no tests were specified run all tests
+            self.test_export_keeps_label_when_lower_label_lesion_disappears()
+            self.test_export_keeps_labels_of_multiple_surviving_lesions()
+            self.test_export_keeps_nonconsecutive_labels()
+            self.test_export_keeps_label_of_new_lesion()
+            self.test_export_with_empty_follow_up_segmentation()
+            self.test_export_labels_consistent_for_repeated_runs()
             self.test_RANO_dicom_KCL()
             #self.test_RANO_dicom_CPTAC()
             self.test_RANO_nifti_MU()
@@ -60,6 +69,127 @@ class RANOTest(ScriptedLoadableModuleTest):
         if any(['.py' in arg for arg in sys.argv]):
             print('Tests executed from command line. Quitting Slicer...')
             slicer.app.quit()
+
+    # axial cylinders (k range, j center, i center) of the enhancing tumor label. The connected component analysis
+    # labels them in this order (raster order), so a, b, c, ... get the instance labels 1, 2, 3, ... at the baseline.
+    # They are large enough to persist after the morphological opening of the RANO_open2D method.
+    lesion_shapes = {"a": (4, 20, 16, 16), "b": (4, 20, 16, 48), "c": (4, 20, 16, 80), "d": (4, 20, 48, 16),
+                     "e": (4, 20, 48, 48), "f": (4, 20, 48, 80), "g": (4, 20, 80, 16),
+                     "c_low": (2, 20, 16, 80)}  # lesion c extending to lower slices, so it is labelled first
+
+    @classmethod
+    def _lesion_mask(cls, lesions, shape=(24, 96, 96), radius=7, label=3):
+        """
+        Create a segmentation mask (k, j, i) containing the given lesions as axial cylinders with the given label.
+        """
+        mask = np.zeros(shape, dtype=np.int16)
+        jj, ii = np.ogrid[:shape[1], :shape[2]]
+        for lesion in lesions:
+            k0, k1, j, i = cls.lesion_shapes[lesion]
+            mask[k0:k1, (jj - j) ** 2 + (ii - i) ** 2 <= radius ** 2] = label
+        return mask
+
+    def _run_2D_measurements_on_masks(self, masks, method2Dmeas="RANO", seg_model_key="t1c, t1n, t2f, t2w: task4001"):
+        """
+        Run the automatic 2D measurements on the given segmentation masks of timepoint 1 and 2. Instead of running the
+        segmentation model, the masks are loaded with the same callback that loads the model output (no registration).
+        """
+        widget = slicer.modules.RANOWidget
+        slicer.mrmlScene.Clear()
+
+        model_info = json.loads(widget._parameterNode.GetParameter("ModelInfo"))
+        model_index = list(model_info.keys()).index(seg_model_key)
+        task_dir = widget.get_task_dir(seg_model_key, widget._parameterNode)
+
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            segNodes = []
+            for tp, (mask, sfx) in enumerate(zip(masks, ["", "_t2"]), start=1):
+                timepoint = f"timepoint{tp}"
+                inputVolume = slicer.util.addVolumeFromArray(np.where(mask > 0, 300, 50).astype(np.int16),
+                                                             name=f"input_t{tp}")
+                for channel in range(1, 5):
+                    getattr(widget.ui, f"inputSelector_channel{channel}_t{tp}").setCurrentNode(inputVolume)
+
+                segNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode", f"outputSegmentation_t{tp}")
+                getattr(widget.ui, f"outputSelector{sfx}").setCurrentNode(segNode)
+                getattr(widget.ui, f"modelComboBox{sfx}").setCurrentIndex(model_index)
+                getattr(widget.ui, f"affineregCheckBox{sfx}").checked = False
+
+                # write the mask as the model output and load it
+                tmp_path_out = os.path.join(tmp_dir, timepoint)
+                os.makedirs(tmp_path_out)
+                maskNode = slicer.util.addVolumeFromArray(mask, nodeClassName="vtkMRMLLabelMapVolumeNode")
+                slicer.util.saveNode(maskNode, os.path.join(tmp_path_out, "output.nii.gz"))
+                slicer.mrmlScene.RemoveNode(maskNode)
+                widget.onSegmentationCliNodeSuccess([inputVolume] * 4, segNode, task_dir, timepoint, tmp_path_out)
+                segNodes.append(segNode)
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+        widget.ui.SegmentSelectorWidget.setCurrentNode(segNodes[0])
+        widget.ui.SegmentSelectorWidget.setCurrentSegmentID("3")  # Enhancing tumor
+        widget.ui.method2DmeasComboBox.setCurrentIndex(widget.ui.method2DmeasComboBox.findText(method2Dmeas))
+        widget.onCalc2DButton()
+        return widget
+
+    def _assert_exported_labels(self, widget, expected_labels):
+        """
+        Check that the matched instance labels of each timepoint are the expected ones and that the exported
+        (resampled) labelmap volumes and the line pairs keep these labels.
+        """
+        for tp, (matched, labelmapVolumeNode, expected) in enumerate(zip(widget.instance_segmentations_matched,
+                                                                         widget.resampledVolumeNodes,
+                                                                         expected_labels), start=1):
+            self.assertEqual([int(lab) for lab in np.unique(matched) if lab != 0], expected,
+                             f"Unexpected matched labels at timepoint {tp}")
+            line_pair_labels = sorted({int(pair.lesion_idx) for pair in widget.lineNodePairs
+                                       if pair.timepoint == f"timepoint{tp}"})
+            self.assertEqual(line_pair_labels, expected, f"Unexpected line pair lesion labels at timepoint {tp}")
+            if not expected:
+                self.assertIsNone(labelmapVolumeNode)
+                continue
+            exported = slicer.util.arrayFromVolume(labelmapVolumeNode)
+            self.assertEqual([int(lab) for lab in np.unique(exported)], [0] + expected,
+                             f"Unexpected exported labels at timepoint {tp}")
+            # same grid and identity transform, so the exported labelmap must equal the matched instance segmentation
+            np.testing.assert_array_equal(exported, matched)
+            self.assertIsNotNone(labelmapVolumeNode.GetDisplayNode().GetColorNode())
+
+    def test_export_keeps_label_when_lower_label_lesion_disappears(self):
+        # baseline lesions 1 and 2, lesion 1 disappears at the follow-up: lesion 2 must keep label 2 (not become 1)
+        for method2Dmeas in ["RANO", "RANO_open2D"]:
+            widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("b")],
+                                                        method2Dmeas=method2Dmeas)
+            self._assert_exported_labels(widget, [[1, 2], [2]])
+
+    def test_export_keeps_labels_of_multiple_surviving_lesions(self):
+        # lesion 1 disappears, lesions 2 and 3 remain; at the follow-up lesion 3 is labelled first by the connected
+        # component analysis, so the matching also changes the order of the labels
+        widget = self._run_2D_measurements_on_masks([self._lesion_mask("abc"), self._lesion_mask(["b", "c_low"])])
+        self._assert_exported_labels(widget, [[1, 2, 3], [2, 3]])
+
+    def test_export_keeps_nonconsecutive_labels(self):
+        widget = self._run_2D_measurements_on_masks([self._lesion_mask("abcdefg"), self._lesion_mask("acg")])
+        self._assert_exported_labels(widget, [[1, 2, 3, 4, 5, 6, 7], [1, 3, 7]])
+
+    def test_export_keeps_label_of_new_lesion(self):
+        widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("abd")])
+        self._assert_exported_labels(widget, [[1, 2], [1, 2, 3]])
+
+    def test_export_with_empty_follow_up_segmentation(self):
+        # all lesions disappear: nothing is exported at the follow-up and the baseline labels are kept
+        widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("")])
+        self._assert_exported_labels(widget, [[1, 2], []])
+
+    def test_export_labels_consistent_for_repeated_runs(self):
+        masks = [self._lesion_mask("abc"), self._lesion_mask("bc")]
+        widget = self._run_2D_measurements_on_masks(masks)
+        first = [slicer.util.arrayFromVolume(node).copy() for node in widget.resampledVolumeNodes]
+        widget.onCalc2DButton()
+        self._assert_exported_labels(widget, [[1, 2, 3], [2, 3]])
+        for exported_first, labelmapVolumeNode in zip(first, widget.resampledVolumeNodes):
+            np.testing.assert_array_equal(slicer.util.arrayFromVolume(labelmapVolumeNode), exported_first)
 
     def test_RANO_dicom_KCL(self):
         slicer.mrmlScene.Clear()
