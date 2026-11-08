@@ -262,10 +262,29 @@ class Measurements2DMixin:
                     labelmapVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLabelMapVolumeNode",
                                                                             newLabelMapVolumeName)
 
-                    slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentsToLabelmapNode(newSegNode,
-                                                                                          segmentIds,
-                                                                                          labelmapVolumeNode,
-                                                                                          referenceVolumeNode)
+                    # without a color table, the exported label values are renumbered 1..N in the order of segmentIds,
+                    # e.g., if lesion 1 disappeared, lesion 2 would be exported as label 1. A color table with the
+                    # segment names maps each segment "Les <label>" back to its matched label value.
+                    colorTable = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLColorTableNode")
+                    try:
+                        colorTable.SetTypeToUser()
+                        colorTable.SetNumberOfColors(int(np.max(seg)) + 1)
+                        colorTable.SetColor(0, "Background", 0, 0, 0, 0)
+                        for lab in np.unique(seg):
+                            if lab == 0:
+                                continue
+                            colorTable.SetColor(int(lab), f"Les {lab}", 1, 0, 0, 1)
+
+                        slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentsToLabelmapNode(
+                            newSegNode,
+                            segmentIds,
+                            labelmapVolumeNode,
+                            referenceVolumeNode,
+                            slicer.vtkSegmentation.EXTENT_UNION_OF_EFFECTIVE_SEGMENTS,
+                            colorTable
+                        )
+                    finally:
+                        slicer.mrmlScene.RemoveNode(colorTable)
 
                     # set the views
                     ui_helper_utils.UIHelperMixin.setLabelVolumes(labelmapVolumeNode, f"timepoint{i + 1}")
