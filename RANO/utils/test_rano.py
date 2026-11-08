@@ -56,11 +56,8 @@ class RANOTest(ScriptedLoadableModuleTest):
                 else:
                     print(f"Test {test} not found")
         else:  # if no tests were specified run all tests
-            self.test_export_keeps_label_when_lower_label_lesion_disappears()
-            self.test_export_keeps_labels_of_multiple_surviving_lesions()
-            self.test_export_keeps_nonconsecutive_labels()
-            self.test_export_keeps_label_of_new_lesion()
-            self.test_export_with_empty_follow_up_segmentation()
+            self.test_export_preserves_matched_labels()
+            self.test_export_preserves_matched_labels_RANO_open2D()
             self.test_export_labels_consistent_for_repeated_runs()
             self.test_RANO_dicom_KCL()
             #self.test_RANO_dicom_CPTAC()
@@ -156,31 +153,25 @@ class RANOTest(ScriptedLoadableModuleTest):
             np.testing.assert_array_equal(exported, matched)
             self.assertIsNotNone(labelmapVolumeNode.GetDisplayNode().GetColorNode())
 
-    def test_export_keeps_label_when_lower_label_lesion_disappears(self):
-        # baseline lesions 1 and 2, lesion 1 disappears at the follow-up: lesion 2 must keep label 2 (not become 1)
-        for method2Dmeas in ["RANO", "RANO_open2D"]:
-            widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("b")],
-                                                        method2Dmeas=method2Dmeas)
-            self._assert_exported_labels(widget, [[1, 2], [2]])
+    def test_export_preserves_matched_labels(self):
+        cases = [
+            ("ab", "b", [[1, 2], [2]]),  # lesion 1 disappears: lesion 2 keeps label 2 (not 1)
+            ("abc", ["b", "c_low"], [[1, 2, 3], [2, 3]]),  # lesion 3 is labelled first at the follow-up
+            ("abcdefg", "acg", [[1, 2, 3, 4, 5, 6, 7], [1, 3, 7]]),  # nonconsecutive labels
+            ("ab", "abd", [[1, 2], [1, 2, 3]]),  # new lesion
+            ("ab", "", [[1, 2], []]),  # all lesions disappear: nothing is exported at the follow-up
+        ]
+        for baseline, follow_up, expected in cases:
+            with self.subTest(baseline=baseline, follow_up=follow_up):
+                masks = [self._lesion_mask(baseline), self._lesion_mask(follow_up)]
+                widget = self._run_2D_measurements_on_masks(masks)
+                self._assert_exported_labels(widget, expected)
 
-    def test_export_keeps_labels_of_multiple_surviving_lesions(self):
-        # lesion 1 disappears, lesions 2 and 3 remain; at the follow-up lesion 3 is labelled first by the connected
-        # component analysis, so the matching also changes the order of the labels
-        widget = self._run_2D_measurements_on_masks([self._lesion_mask("abc"), self._lesion_mask(["b", "c_low"])])
-        self._assert_exported_labels(widget, [[1, 2, 3], [2, 3]])
-
-    def test_export_keeps_nonconsecutive_labels(self):
-        widget = self._run_2D_measurements_on_masks([self._lesion_mask("abcdefg"), self._lesion_mask("acg")])
-        self._assert_exported_labels(widget, [[1, 2, 3, 4, 5, 6, 7], [1, 3, 7]])
-
-    def test_export_keeps_label_of_new_lesion(self):
-        widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("abd")])
-        self._assert_exported_labels(widget, [[1, 2], [1, 2, 3]])
-
-    def test_export_with_empty_follow_up_segmentation(self):
-        # all lesions disappear: nothing is exported at the follow-up and the baseline labels are kept
-        widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("")])
-        self._assert_exported_labels(widget, [[1, 2], []])
+    def test_export_preserves_matched_labels_RANO_open2D(self):
+        # lesion 1 disappears at the follow-up: lesion 2 must keep label 2 after the opening of RANO_open2D
+        widget = self._run_2D_measurements_on_masks([self._lesion_mask("ab"), self._lesion_mask("b")],
+                                                    method2Dmeas="RANO_open2D")
+        self._assert_exported_labels(widget, [[1, 2], [2]])
 
     def test_export_labels_consistent_for_repeated_runs(self):
         masks = [self._lesion_mask("abc"), self._lesion_mask("bc")]
