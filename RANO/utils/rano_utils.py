@@ -394,7 +394,8 @@ def match_instance_segmentations_by_IoU(instance_segs):
     """
     Given a list of instance segmentations, this function relabels the segmentations so that the labels match
     between timepoints. It does so by finding the optimal matching of labels based on the IoU (Intersection over
-    Union) of the instances.
+    Union) of the instances. Instances without any overlap (IoU of 0) are never matched. Instances that are not matched
+    to an instance of the previous timepoint get a new label that is not used in the previous timepoint.
 
     Args:
         instance_segs: list of instance segmentations, where each segmentation is a 3D numpy array with shape (W, H, D) and
@@ -417,17 +418,22 @@ def match_instance_segmentations_by_IoU(instance_segs):
         # find optimal matching based on minimizing average iou
         row_ind, col_ind = linear_sum_assignment(-iou)
 
+        # discard assigned pairs without any overlap, they are not the same instance
+        valid = iou[row_ind, col_ind] > 0
+        row_ind, col_ind = row_ind[valid], col_ind[valid]
+
         labels_t1 = ccs_t1[row_ind]
         labels_t2 = ccs_t2[col_ind]
 
         return labels_t1, labels_t2
 
-    def relabel_seg(ref_labs, matched_labs, seg):
-        # if some labels in seg are not in matched_labs, we need to assign them to new (arbitrary) labels
+    def relabel_seg(ref_labs, matched_labs, seg, ref_seg):
+        # if some labels in seg are not in matched_labs, we need to assign them to new labels
         orig_labels = np.unique(seg)
-        unmatched_labels = np.setdiff1d(orig_labels, matched_labs)
-        # assign new labels are the next available label (not in ref_labs)
-        unmatched_labels_new = np.array(list(set(range(len(orig_labels))) - set(ref_labs))[0:len(unmatched_labels)])
+        unmatched_labels = np.setdiff1d(orig_labels, np.append(matched_labs, 0))
+        # new labels must not be used by any instance in ref_seg (including unmatched ones that disappeared)
+        first_new_label = int(np.max(ref_seg)) + 1
+        unmatched_labels_new = np.arange(first_new_label, first_new_label + len(unmatched_labels))
 
         seg_out = np.zeros_like(seg)
         for src, dest in zip(matched_labs.tolist() + unmatched_labels.tolist(),
@@ -445,7 +451,7 @@ def match_instance_segmentations_by_IoU(instance_segs):
 
         labels_t1, labels_t2 = get_matched_labels(seg1, seg2)
         # update the labels in seg2
-        instance_segs[i] = relabel_seg(labels_t1, labels_t2, seg2)
+        instance_segs[i] = relabel_seg(labels_t1, labels_t2, seg2, seg1)
 
     matched_instance_segs = instance_segs
 
